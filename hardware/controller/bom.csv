@@ -1,0 +1,39 @@
+Ref,Qty,Part,Value / rating,Source (suggested),Notes
+A1,1,ESP32-S3-DevKitC-1 N16R8,,Espressif / AliExpress,On 2x22 female headers; check v1.0 vs v1.1 (RGB LED pin)
+U1,1,Pololu S7V7F5,"5V buck-boost, ~1A",Pololu #2119,+5V_LOGIC
+U2,1,Pololu S9V11F5,"5V buck-boost, 1.5A",Pololu #2836,+5V_AUDIO
+U3 U4,2,Pololu DRV8874 carrier,"2.1A cont, IN/IN",Pololu #4035,Shoulders
+U5,1,Pololu TB6612FNG carrier,1.2A/ch,Pololu #713,Eye motor (A) and LEDs (B)
+U6,1,MAX98357A I2S amp breakout,"3W class D",Adafruit #3006 or clone,Speaker amp
+F1,1,Mini blade fuse + PCB holder,5A,,Keep the Phase 1 rating
+Q1,1,P-channel MOSFET,"-20V or more, Rds<20mΩ (e.g. AO3401A / SI2323)",LCSC,Reverse polarity protection
+D1,1,TVS diode,SMBJ8.5A,LCSC,On VMOT
+D2,1,Schottky diode,"SS34, 3A 40V",LCSC,Blocks USB backfeed into U1
+D3,1,TVS diode,ESD5Z3V3,LCSC,Trigger jack
+D4,1,Dual Schottky,BAT54S,LCSC,PIR input clamp
+C1,1,Electrolytic,"1000µF 16V, low ESR",,VMOT bulk
+C2,1,Electrolytic,470µF 10V,,+5V_LOGIC
+C3 C4,2,Electrolytic,470µF 16V,,U1 and U2 inputs
+C5,1,Electrolytic,100µF 10V,,+5V_AUDIO
+C6-C10,5,Ceramic,100nF 0805,,Local bypass at each module header
+R1,1,Resistor,47k 1% 0805,,VMON divider top
+R2,1,Resistor,22k 1% 0805,,VMON divider bottom
+R3,1,Resistor,0Ω 1206,,Eye LED series (replace once LED type is known)
+R4-R12,9,Resistor,1k 0805,,Series on every external line and CS lines
+R13 R14,2,Resistor,100k 0805,,Shoulder switch pulldowns
+R15 R16,2,Resistor,10k 0805,,Eye home and trigger pull-ups
+R17 R18,2,Resistor,4.7k 0805,,I2C pull-ups
+R19 R20,2,Resistor,10k 0805,,DRV8874 FAULT pull-ups
+J1,1,DC barrel jack,"5.5x2.1, 5A",,Plus parallel 2-pin 5.08mm screw terminal footprint
+J3 J6,2,Harness connector,2-pin,,Shoulder motors (type TBD: measure stock board)
+J4 J7,2,Harness connector,3-pin,,Elbows
+J5 J8,2,Harness connector,4-pin,,Shoulder switches
+J9 J10 J11,3,Harness connector,2-pin,,Head
+J12,1,3.5mm mono jack,PCB mount,,Trigger
+J13,1,Harness connector,3-pin,,PIR
+J14,1,JST-SH 4-pin,Qwiic / STEMMA QT,,I2C
+J15,1,Terminal block,"2-pin 3.5mm",,Speaker
+J16,1,Female header,1x6 2.54mm,,INMP441 module
+JP1,1,Pin header + jumper,1x3,,Amp gain
+SPK,1,Speaker,"4-8Ω, 3W, ~40-50mm",,Fits in the torso
+-,6,Female headers,various 2.54mm,,Module sockets

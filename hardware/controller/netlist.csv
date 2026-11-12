@@ -1,0 +1,32 @@
+Net,Connections,Notes
+VMOT,"Q1 drain, C1+, D1, R1, U1 VIN, U2 VIN, U3 VM, U4 VM, U5 VM, J4.2, J7.2",Adapter after fuse and reverse protection
+GND,"J1-, C1-, D1, all module GND pins, J4.1, J7.1, J5.2, J8.2, J9.2, J12 sleeve, J13.3, J14.1",Star point at J1
++5V_LOGIC,"D2 cathode, C2+, A1 5V, J13.1",
++5V_AUDIO,"U2 VOUT, C5+, U6 VIN",
++3V3,"A1 3V3, U3/U4 VCC, U3/U4 PMODE, U3/U4 SLEEP, U5 VCC, U5 STBY, U5 PWMA, U5 PWMB, J5.1, J8.1, J14.2, J16 VDD, pull-ups",From the dev board's regulator
+VMON,"R1/R2 junction, A1 GPIO1",x0.319
+CS_R,"U3 CS via 1k, A1 GPIO2",≈1.1V/A
+CS_L,"U4 CS via 1k, A1 GPIO4",
+SH_R_IN1 / IN2,"U3 IN1/IN2, A1 GPIO11/12",PWM
+SH_L_IN1 / IN2,"U4 IN1/IN2, A1 GPIO13/14",PWM
+SH_R_OUT1 / OUT2,"U3 OUT1/OUT2, J3.1/J3.2",Right shoulder motor
+SH_L_OUT1 / OUT2,"U4 OUT1/OUT2, J6.1/J6.2",Left shoulder motor
+EYE_M1 / M2,"U5 AIN1/AIN2, A1 GPIO38/39",
+EYE_L1 / L2,"U5 BIN1/BIN2, A1 GPIO41/42",
+EYE_MOT_A / B,"U5 AO1/AO2, J11.1/J11.2",Eye motor
+EYE_LED_A / B,"U5 BO1 via R3, U5 BO2, J10.1/J10.2",Eye LEDs
+ELBOW_R_TX,"A1 GPIO17, 1k, J4.3",UART1 TX 9600 8N1
+ELBOW_L_TX,"A1 GPIO18, 1k, J7.3",UART2 TX
+SW_SH_R,"J5.3, 1k, 100k to GND, A1 GPIO5",
+SW_SH_L,"J8.3, 1k, 100k to GND, A1 GPIO6",
+SW_EYE,"J9.1, 1k, 10k to 3V3, A1 GPIO7",Active low
+TRIG,"J12 tip, D3, 1k, 10k to 3V3, A1 GPIO8",Active low
+PIR,"J13.2, 1k, D4 clamp, A1 GPIO9",
+I2C_SDA,"A1 GPIO15, 4.7k to 3V3, J14.3",
+I2C_SCL,"A1 GPIO16, 4.7k to 3V3, J14.4",
+I2S_BCLK,"A1 GPIO40, U6 BCLK, J16 SCK",
+I2S_WS,"A1 GPIO21, U6 LRC, J16 WS",
+I2S_DOUT,"A1 GPIO47, U6 DIN",
+I2S_DIN,"A1 GPIO10, J16 SD",
+SPK+ / SPK-,"U6 outputs, J15.1/J15.2",Bridge-tied: never ground either side
+FAULT_R / FAULT_L,"U3/U4 FAULT, 10k to 3V3, test points",Open drain

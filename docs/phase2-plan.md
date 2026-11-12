@@ -1,5 +1,7 @@
 # Phase 2: custom controller (plan)
 
+> The first board draft is in [phase2-pcb.md](phase2-pcb.md). It changes two choices below: DRV8874 instead of DRV8871 (adds current sensing), and a TB6612 for the eye motor and LEDs instead of MOSFETs.
+
 Replace the stock board with one ESP32-S3 that plugs into the existing harness connectors. Heavy work (speech, vision, AI) runs on a PC; the ESP32 stays real-time: motors, sensors, audio playback.
 
 ## What the controller has to drive and read
