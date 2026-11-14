@@ -6,14 +6,14 @@
 //   ESP32 GND -> breadboard GND rail
 //
 // Frame (9 bytes): AB 01 09 41 [pos lo] [pos hi] [time lo] [time hi] [checksum]
-//   pos  = target position, signed 16-bit little-endian (-700 = home, 200 = fully in)
+//   pos  = target position, signed 16-bit little-endian (-700 = home, 350 = fully in, right arm)
 //   time = move time in ms
 //   checksum = (0xAF + 9*b0 + 8*b1 + ... + 2*b7) & 0xFF
 //
 // Keys (use picocom; the Arduino Serial Monitor can't send arrow keys):
 //   Up arrow / Down arrow = jog the elbow in / out by one step
 //   h          = home (-700)
-//   i          = fully in (200)
+//   i          = fully in (350)
 //   m          = middle (-250)
 //   j<num>     = set jog step, e.g. j25   (then Enter)
 //   n<num>     = set device ID, e.g. n2 (1 = right elbow; left is unconfirmed)
@@ -33,7 +33,7 @@ const float SCALE = (47.0f + 22.0f) / 22.0f;   // undo the divider -> real rail 
 const uint32_t SETTLE_MS = 2500;               // time for the elbow to get home
 
 // Safe range: only what we've seen the stock board use
-const int POS_HOME = -700, POS_MIN = -700, POS_MAX = 200;
+const int POS_HOME = -700, POS_MIN = -700, POS_MAX = 350;   // measured right-arm range
 const int TIME_MIN = 200, TIME_MAX = 3000;     // move time limits, ms
 const int JOG_TIME = 400;                      // move time for arrow-key jogs, ms
 
@@ -280,7 +280,7 @@ void loop() {
       break;
     }
     case 'h': moveTo(POS_HOME, 1500, "HOME", true); break;
-    case 'i': moveTo(200, 1000, "IN", true); break;
+    case 'i': moveTo(POS_MAX, 1000, "IN", true); break;
     case 'm': moveTo(-250, 1500, "MID", true); break;
     case 'j': {
       int s = readNumber();

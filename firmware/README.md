@@ -8,6 +8,8 @@ Each sketch lives in its own folder, as the Arduino IDE requires. Board: **ESP32
 | [freddy_head_monitor](freddy_head_monitor/) | Logs the six head wires plus the supply, pair differences and PWM ripple (CSV, 100 Hz) | Listen only |
 | [freddy_sniffer](freddy_sniffer/) | Reads an elbow's serial line on GPIO17 and decodes every frame | Listen only |
 | [freddy_elbow_controller](freddy_elbow_controller/) | Drives an elbow: arrow-key jog, home/in/middle, go-to, range check, motion-sense calibration, checksum hunts | **Transmits**: stock board must be disconnected |
+| [freddy_head_test](freddy_head_test/) | Head bench test on a TB6612: eye motor speed, reverse, aim by timing, glances; LED dimming, breathing, flicker. See [head-bench-test.md](../docs/head-bench-test.md) | **Drives the head**: stock board must be disconnected |
+| [freddy_power_test](freddy_power_test/) | Phase 2 breadboard power test: shoulder lift cycles while logging VMOT, the 5V rail and motor current; counts resets. See [phase2-power-test.md](../docs/phase2-power-test.md) | **Drives a shoulder**: stock board must be disconnected |
 | [freddy_left_test](freddy_left_test/) | Elbow test suite: find device ID, automatic range explorer | **Transmits**: stock board must be disconnected |
 
 Wiring for each sketch is described in the comment block at the top of its `.ino` file and in [docs/phase1-harness.md](../docs/phase1-harness.md).

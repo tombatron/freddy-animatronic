@@ -8,7 +8,7 @@ The head is a one-way eye motor, a home switch and a set of LEDs. There's no ser
 | --- | --- | --- |
 | 3 (yellow/orange) | Eye sweep motor | Switched on for the whole show, always one direction; a cam turns rotation into the side-to-side sweep. About 4.4 s per sweep, six sweeps |
 | 1 (yellow/white) | Eye home switch | Yellow pulled up to 4.8V. Drops to 0V for ~250 ms once per sweep; the last drop (~460 ms) is when the board stops the motor |
-| 2 (yellow/white) | Eye LEDs | Off at idle. Rapid on/off flicker near the end of the show; at moments the polarity reverses (possibly a back-to-back LED pair) |
+| 2 (yellow/white) | Eye LEDs | Off at idle. Yellow = + (anode), white = − (cathode), one direction only; the board lights them by pulling white low. ~2.8V across when lit, ~20mA (meter reading, flicker averaged). Rapid flicker near the end of the show |
 
 **Stock logic:** start the eye motor with the show, keep it running, and at the end stop it on the next home-switch closure so the eyes face straight ahead.
 
@@ -24,6 +24,11 @@ Log: [captures/head_show.csv](../captures/head_show.csv) (from `freddy_head_moni
 
 ## For Phase 2
 
+See the [head bench test](head-bench-test.md) for exploring speed, reverse, aiming and LED effects.
+
+
 - Eye motor: one low-side MOSFET (one direction is enough).
 - Home switch: a GPIO with a pull-up; stop the motor on its falling edge.
-- LEDs: MOSFET drive with PWM for dimming and flicker. If they turn out to be a back-to-back pair, use an H-bridge channel instead.
+- LEDs: one direction, ~2.8V at ~20mA. From a ~7V rail that needs a ~220Ω series resistor; PWM for dimming and flicker.
+
+**Measured currents (stock show):** eye motor 80–90mA running; eye LEDs ~20mA. Both well inside a TB6612 channel (1.2A continuous).

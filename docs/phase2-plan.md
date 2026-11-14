@@ -1,6 +1,6 @@
 # Phase 2: custom controller (plan)
 
-> The first board draft is in [phase2-pcb.md](phase2-pcb.md). It changes two choices below: DRV8874 instead of DRV8871 (adds current sensing), and a TB6612 for the eye motor and LEDs instead of MOSFETs.
+> The first board draft is in [phase2-pcb.md](phase2-pcb.md). It changes some choices below: DRV8876 instead of DRV8871 (runs below 6.5V, adds current sensing), a TB6612 for the eye motor and LEDs instead of MOSFETs, and an MP1584 buck for audio.
 
 Replace the stock board with one ESP32-S3 that plugs into the existing harness connectors. Heavy work (speech, vision, AI) runs on a PC; the ESP32 stays real-time: motors, sensors, audio playback.
 
@@ -13,7 +13,7 @@ Replace the stock board with one ESP32-S3 that plugs into the existing harness c
 | Elbow servos | 2 | UART TX, one pin per elbow, 1kΩ series | 9600 8N1, frames per [elbow-protocol.md](elbow-protocol.md). Power from 7V |
 | Eye motor | 1 | Low-side MOSFET | One direction |
 | Eye home switch | 1 | GPIO with pull-up | Stop on falling edge |
-| Eye LEDs | 1 | MOSFET (PWM) | H-bridge if back-to-back |
+| Eye LEDs | 1 | TB6612 channel (PWM) | One direction, ~2.8V at ~20mA |
 | Trigger jack | 1 | GPIO with pull-up | Contact closure |
 | PIR | 1 | GPIO | Verify voltage first |
 | Supply monitor | 1 | ADC via 47k/22k | Brownout and stall hints |
@@ -23,7 +23,7 @@ Replace the stock board with one ESP32-S3 that plugs into the existing harness c
 
 - The 7.2V 4A adapter sags to ~4.9V under a shoulder lift, so a plain buck converter would brown out the ESP32.
 - Logic: **Pololu S7V7F5** (5V step-up/step-down, ~1A) with a 470–1000µF input capacitor.
-- Audio: a separate buck-boost (S9V11F5, or an S13V30F5 for more headroom).
+- Audio: a separate regulator. Ordered: an MP1584 buck (the amp tolerates a sag, so buck-boost isn't needed).
 - Consider a **7.5V 6A** adapter for headroom.
 - Keep the 5A fuse. Use a 22AWG or heavier main feed (the Phase 1 lead is thinner).
 

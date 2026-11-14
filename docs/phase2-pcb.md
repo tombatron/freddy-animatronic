@@ -2,7 +2,7 @@
 
 A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and driver parts are off-the-shelf modules on headers, so rev A is easy to hand-solder, debug and rework. A later revision can put the parts directly on the board once the design has proven itself.
 
-**Status:** schematic draft and placement sketch. Not in KiCad yet. See [open questions](#open-questions) before ordering anything.
+**Status:** schematic draft and placement sketch. Not in KiCad yet. Modules are ordered (generic DRV8876, TB6612 and MP1584 boards instead of the Pololu ones first planned); their footprints get confirmed from the real boards before layout. The [power test](phase2-power-test.md) is the last design check.
 
 | Sheet | File |
 | --- | --- |
@@ -24,9 +24,9 @@ flowchart LR
     J1["J1 7.2–7.6V in"] --> F1["F1 5A + Q1 reverse protect<br/>C1 1000µF, D1 TVS"]
     F1 --> VMOT(("VMOT"))
     VMOT --> U1["U1 S7V7F5<br/>+5V_LOGIC"]
-    VMOT --> U2["U2 S9V11F5<br/>+5V_AUDIO"]
-    VMOT --> U3["U3 DRV8874<br/>right shoulder"]
-    VMOT --> U4["U4 DRV8874<br/>left shoulder"]
+    VMOT --> U2["U2 MP1584 buck<br/>+5V_AUDIO"]
+    VMOT --> U3["U3 DRV8876<br/>right shoulder"]
+    VMOT --> U4["U4 DRV8876<br/>left shoulder"]
     VMOT --> U5["U5 TB6612<br/>eye motor + LEDs"]
     VMOT --> EL["J4 / J7 elbow power"]
     U1 --> ESP["ESP32-S3<br/>DevKitC-1 N16R8"]
@@ -42,12 +42,12 @@ flowchart LR
 
 ## Design choices
 
-- **Modules, not bare chips (rev A).** Pololu carriers already have their bypass caps, current-sense resistors and thermal copper. Each one sits on 0.1" headers, so a dead driver is a 30-second swap.
-- **Three rails.** VMOT is the raw adapter after the fuse. It drives the shoulders, eye motor and elbows directly, as the stock board does. Logic and audio each get their **own buck-boost**, because the adapter sags to ~4.9V during a lift and because a class-D amp on the ESP32's rail would put noise on WiFi and the ADC.
+- **Modules, not bare chips (rev A).** The driver and regulator modules already have their bypass caps, current-sense resistors and thermal copper. Each one sits on 0.1" headers, so a dead driver is a 30-second swap.
+- **Three rails.** VMOT is the raw adapter after the fuse. It drives the shoulders, eye motor and elbows directly, as the stock board does. Logic and audio each get their **own regulator**, because a class-D amp on the ESP32's rail would put noise on WiFi and the ADC. Logic uses a **buck-boost** (Pololu S7V7F5) because the adapter sags to ~4.9V during a lift. Audio uses a plain **buck** (MP1584): the amp runs from 2.5 to 5.5V, so a sag only makes it a little quieter.
 - **D2 Schottky into the ESP32's 5V pin**, so plugging in USB while the board is powered can't backfeed the regulator (and the other way around).
-- **DRV8874 for the shoulders** instead of the DRV8871 from the plan. It has the same IN/IN control, a 2.1A continuous rating (stall is ~1.8A) and an analog current output (CS), so the ESP32 can see a stall or a "the arm hit the stop" spike. That covers most of what the INA219 was for.
-- **TB6612 for the head.** Channel A runs the eye motor (one direction, but the H-bridge gives braking). Channel B runs the LEDs, and it is bidirectional in case they turn out to be a back-to-back pair. R3 is a 0Ω footprint that can become a current-limit resistor.
-- **Every external input** has a 1k series resistor and a pull resistor. The trigger jack (the only user-facing input) also gets a TVS. The PIR gets a BAT54S clamp until its output voltage is measured.
+- **DRV8876 for the shoulders** instead of the DRV8871 from the plan. It runs down to 4.5V (the DRV8871 needs 6.5V, and the adapter sags to ~4.9V), has IN/IN control and an analog current output (IPROPI), so the ESP32 can see a stall or a "the arm hit the stop" spike. That covers most of what the INA219 was for. It's rated 1.3A continuous, 3.5A peak: a normal lift is 0.5–1A; a 1.8A stall hits its current limit, and the firmware stops on stalls anyway. (The DRV8874, 2.1A continuous, is the upgrade path if more headroom is ever needed.)
+- **TB6612 for the head.** Channel A runs the eye motor (one direction, but the H-bridge gives braking). Channel B runs the LEDs (measured: one direction, yellow +, ~2.8V at ~20mA). R3 = 220Ω sets about the stock brightness at full on; PWM dims and flickers.
+- **Every external input** has a 1k series resistor and a pull resistor. The trigger jack (the only user-facing input) also gets a TVS. The PIR output only reaches ~1.3V on motion (measured), which is too low to read reliably as a digital input on a 3.3V ESP32. So GPIO9 reads it with the **ADC** (it's on ADC1) against a ~0.6V threshold, with a 100k pulldown so an unplugged sensor reads idle. The BAT54S clamp stays as protection.
 - **Audio:** MAX98357A (I2S in, 3W class D out, no DAC needed). The INMP441 microphone shares BCLK/WS, so it's one full-duplex I2S bus and costs only one extra GPIO.
 
 ## GPIO map
@@ -61,10 +61,10 @@ flowchart LR
 | 6 | SW_SH_L | Left shoulder switch |
 | 7 | SW_EYE | Eye home switch (10k pull-up) |
 | 8 | TRIG | Trigger jack (10k pull-up) |
-| 9 | PIR | PIR output |
+| 9 | PIR | PIR output, read as analog (ADC1), ~1.3V = motion |
 | 10 | I2S_DIN | Microphone data |
-| 11, 12 | SH_R_IN1/2 | Right shoulder DRV8874 (PWM) |
-| 13, 14 | SH_L_IN1/2 | Left shoulder DRV8874 (PWM) |
+| 11, 12 | SH_R_IN1/2 | Right shoulder DRV8876 (PWM) |
+| 13, 14 | SH_L_IN1/2 | Left shoulder DRV8876 (PWM) |
 | 15, 16 | I2C_SDA/SCL | Qwiic header |
 | 17 | ELBOW_R_TX | UART1 TX, right elbow |
 | 18 | ELBOW_L_TX | UART2 TX, left elbow |
@@ -79,7 +79,7 @@ Avoided: strapping pins 0, 3, 45, 46; USB 19, 20; octal PSRAM 35–37; UART0 43,
 
 ## Connectors
 
-The harness side keeps Freddy's wire colors. Pin 1 is always listed first.
+**Drop-in: Freddy's harness is not modified.** Each harness connection is a short **pre-made JST SM pigtail** (the inline 2.54 mm connectors Freddy already uses) soldered straight into plated pads on the board, and Freddy's original plugs mate with them. Pigtail gender is the opposite of Freddy's ends; pin counts match Freddy's plugs. Pads: 1.2 mm drill, 2.54 mm spacing (20–22 AWG), with a pair of zip-tie holes behind each group for strain relief. Silkscreen next to every pad group: the cable name and Freddy's wire colors. **Mix-ups:** Freddy's own plugs set the sizes, and the head cables and shoulder motors are all 2-pin, so the pigtails are grouped by body part (arm pigtails at each arm end, head pigtails together) and each gets a heat-shrink label. The one harmful swap is the eye LED plug onto a shoulder motor pigtail. Wire colors below are Freddy's, and pin 1 is listed first.
 
 | Ref | Goes to | Pins |
 | --- | --- | --- |
@@ -87,11 +87,11 @@ The harness side keeps Freddy's wire colors. Pin 1 is always listed first.
 | J3 / J6 | Right / left shoulder motor (cable 1) | 1 OUT1, 2 OUT2 |
 | J4 / J7 | Right / left elbow (cable 2) | 1 GND, 2 VMOT, 3 signal |
 | J5 / J8 | Right / left shoulder switch (cable 3) | 1 +3V3 (red), 2 GND (black), 3 switch (yellow), 4 white (test point only) |
-| J9 | Eye home switch (head 1) | 1 switch (yellow), 2 GND (white) |
-| J10 | Eye LEDs (head 2) | 1 LED (yellow), 2 LED (white) |
-| J11 | Eye motor (head 3) | 1 motor (yellow), 2 motor (orange) |
+| J9 | Eye home switch (head cable 1) | 1 switch (yellow), 2 GND (white) |
+| J10 | Eye LEDs (head cable 2) | 1 LED + (yellow), 2 LED − (white) |
+| J11 | Eye motor (head cable 3) | 1 motor (yellow), 2 motor (orange) |
 | J12 | Trigger | 3.5mm mono jack: tip = TRIG, sleeve = GND |
-| J13 | PIR | 1 +5V_LOGIC, 2 signal, 3 GND |
+| J13 | PIR | 1 VMOT (yellow, power), 2 signal (orange), 3 GND (black). Powered from VMOT, as the stock board does |
 | J14 | I2C | JST-SH 4-pin Qwiic: GND, 3V3, SDA, SCL |
 | J15 | Speaker | 2-pin, 4–8Ω |
 | J16 | INMP441 module | 1×6 female header |
@@ -103,7 +103,7 @@ The harness side keeps Freddy's wire colors. Pin 1 is always listed first.
 | --- | --- | --- | --- |
 | Shoulder motor, each | VMOT | 0.5–1A while lifting | 1.8A stall |
 | Elbow module, each | VMOT | ~0.1A | ~0.5A moving (estimate) |
-| Eye motor + LEDs | VMOT | ~0.2A | 0.4A |
+| Eye motor + LEDs | VMOT | ~0.1A (motor 80–90mA measured, LEDs ~20mA) | ~0.4A (motor start, estimate) |
 | ESP32-S3 (WiFi on) | +5V_LOGIC | 0.15A | 0.5A bursts |
 | Speaker amp, 3W into 4Ω | +5V_AUDIO | 0.3A | 0.8A |
 
@@ -120,18 +120,14 @@ Worst case is both shoulders stalled while audio plays: about 5A, which is right
 
 ## Open questions
 
-1. **Harness connector type and pitch.** Measure the stock board's headers before choosing footprints. Fallbacks: JST-XH 2.5 mm, or solder pads plus strain relief if the plugs are odd.
-2. **Cable 3 white wire.** Still unknown. It goes to a test point only, so nothing depends on it.
-3. **Eye LED polarity.** A single LED, or a back-to-back pair? Channel B covers both cases. Measure the forward voltage to pick R3.
-4. **Eye motor current.** Measure the stall current. The TB6612 is rated 1.2A per channel, which should be plenty.
-5. **PIR supply and output voltage.** The clamp covers a 5V output, but check first.
-6. **RGB LED pin.** DevKitC-1 v1.0 uses GPIO48 for the RGB LED; v1.1 uses GPIO38, which this map gives to the eye motor. With a v1.1 board the LED will flicker while the eyes move (harmless), or swap GPIO38 and GPIO48.
-7. **Elbow current.** Not measured yet. Add an INA219 on J14 during bring-up to log it.
+1. **Cable 3 white wire.** Still unknown. It goes to a test point only, so nothing depends on it.
+2. **RGB LED pin.** DevKitC-1 v1.0 uses GPIO48 for the RGB LED; v1.1 uses GPIO38, which this map gives to the eye motor. With a v1.1 board the LED will flicker while the eyes move (harmless), or swap GPIO38 and GPIO48.
+3. **Elbow current.** Not measured yet. Add an INA219 on J14 during bring-up to log it.
 
 ## Next steps
 
-1. Answer open questions 1, 3 and 4 with a meter on the real harness.
-2. Breadboard the power section and one DRV8874 with a shoulder motor: check the 5V rail stays up during a full-drive lift.
+1. Run the [breadboard power test](phase2-power-test.md): check the 5V rail stays up during a full-drive lift. Optionally read the PIR on GPIO9 at the same time (motion should read clearly above 0.6V).
+2. Photograph and measure the generic DRV8876, TB6612 and MP1584 modules; update the footprints to match.
 3. Capture the schematic in KiCad (one sheet per SVG above), assign footprints, lay out from the placement sketch.
-4. Order 5 boards (JLCPCB, ~$20) and modules from the BOM.
+4. Order 5 boards (JLCPCB, ~$20).
 5. Bring-up order: power only → ESP32 → one subsystem at a time, re-using the Phase 1 test sketches.

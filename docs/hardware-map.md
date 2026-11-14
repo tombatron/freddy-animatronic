@@ -20,7 +20,7 @@ Everything plugs into the stock board with SM-style connectors (2.54mm pitch). V
 | Head cable 1 | 2 | yellow, white | Eye home switch | Yellow pulled up to 4.8V, white GND |
 | Head cable 2 | 2 | yellow, white | Eye LEDs | Switched on/off by the board; off at idle |
 | Head cable 3 | 2 | yellow, orange | Eye sweep motor | Yellow ~7V, orange switched to ground |
-| PIR | 3 | orange, yellow, black | Motion sensor | Assumed power, signal, ground |
+| PIR | 3 | orange, yellow, black | Motion sensor | Measured: **yellow = power (~7V, raw supply)**, **orange = signal** (0V idle, ~1.3V on motion), black = GND |
 | Trigger | 3.5mm mono | tip, sleeve | Start button | Contact closure starts a show |
 
 ## Tap board row map (arm)

@@ -20,3 +20,4 @@
 - Divider (or a 1kΩ resistor) on every ESP32 input; never connect anything straight to a GPIO.
 - Two pin assignments on a cable can look identical; verify by measuring, not by color.
 - Stock board out before the ESP32 transmits on any line.
+- Check resistor values on the Ω setting before using them. 330Ω (orange-orange-brown) and 330kΩ (orange-orange-yellow) look nearly identical, and a 330k in an LED test reads as "the LEDs are dead".

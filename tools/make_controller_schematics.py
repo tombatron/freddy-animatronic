@@ -62,17 +62,18 @@ with drawing("controller_power.svg") as d:
     d += elm.Dot(open=True).at((0, 6.5)).label("J1 barrel\n5.5×2.1, + center", "left")
     d += elm.Fuse().right().label("F1 5A\n(mini blade)")
     d += elm.PFet().right().label("Q1 P-FET\nreverse\nprotection", "bottom", ofst=0.3).reverse()
+    d += elm.Line().right(1.6)
     d += (vm := elm.Dot())
-    d += elm.Line().right(1.2)
+    d += elm.Line().right(4.2)
     d += elm.Dot(open=True).label("VMOT", "right")
-    d += elm.Capacitor(polar=True).at(vm.center).down().label("C1 1000µF\n16V", "left")
+    d += elm.Capacitor(polar=True).at(vm.center).down().label("C1 1000µF 16V", "bottom", fontsize=10)
     d += elm.Ground()
-    d += elm.Zener().at((vm.center[0] + 1.6, vm.center[1])).down().reverse().label("D1 TVS\nSMBJ8.5A", "right")
+    d += elm.Zener().at((vm.center[0] + 3.0, vm.center[1])).down().reverse().label("D1 TVS\nSMBJ8.5A", "bottom", fontsize=10)
     d += elm.Ground()
     d += elm.Dot(open=True).at((0, 5.5)).label("J1 GND", "left")
     d += elm.Line().right(0.8)
     d += elm.Ground()
-    d += elm.Label().label("Star ground: motor returns and logic ground meet at J1", fontsize=10, halign="left", color="#555").at((0, 2.2))
+    d += elm.Label().label("Star ground: motor returns and logic ground meet at J1", fontsize=10, halign="left", color="#555").at((0, 1.4))
 
     # logic 5V
     u1 = module(d, "U1 Pololu S7V7F5 (5V buck-boost, ~1A, VIN 2.7–11.8V)",
@@ -81,14 +82,14 @@ with drawing("controller_power.svg") as d:
     d += elm.Diode().right().label("D2 SS34\n(no USB backfeed)")
     d += (l5 := elm.Dot())
     d += elm.Line().right(0.8)
-    d += elm.Dot(open=True).label("+5V_LOGIC → ESP32 5V pin, PIR", "right", fontsize=10)
-    d += elm.Capacitor(polar=True).at(l5.center).down().label("C2 470µF", "left")
+    d += elm.Dot(open=True).label("+5V_LOGIC → ESP32 5V pin", "right", fontsize=10)
+    d += elm.Capacitor(polar=True).at(l5.center).down().label("C2 470µF", "bottom", fontsize=10)
     d += elm.Ground()
 
     # audio 5V
-    module(d, "U2 Pololu S9V11F5 (5V buck-boost, ~1.5A, VIN 2–16V)",
-           [("VIN", "VMOT"), ("GND", "GND")], [("VOUT", "+5V_AUDIO")], (2.5, -8), width=4.5)
-    d += elm.Label().label("C3 470µF across U1 VIN, C4 470µF + C5 100µF across U2 VIN/VOUT (not drawn)", fontsize=10, halign="left", color="#555").at((0, -10.2))
+    module(d, "U2 MP1584 buck module (5V out; check before connecting the amp)",
+           [("IN+", "VMOT"), ("IN−", "GND")], [("OUT+", "+5V_AUDIO")], (2.5, -8), width=4.5)
+    d += elm.Label().label("C3 470µF across U1 VIN, C4 470µF + C5 100µF across U2 IN/OUT (not drawn). U2 OUT− = GND", fontsize=10, halign="left", color="#555").at((0, -10.2))
 
     # supply monitor
     d += elm.Label().label("Supply monitor", fontsize=12, halign="left").at((16, 6.9))
@@ -102,28 +103,28 @@ with drawing("controller_power.svg") as d:
 
 # ---------------------------------------------------------------- motors
 with drawing("controller_motors.svg") as d:
-    title(d, "Controller rev A · sheet 2: motor drivers", "Shoulders: Pololu DRV8874 carriers (IN/IN mode). Eyes: Pololu TB6612FNG carrier", (0, 9.6))
+    title(d, "Controller rev A · sheet 2: motor drivers", "Shoulders: DRV8876 modules (IN/IN mode). Eyes: TB6612FNG module. Generic modules: confirm pin names on arrival", (0, 9.6))
     for i, side in enumerate(["R", "L"]):
         x = 2 + i * 17
         in1, in2, cs = ("GPIO11", "GPIO12", "GPIO2") if side == "R" else ("GPIO13", "GPIO14", "GPIO4")
-        module(d, f"U{3 + i} DRV8874 · {'right' if side == 'R' else 'left'} shoulder",
-               [("VIN", "VMOT"), ("GND", "GND"), ("IN1", f"SH_{side}_IN1 ({in1})"), ("IN2", f"SH_{side}_IN2 ({in2})"),
-                ("PMODE", "+3V3 (IN/IN)"), ("SLEEP", "+3V3")],
+        module(d, f"U{3 + i} DRV8876 · {'right' if side == 'R' else 'left'} shoulder",
+               [("VM", "VMOT"), ("GND", "GND"), ("IN1", f"SH_{side}_IN1 ({in1})"), ("IN2", f"SH_{side}_IN2 ({in2})"),
+                ("PMODE", "+3V3 (IN/IN)"), ("nSLEEP", "+3V3")],
                [("OUT1", f"J{3 if side == 'R' else 6}.1 motor"), ("OUT2", f"J{3 if side == 'R' else 6}.2 motor"),
-                ("CS", f"→ 1k → CS_{side} ({cs})"), ("FAULT", "TP (pull-up 10k)"), ("VREF", None), ("IMODE", None)],
+                ("IPROPI", f"→ 1k → CS_{side} ({cs})"), ("nFAULT", "TP (pull-up 10k)")],
                (x, 0.5), width=3.4)
-    d += elm.Label().label("Carrier default VREF = VCC (3.3V) gives a ≈2.9A current limit (stall ≈ 1.8A). CS ≈ 1.1V/A into the ADC.", fontsize=10, halign="left", color="#555").at((0, -1.2))
+    d += elm.Label().label("IPROPI = 1000µA/A × the module's IPROPI resistor (1.5k → 1.5V/A). Current limit = VREF / that. Confirm both on the module.", fontsize=10, halign="left", color="#555").at((0, -1.2))
     module(d, "U5 TB6612FNG · eye motor (A) + eye LEDs (B)",
-           [("VMOT", "VMOT"), ("VCC", "+3V3"), ("GND", "GND"), ("STBY", "+3V3"), ("PWMA", "+3V3"), ("PWMB", "+3V3"),
+           [("VM", "VMOT"), ("VCC", "+3V3"), ("GND", "GND"), ("STBY", "+3V3"), ("PWMA", "+3V3"), ("PWMB", "+3V3"),
             ("AIN1", "EYE_M1 (GPIO38)"), ("AIN2", "EYE_M2 (GPIO39)"), ("BIN1", "EYE_L1 (GPIO41)"), ("BIN2", "EYE_L2 (GPIO42)")],
            [("AO1", "J11.1 eye motor (yellow)"), ("AO2", "J11.2 eye motor (orange)"),
-            ("BO1", "R3 0Ω → J10.1 LED (yellow)"), ("BO2", "J10.2 LED (white)")],
+            ("BO1", "R3 220Ω → J10.1 LED + (yellow)"), ("BO2", "J10.2 LED − (white)")],
            (10, -12), width=3.6)
-    d += elm.Label().label("PWM goes on the IN pins (PWMx tied high). Channel B is bidirectional in case the eyes are a back-to-back LED pair; R3 is a series-resistor footprint, 0Ω by default.", fontsize=10, halign="left", color="#555").at((0, -13.4))
+    d += elm.Label().label("PWM goes on the IN pins (PWMx tied high). Eye LEDs: one direction, ~2.8V at ~20mA (measured); R3 220Ω matches stock brightness.", fontsize=10, halign="left", color="#555").at((0, -13.4))
 
 # ---------------------------------------------------------------- signals
 with drawing("controller_signals.svg") as d:
-    title(d, "Controller rev A · sheet 3: elbows, sensors, inputs", "Every external input: 1k series + pull resistor (+ TVS on user-facing jacks)", (0, 12.2))
+    title(d, "Controller rev A · sheet 3: elbows, sensors, inputs", "Every external input: 1k series + pull resistor. Harness = JST SM pigtails soldered to pads", (0, 12.2))
 
     def elbow(y, side, gpio, j):
         d.add(elm.Label().label(f"{'Right' if side == 'R' else 'Left'} elbow · {j} (Freddy cable 2)", fontsize=12, halign="left").at((0, y + 1)))
@@ -160,12 +161,12 @@ with drawing("controller_signals.svg") as d:
     switch_in(16, -1.4, "Trigger · J12 (3.5mm mono)", "J12 tip", "TRIG (GPIO8)", "10k", "3V3")
     d += elm.Label().label("J12 sleeve = GND; TVS (ESD5Z3V3) tip to GND", fontsize=10, halign="left", color="#555").at((16, -5.6))
 
-    d += elm.Label().label("PIR · J13 (orange / yellow / black)", fontsize=12, halign="left").at((0, -3))
-    d += elm.Dot(open=True).at((0, -4)).label("J13.2 signal", "left")
+    d += elm.Label().label("PIR · J13", fontsize=12, halign="left").at((0, -3))
+    d += elm.Dot(open=True).at((0, -4)).label("J13.2 orange (signal)", "left")
     d += elm.Resistor().right().label("1k")
     d += elm.Line().right(1)
-    d += elm.Dot(open=True).label("PIR (GPIO9) + BAT54S clamp to 3V3/GND", "right")
-    d += elm.Label().label("J13.1 = +5V_LOGIC, J13.3 = GND. Verify the PIR's power and output voltage before first use.", fontsize=10, halign="left", color="#555").at((0, -5))
+    d += elm.Dot(open=True).label("PIR (GPIO9, ADC) + 100k to GND + BAT54S clamp", "right")
+    d += elm.Label().label("J13.1 = VMOT (yellow, power), J13.3 = GND (black). Output is ~1.3V on motion: read it with the ADC, threshold ~0.6V.", fontsize=10, halign="left", color="#555").at((0, -5))
 
     d += elm.Label().label("I2C · J14 (JST-SH 4-pin, Qwiic/STEMMA QT)", fontsize=12, halign="left").at((16, -6.8))
     d += elm.Label().label("GND, +3V3, SDA = GPIO15, SCL = GPIO16; 4.7k pull-ups to 3V3.\nFor INA219 (current) and MPU6050 (shoulder angle).", fontsize=10, halign="left").at((16, -8))
@@ -203,14 +204,14 @@ blocks = [
     ("J1 barrel + F1 fuse + Q1", 2, 2, 22, 12, "#fde2e2"),
     ("C1 1000µF\nD1 TVS", 2, 16, 12, 12, "#fde2e2"),
     ("U1 S7V7F5\nlogic 5V", 16, 16, 12, 8, "#fff1d6"),
-    ("U2 S9V11F5\naudio 5V", 16, 26, 12, 8, "#fff1d6"),
+    ("U2 MP1584\naudio 5V", 16, 26, 12, 8, "#fff1d6"),
     ("ESP32-S3 dev board\n(on female headers, USB-C at top edge)", 30, 2, 30, 64, "#dbeafe"),
     ("U6 MAX98357A", 64, 4, 18, 12, "#ede9fe"),
     ("J15 speaker", 84, 4, 14, 8, "#ede9fe"),
     ("J16 mic hdr", 84, 14, 14, 8, "#ede9fe"),
     ("J14 I2C", 64, 18, 10, 6, "#e5e7eb"),
-    ("U3 DRV8874 R", 2, 38, 14, 16, "#dcfce7"),
-    ("U4 DRV8874 L", 64, 38, 14, 16, "#dcfce7"),
+    ("U3 DRV8876 R", 2, 38, 14, 16, "#dcfce7"),
+    ("U4 DRV8876 L", 64, 38, 14, 16, "#dcfce7"),
     ("U5 TB6612\neyes", 80, 38, 18, 16, "#dcfce7"),
     ("Right arm: J3 · J4 · J5", 2, 66, 26, 12, "#e0f2fe"),
     ("Head: J9 · J10 · J11", 38, 68, 22, 10, "#e0f2fe"),
