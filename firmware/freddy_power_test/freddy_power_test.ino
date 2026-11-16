@@ -147,9 +147,11 @@ void startCycle() {
 }
 
 void stopAll(const char *why) {
+  bool moving = state != IDLE && state != REST && state != HOLD;
   cycling = false; singleMove = false;
   enter(IDLE);
-  Serial.printf("# STOP (%s)\n", why);
+  if (moving) Serial.printf("# STOP (%s). This move: VMOT min %.2fV | 5V min %.2fV | peak %.2fA\n", why, minVmot, minV5, maxAmps);
+  else Serial.printf("# STOP (%s)\n", why);
 }
 
 void printStats() {
@@ -256,6 +258,10 @@ void loop() {
     if (vmot < minVmot) minVmot = vmot;
     if (v5 < minV5) minV5 = v5;
     if (amps > maxAmps) maxAmps = amps;
+    // session extremes too, so they survive a timeout or STOP (not just completed cycles)
+    if (vmot < allMinVmot) allMinVmot = vmot;
+    if (v5 < allMinV5) allMinV5 = v5;
+    if (amps > allMaxAmps) allMaxAmps = amps;
   }
 
   // state machine (stock logic: lift until the switch goes high, a bit more, hold, lower until low)

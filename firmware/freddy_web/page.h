@@ -74,7 +74,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
       <button>Set</button>
     </form>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="elbow"><button>Toggle elbow</button></form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="clear"><button>Clear reset counters</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="clear"><button>Clear counters &amp; peaks</button></form>
   </section>
   <div id="msg"></div>
 

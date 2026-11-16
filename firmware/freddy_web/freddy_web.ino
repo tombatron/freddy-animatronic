@@ -127,9 +127,6 @@ void report(const char *fmt, ...) {
 
 void pushLive() {
   float shownVmot = allMinVmot, shownV5 = allMinV5, shownAmps = allMaxAmps;
-  if (state != IDLE && state != REST && state != HOLD) {
-    shownVmot = min(shownVmot, minVmot); shownV5 = min(shownV5, minV5); shownAmps = max(shownAmps, maxAmps);
-  }
   bool v5bad = shownV5 < V5_MIN_OK, resetBad = boots > 1 || brownouts > 0;
   char b[1600];
   snprintf(b, sizeof b,
@@ -183,9 +180,6 @@ void enter(State s) {
     case REST:
       motorOff();
       cycles++;
-      allMinVmot = min(allMinVmot, minVmot);
-      allMinV5 = min(allMinV5, minV5);
-      allMaxAmps = max(allMaxAmps, maxAmps);
       report("cycle %lu: main rail min %.2fV | 5V min %.2fV | peak %.2fA %s", cycles, minVmot, minV5, maxAmps,
              minV5 < V5_MIN_OK ? "<-- 5V SAGGED" : "ok");
       pushCycleRow();
@@ -206,16 +200,19 @@ void startCycle() {
 }
 
 void stopAll(const char *why) {
-  bool wasMoving = state != IDLE || cycling;
+  bool moving = state != IDLE && state != REST && state != HOLD;
+  bool wasActive = state != IDLE || cycling;
   cycling = false; singleMove = false;
   enter(IDLE);
-  if (wasMoving) report("STOP (%s)", why);
+  if (moving) report("STOP (%s). This move: main rail min %.2fV | 5V min %.2fV | peak %.2fA", why, minVmot, minV5, maxAmps);
+  else if (wasActive) report("STOP (%s)", why);
 }
 
 void clearCounters() {
   prefs.putUInt("boots", 0); prefs.putUInt("brown", 0); prefs.putUInt("other", 0);
   boots = 0; brownouts = 0; otherResets = 0;
-  report("reset counters cleared (the next boot counts as 1)");
+  allMinVmot = 99; allMinV5 = 99; allMaxAmps = 0;
+  report("reset counters and min/peak readings cleared (the next boot counts as 1)");
 }
 
 // One place for every command, from the web or the serial monitor.
@@ -357,6 +354,8 @@ void loop() {
   vmot = readV(PIN_VMON); v5 = readV(PIN_V5MON); amps = readAmps();
   if (state != IDLE && state != REST && state != HOLD) {
     minVmot = min(minVmot, vmot); minV5 = min(minV5, v5); maxAmps = max(maxAmps, amps);
+    // session extremes too, so they survive a timeout or STOP (not just completed cycles)
+    allMinVmot = min(allMinVmot, vmot); allMinV5 = min(allMinV5, v5); allMaxAmps = max(allMaxAmps, amps);
   }
 
   // stock-style motion: lift until the switch goes high, a bit more, hold, lower until it goes low
