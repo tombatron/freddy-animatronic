@@ -2,7 +2,7 @@
 
 A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and driver parts are off-the-shelf modules on headers, so rev A is easy to hand-solder, debug and rework. A later revision can put the parts directly on the board once the design has proven itself.
 
-**Status:** schematic draft and placement sketch. Not in KiCad yet. Modules are ordered (generic DRV8876, TB6612 and MP1584 boards instead of the Pololu ones first planned). The DRV8876 board is confirmed: a red "DRV887*" module, two rows of 7 pins (VM, GND, EN/IN1, PH/IN2, PMODE, nSLEEP, VREF / VM, GND, OUT2, OUT1, IMODE, nFAULT, CS); the same board takes a DRV8874. TB6612 and MP1584 footprints are still to confirm. The [power test](phase2-power-test.md) is the last design check.
+**Status:** schematic draft and placement sketch. Not in KiCad yet. Modules are ordered (generic DRV8876, TB6612 and MP1584 boards instead of the Pololu ones first planned). The DRV8876 board is confirmed: a red "DRV887*" module, two rows of 7 pins (VM, GND, EN/IN1, PH/IN2, PMODE, nSLEEP, VREF / VM, GND, OUT2, OUT1, IMODE, nFAULT, CS); the same board takes a DRV8874. It has a 2.49k CS resistor (2.47kΩ measured): 2.47V/A and, with VREF at 3.3V, a ≈1.3A current limit. TB6612 and MP1584 footprints are still to confirm. The [power test](phase2-power-test.md) is the last design check.
 
 | Sheet | File |
 | --- | --- |

@@ -56,6 +56,8 @@ With nothing connected, measure resistance from **CS to GND**:
 - **Open / very high:** no resistor on the board. Add 1.5kΩ from CS to GND and leave `CS_MV_PER_A` at 1500.
 - **Above ~3kΩ:** the limit would be under 1.1A and could weaken lifts. Add a resistor in parallel to bring it down to about 1.5kΩ.
 
+**Measured on our boards:** CS→GND = 2.47kΩ (a 2.49k resistor), so the sketch uses 2470 mV/A and the current limit is about **1.3A**, matching the DRV8876's continuous rating. A normal lift draws 0.5–1A. The ESP32's ADC tops out around 3.1V, so current readings above ~1.25A all read as ~1.25A.
+
 ## Before powering the motor
 
 1. **Pololu alone:** adapter on, nothing else connected to VOUT. Meter on VOUT: 4.9–5.1V.
