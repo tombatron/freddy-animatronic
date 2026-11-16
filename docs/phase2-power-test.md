@@ -96,6 +96,16 @@ Run 10 cycles at the default stock-like lift (50% duty), then press `]` to step 
 
 If pass 2 is clean, stack everything at once: lift duty 100%, `e` to add elbow moves (right elbow −700 ↔ 0 in time with the shoulder), and briefly hold the arm mid-lift to make it stall. Watch the summary lines. If 5V still stays above 4.75V, the power design is proven.
 
+## Optional: web dashboard
+
+[`firmware/freddy_web`](../firmware/freddy_web/) runs the same test from a browser instead of the serial monitor, which also gives you live numbers during pass 2 with USB unplugged. Running WiFi adds load on the 5V rail, so it's a slightly tougher test than the serial version.
+
+1. Arduino IDE Library Manager: install **ESP Async WebServer** and **Async TCP** (both by ESP32Async).
+2. Copy `secrets.h.example` to `secrets.h` in the same folder and put in your WiFi name and password. `secrets.h` is git-ignored.
+3. Flash it, then open **http://freddy.local** (or the IP printed on the serial monitor). Without `secrets.h`, or if joining fails, Freddy starts his own access point "Freddy" (password `fazbear1987`) at http://192.168.4.1.
+
+The page shows main rail, 5V rail and motor current live, a row per cycle (red if the 5V rail sagged below 4.75V), a log, and buttons for Stop, Lift, Lower, Start cycling, lift duty, elbow and clearing the reset counters. Unlike the serial sketch, it doesn't start cycling on its own: press **Start cycling**. If the board resets mid-run, the page shows "disconnected", reconnects by itself, and the boot counter goes up.
+
 ## If it fails
 
 - **5V dips but no reset:** add a second 1000µF on VMOT, or a 470µF right at the Pololu's input.
