@@ -189,8 +189,6 @@ void onSwitchClose(uint32_t now) {
 }
 
 void loop() {
-  uint32_t now = millis();
-
   // input: x / space stop immediately; everything else is line based
   while (Serial.available()) {
     char ch = Serial.read();
@@ -198,6 +196,9 @@ void loop() {
     if (ch == '\r' || ch == '\n') { runCommand(line); line = ""; }
     else line += ch;
   }
+  // Read the clock AFTER commands: starting a move sets motionStart, and an older
+  // 'now' would underflow 'now - motionStart' and stop the move instantly.
+  uint32_t now = millis();
 
   // switch edges (debounced: ignore changes within 20 ms of the last one)
   bool closed = digitalRead(PIN_SW) == LOW;

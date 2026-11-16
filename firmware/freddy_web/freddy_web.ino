@@ -339,8 +339,6 @@ void setup() {
 }
 
 void loop() {
-  uint32_t now = millis(), inState = now - stateStart;
-
   // commands from the page
   Cmd c;
   while (xQueueReceive(cmdQueue, &c, 0) == pdTRUE) runCmd(c.a, c.v);
@@ -350,6 +348,10 @@ void loop() {
     if (k == ' ') k = 'x';
     runCmd(k, 0);
   }
+
+  // Read the clock AFTER running commands: a command that starts a move resets
+  // stateStart, and an older 'now' would make the new move look ancient (instant timeout).
+  uint32_t now = millis(), inState = now - stateStart;
 
   // measure every pass, so short dips are caught
   vmot = readV(PIN_VMON); v5 = readV(PIN_V5MON); amps = readAmps();

@@ -218,8 +218,6 @@ void setup() {
 
 // ---------------------------------------------------------------- loop
 void loop() {
-  uint32_t now = millis(), inState = now - stateStart;
-
   // keys
   while (Serial.available()) {
     char k = Serial.read();
@@ -247,6 +245,10 @@ void loop() {
         break;
     }
   }
+
+  // Read the clock AFTER handling keys: a key that starts a move resets stateStart,
+  // and an older 'now' would make the new move look ancient (instant timeout).
+  uint32_t now = millis(), inState = now - stateStart;
 
   // measure
   float vmot = readV(PIN_VMON), v5 = readV(PIN_V5MON), amps = readAmps();
