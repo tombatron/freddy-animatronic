@@ -109,11 +109,11 @@ with drawing("controller_motors.svg") as d:
         in1, in2, cs = ("GPIO11", "GPIO12", "GPIO2") if side == "R" else ("GPIO13", "GPIO14", "GPIO4")
         module(d, f"U{3 + i} DRV8876 · {'right' if side == 'R' else 'left'} shoulder",
                [("VM", "VMOT"), ("GND", "GND"), ("IN1", f"SH_{side}_IN1 ({in1})"), ("IN2", f"SH_{side}_IN2 ({in2})"),
-                ("PMODE", "+3V3 (IN/IN)"), ("nSLEEP", "+3V3")],
+                ("PMODE", "+3V3 (IN/IN)"), ("nSLEEP", "+3V3"), ("VREF", "+3V3")],
                [("OUT1", f"J{3 if side == 'R' else 6}.1 motor"), ("OUT2", f"J{3 if side == 'R' else 6}.2 motor"),
-                ("IPROPI", f"→ 1k → CS_{side} ({cs})"), ("nFAULT", "TP (pull-up 10k)")],
+                ("CS", f"→ 1k → CS_{side} ({cs})"), ("IMODE", "GND"), ("nFAULT", "TP (pull-up 10k)")],
                (x, 0.5), width=3.4)
-    d += elm.Label().label("IPROPI = 1000µA/A × the module's IPROPI resistor (1.5k → 1.5V/A). Current limit = VREF / that. Confirm both on the module.", fontsize=10, halign="left", color="#555").at((0, -1.2))
+    d += elm.Label().label("DRV887x board (2×7 pins; a DRV8874 drops into the same board). CS = 1000µA/A × the CS resistor (1.5k → 1.5V/A); limit = 3.3V ÷ (0.001 × R).", fontsize=10, halign="left", color="#555").at((0, -1.2))
     module(d, "U5 TB6612FNG · eye motor (A) + eye LEDs (B)",
            [("VM", "VMOT"), ("VCC", "+3V3"), ("GND", "GND"), ("STBY", "+3V3"), ("PWMA", "+3V3"), ("PWMB", "+3V3"),
             ("AIN1", "EYE_M1 (GPIO38)"), ("AIN2", "EYE_M2 (GPIO39)"), ("BIN1", "EYE_L1 (GPIO41)"), ("BIN2", "EYE_L2 (GPIO42)")],

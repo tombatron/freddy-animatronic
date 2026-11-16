@@ -14,14 +14,14 @@
   Wiring (see docs/phase2-power-test.md):
     GPIO1   <- VMOT divider     (VMOT - 47k - GPIO1 - 22k - GND)
     GPIO10  <- 5V divider       (Pololu VOUT - 47k - GPIO10 - 22k - GND)
-    GPIO2   <- DRV8876 IPROPI   (through 1k)
-    GPIO11  -> DRV8876 IN1      (lift side: OUT1 -> cable 1 black)
-    GPIO12  -> DRV8876 IN2      (lower side: OUT2 -> cable 1 red)
+    GPIO2   <- DRV8876 CS       (through 1k)
+    GPIO11  -> DRV8876 EN/IN1   (lift side: OUT1 -> cable 1 black)
+    GPIO12  -> DRV8876 PH/IN2   (lower side: OUT2 -> cable 1 red)
     GPIO5   <- shoulder switch  (cable 3 yellow - 1k - GPIO5, 100k to GND;
                                  cable 3 red -> 3V3, black -> GND)
     GPIO17  -> elbow signal     (optional, cable 2 signal through 1k)
     GPIO9   <- PIR orange       (optional, through 1k, 100k to GND)
-    DRV8876 nSLEEP and PMODE -> 3V3 (PMODE high = IN/IN PWM mode)
+    DRV8876 nSLEEP, PMODE, VREF -> 3V3 (PMODE high = IN/IN PWM mode); IMODE -> GND; nFAULT open
     ESP32 5V pin <- 1N5819 diode <- Pololu VOUT.  ALL GROUNDS TOGETHER.
 
   Keys:
@@ -51,7 +51,7 @@ const int PIN_RGB    = 48;
 
 // ---------------- tuning
 const float DIV        = 69.0f / 22.0f;   // 47k/22k divider -> x3.136
-float CS_MV_PER_A      = 1500.0f;         // DRV8876: 1000 uA/A x R_IPROPI. 1.5k -> 1500 mV/A. CHECK YOUR MODULE
+float CS_MV_PER_A      = 1500.0f;         // = the CS-to-GND resistance in ohms (DRV8876: 1000 uA/A). Measure your board
 int   liftDuty         = 50;              // %; stock lift is ~3V across the motor (~45%)
 const int LOWER_DUTY   = 100;             // stock lowers at full drive
 const uint32_t LIFT_EXTRA_MS   = 800;     // keep lifting after the switch goes high (stock ~1200)

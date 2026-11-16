@@ -833,116 +833,129 @@
 <circle cx="686.0" cy="587.6" r="4.5" fill="#2a9d8f" stroke="#000" stroke-width="1"/>
 <rect x="659.0" y="644.8" width="54.0" height="26" rx="7" fill="white" stroke="#2a9d8f" stroke-width="2.5"/>
 <text x="686.0" y="662.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO1</text>
-<rect x="774" y="413.6" width="162" height="88.0" rx="4" fill="#c0392b" stroke="#000"/>
-<text x="855.0" y="462.6" font-size="14" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">DRV8876</text>
+<rect x="774" y="413.6" width="188" height="88.0" rx="4" fill="#c0392b" stroke="#000"/>
+<text x="868.0" y="462.6" font-size="14" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">DRV8876</text>
 <rect x="785" y="426.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
 <text x="790.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">VM</text>
 <rect x="811" y="426.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
 <text x="816.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GND</text>
 <rect x="837" y="426.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="842.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">OUT1</text>
+<text x="842.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">O2</text>
 <rect x="863" y="426.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="868.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">OUT2</text>
+<text x="868.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">O1</text>
 <rect x="889" y="426.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="894.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif"></text>
+<text x="894.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">IMD</text>
 <rect x="915" y="426.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="920.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif"></text>
+<text x="920.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">FLT</text>
+<rect x="941" y="426.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
+<text x="946.0" y="448.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">CS</text>
 <rect x="785" y="478.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="790.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">IN1</text>
+<text x="790.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">VM</text>
 <rect x="811" y="478.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="816.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">IN2</text>
+<text x="816.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GND</text>
 <rect x="837" y="478.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="842.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">SLP</text>
+<text x="842.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">IN1</text>
 <rect x="863" y="478.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="868.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">PMD</text>
+<text x="868.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">IN2</text>
 <rect x="889" y="478.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="894.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">IPR</text>
+<text x="894.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">PMD</text>
 <rect x="915" y="478.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
-<text x="920.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">FLT</text>
+<text x="920.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">SLP</text>
+<rect x="941" y="478.6" width="10" height="10" fill="#e8c547" stroke="#000"/>
+<text x="946.0" y="473.6" font-size="8.5" text-anchor="middle" fill="white" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">VRF</text>
 <polyline points="790.0,327.6 790.0,286.0" fill="none" stroke="#d62828" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="790.0" cy="327.6" r="4.5" fill="#d62828" stroke="#000" stroke-width="1"/>
 <circle cx="790.0" cy="286.0" r="4.5" fill="#d62828" stroke="#000" stroke-width="1"/>
 <polyline points="816.0,327.6 807.0,292.0 816.0,260.0" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="816.0" cy="327.6" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
 <circle cx="816.0" cy="260.0" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
-<line x1="842" y1="353.6" x2="842" y2="208.00000000000003" stroke="#222" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="842.0" cy="353.6" r="4.5" fill="#222" stroke="#000" stroke-width="1"/>
-<rect x="784.6" y="182.0" width="114.8" height="26" rx="7" fill="white" stroke="#222" stroke-width="2.5"/>
-<text x="842.0" y="200.0" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 1 black</text>
-<line x1="868" y1="353.6" x2="868" y2="265.20000000000005" stroke="#d62828" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="868.0" cy="353.6" r="4.5" fill="#d62828" stroke="#000" stroke-width="1"/>
-<rect x="818.2" y="239.2" width="99.6" height="26" rx="7" fill="white" stroke="#d62828" stroke-width="2.5"/>
-<text x="868.0" y="257.2" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 1 red</text>
-<line x1="790" y1="587.5999999999999" x2="790" y2="696.8" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="790.0" cy="587.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
-<rect x="759.2" y="696.8" width="61.6" height="26" rx="7" fill="white" stroke="#7b2cbf" stroke-width="2.5"/>
-<text x="790.0" y="714.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO11</text>
-<line x1="816" y1="587.5999999999999" x2="816" y2="748.8" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="816.0" cy="587.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
-<rect x="785.2" y="748.8" width="61.6" height="26" rx="7" fill="white" stroke="#7b2cbf" stroke-width="2.5"/>
-<text x="816.0" y="766.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO12</text>
-<line x1="894" y1="561.5999999999999" x2="946" y2="561.5999999999999" stroke="#666" stroke-width="2.5"/>
-<g transform="translate(920.0,561.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
-<circle cx="894" cy="561.5999999999999" r="3" fill="#666"/>
-<circle cx="946" cy="561.5999999999999" r="3" fill="#666"/>
-<text x="920.0" y="583.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">1k</text>
-<line x1="946" y1="587.5999999999999" x2="946" y2="644.8" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="946.0" cy="587.6" r="4.5" fill="#2a9d8f" stroke="#000" stroke-width="1"/>
-<rect x="919.0" y="644.8" width="54.0" height="26" rx="7" fill="white" stroke="#2a9d8f" stroke-width="2.5"/>
-<text x="946.0" y="662.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO2</text>
-<polyline points="842.0,509.6 1024.0,509.6" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="842.0" cy="509.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
-<circle cx="1024.0" cy="509.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
-<polyline points="868.0,535.6 1024.0,535.6" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="868.0" cy="535.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
-<circle cx="1024.0" cy="535.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
-<polyline points="1024.0,431.6 1024.0,483.6" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="1024.0" cy="431.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
-<circle cx="1024.0" cy="483.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
-<line x1="1024" y1="587.5999999999999" x2="1024" y2="696.8" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="1024.0" cy="587.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
-<rect x="981.8" y="696.8" width="84.4" height="26" rx="7" fill="white" stroke="#f77f00" stroke-width="2.5"/>
-<text x="1024.0" y="714.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">ESP32 3V3</text>
-<line x1="1024" y1="327.6" x2="1024" y2="270.40000000000003" stroke="#d62828" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="1024.0" cy="327.6" r="4.5" fill="#d62828" stroke="#000" stroke-width="1"/>
-<rect x="974.2" y="244.4" width="99.6" height="26" rx="7" fill="white" stroke="#d62828" stroke-width="2.5"/>
-<text x="1024.0" y="262.4" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 3 red</text>
-<text x="1046.0" y="565.6" font-size="11" text-anchor="start" fill="#f77f00" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">3V3 strip</text>
-<line x1="1154" y1="327.6" x2="1154" y2="213.20000000000002" stroke="#c9a227" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="1154.0" cy="327.6" r="4.5" fill="#c9a227" stroke="#000" stroke-width="1"/>
-<rect x="1092.8" y="187.2" width="122.4" height="26" rx="7" fill="white" stroke="#c9a227" stroke-width="2.5"/>
-<text x="1154.0" y="205.2" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 3 yellow</text>
-<polyline points="1154.0,431.6 1154.0,483.6" fill="none" stroke="#c9a227" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="1154.0" cy="431.6" r="4.5" fill="#c9a227" stroke="#000" stroke-width="1"/>
-<circle cx="1154.0" cy="483.6" r="4.5" fill="#c9a227" stroke="#000" stroke-width="1"/>
-<line x1="1154" y1="509.6" x2="1232" y2="509.6" stroke="#666" stroke-width="2.5"/>
-<g transform="translate(1193.0,509.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
-<circle cx="1154" cy="509.6" r="3" fill="#666"/>
-<circle cx="1232" cy="509.6" r="3" fill="#666"/>
-<text x="1193.0" y="497.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">1k</text>
-<line x1="1232" y1="561.5999999999999" x2="1310" y2="561.5999999999999" stroke="#666" stroke-width="2.5"/>
-<g transform="translate(1271.0,561.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
-<circle cx="1232" cy="561.5999999999999" r="3" fill="#666"/>
-<circle cx="1310" cy="561.5999999999999" r="3" fill="#666"/>
-<text x="1271.0" y="583.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">100k</text>
-<polyline points="1310.0,587.6 1310.0,629.2" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="1310.0" cy="587.6" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
-<circle cx="1310.0" cy="629.2" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
-<line x1="1232" y1="587.5999999999999" x2="1232" y2="644.8" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="1232.0" cy="587.6" r="4.5" fill="#2a9d8f" stroke="#000" stroke-width="1"/>
-<rect x="1205.0" y="644.8" width="54.0" height="26" rx="7" fill="white" stroke="#2a9d8f" stroke-width="2.5"/>
-<text x="1232.0" y="662.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO5</text>
-<line x1="1336" y1="260" x2="1336" y2="202.8" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="1336.0" cy="260.0" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
-<rect x="1278.6" y="176.8" width="114.8" height="26" rx="7" fill="white" stroke="#1d4ed8" stroke-width="2.5"/>
-<text x="1336.0" y="194.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 3 black</text>
-<line x1="1362" y1="629.2" x2="1362" y2="717.6" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="1362.0" cy="629.2" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
-<rect x="1319.8" y="717.6" width="84.4" height="26" rx="7" fill="white" stroke="#1d4ed8" stroke-width="2.5"/>
-<text x="1362.0" y="735.6" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">ESP32 GND</text>
+<line x1="868" y1="353.6" x2="868" y2="208.00000000000003" stroke="#222" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="868.0" cy="353.6" r="4.5" fill="#222" stroke="#000" stroke-width="1"/>
+<rect x="810.6" y="182.0" width="114.8" height="26" rx="7" fill="white" stroke="#222" stroke-width="2.5"/>
+<text x="868.0" y="200.0" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 1 black</text>
+<line x1="842" y1="353.6" x2="842" y2="265.20000000000005" stroke="#d62828" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="842.0" cy="353.6" r="4.5" fill="#d62828" stroke="#000" stroke-width="1"/>
+<rect x="792.2" y="239.2" width="99.6" height="26" rx="7" fill="white" stroke="#d62828" stroke-width="2.5"/>
+<text x="842.0" y="257.2" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 1 red</text>
+<polyline points="894.0,327.6 885.0,292.0 894.0,260.0" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="894.0" cy="327.6" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
+<circle cx="894.0" cy="260.0" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
+<line x1="946" y1="379.6" x2="1024" y2="379.6" stroke="#666" stroke-width="2.5"/>
+<g transform="translate(985.0,379.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
+<circle cx="946" cy="379.6" r="3" fill="#666"/>
+<circle cx="1024" cy="379.6" r="3" fill="#666"/>
+<text x="985.0" y="367.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">1k</text>
+<polyline points="1024.0,431.6 1024.0,483.6" fill="none" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1024.0" cy="431.6" r="4.5" fill="#2a9d8f" stroke="#000" stroke-width="1"/>
+<circle cx="1024.0" cy="483.6" r="4.5" fill="#2a9d8f" stroke="#000" stroke-width="1"/>
+<line x1="1024" y1="587.5999999999999" x2="1024" y2="644.8" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1024.0" cy="587.6" r="4.5" fill="#2a9d8f" stroke="#000" stroke-width="1"/>
+<rect x="997.0" y="644.8" width="54.0" height="26" rx="7" fill="white" stroke="#2a9d8f" stroke-width="2.5"/>
+<text x="1024.0" y="662.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO2</text>
+<line x1="842" y1="587.5999999999999" x2="842" y2="748.8" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="842.0" cy="587.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<rect x="811.2" y="748.8" width="61.6" height="26" rx="7" fill="white" stroke="#7b2cbf" stroke-width="2.5"/>
+<text x="842.0" y="766.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO11</text>
+<line x1="868" y1="587.5999999999999" x2="868" y2="696.8" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="868.0" cy="587.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<rect x="837.2" y="696.8" width="61.6" height="26" rx="7" fill="white" stroke="#7b2cbf" stroke-width="2.5"/>
+<text x="868.0" y="714.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO12</text>
+<polyline points="894.0,509.6 1102.0,509.6" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="894.0" cy="509.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<circle cx="1102.0" cy="509.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<polyline points="920.0,535.6 1102.0,535.6" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="920.0" cy="535.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<circle cx="1102.0" cy="535.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<polyline points="946.0,561.6 1102.0,561.6" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="946.0" cy="561.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<circle cx="1102.0" cy="561.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<polyline points="1102.0,431.6 1102.0,483.6" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1102.0" cy="431.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<circle cx="1102.0" cy="483.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<line x1="1102" y1="587.5999999999999" x2="1102" y2="696.8" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1102.0" cy="587.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<rect x="1059.8" y="696.8" width="84.4" height="26" rx="7" fill="white" stroke="#f77f00" stroke-width="2.5"/>
+<text x="1102.0" y="714.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">ESP32 3V3</text>
+<line x1="1102" y1="327.6" x2="1102" y2="270.40000000000003" stroke="#d62828" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1102.0" cy="327.6" r="4.5" fill="#d62828" stroke="#000" stroke-width="1"/>
+<rect x="1052.2" y="244.4" width="99.6" height="26" rx="7" fill="white" stroke="#d62828" stroke-width="2.5"/>
+<text x="1102.0" y="262.4" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 3 red</text>
+<text x="1112.0" y="579.6" font-size="11" text-anchor="start" fill="#f77f00" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">3V3 strip</text>
+<line x1="1180" y1="327.6" x2="1180" y2="213.20000000000002" stroke="#c9a227" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1180.0" cy="327.6" r="4.5" fill="#c9a227" stroke="#000" stroke-width="1"/>
+<rect x="1118.8" y="187.2" width="122.4" height="26" rx="7" fill="white" stroke="#c9a227" stroke-width="2.5"/>
+<text x="1180.0" y="205.2" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 3 yellow</text>
+<polyline points="1180.0,431.6 1180.0,483.6" fill="none" stroke="#c9a227" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1180.0" cy="431.6" r="4.5" fill="#c9a227" stroke="#000" stroke-width="1"/>
+<circle cx="1180.0" cy="483.6" r="4.5" fill="#c9a227" stroke="#000" stroke-width="1"/>
+<line x1="1180" y1="509.6" x2="1258" y2="509.6" stroke="#666" stroke-width="2.5"/>
+<g transform="translate(1219.0,509.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
+<circle cx="1180" cy="509.6" r="3" fill="#666"/>
+<circle cx="1258" cy="509.6" r="3" fill="#666"/>
+<text x="1219.0" y="497.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">1k</text>
+<line x1="1258" y1="561.5999999999999" x2="1336" y2="561.5999999999999" stroke="#666" stroke-width="2.5"/>
+<g transform="translate(1297.0,561.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
+<circle cx="1258" cy="561.5999999999999" r="3" fill="#666"/>
+<circle cx="1336" cy="561.5999999999999" r="3" fill="#666"/>
+<text x="1297.0" y="583.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">100k</text>
+<polyline points="1336.0,587.6 1336.0,629.2" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1336.0" cy="587.6" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
+<circle cx="1336.0" cy="629.2" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
+<line x1="1258" y1="587.5999999999999" x2="1258" y2="644.8" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1258.0" cy="587.6" r="4.5" fill="#2a9d8f" stroke="#000" stroke-width="1"/>
+<rect x="1231.0" y="644.8" width="54.0" height="26" rx="7" fill="white" stroke="#2a9d8f" stroke-width="2.5"/>
+<text x="1258.0" y="662.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO5</text>
+<line x1="1362" y1="260" x2="1362" y2="202.8" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1362.0" cy="260.0" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
+<rect x="1304.6" y="176.8" width="114.8" height="26" rx="7" fill="white" stroke="#1d4ed8" stroke-width="2.5"/>
+<text x="1362.0" y="194.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">cable 3 black</text>
+<line x1="1388" y1="629.2" x2="1388" y2="717.6" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1388.0" cy="629.2" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
+<rect x="1345.8" y="717.6" width="84.4" height="26" rx="7" fill="white" stroke="#1d4ed8" stroke-width="2.5"/>
+<text x="1388.0" y="735.6" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">ESP32 GND</text>
 <text x="24.0" y="885.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Columns are 5-hole strips: a–e is one strip, f–j is another. The orange/green/gold jumpers across the gap join the two halves of a column.</text>
 <text x="24.0" y="906.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Main rail monitor: VMOT → col 19 → 47k → col 22 → 22k → col 24 → GND; col 22 → GPIO1.   5V monitor: col 13 → 47k → col 16 → 22k → col 19 → GND; col 16 → GPIO10.</text>
 <text x="24.0" y="927.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Pololu VOUT feeds column 13 (bottom). That one column is the whole "5V rail": the diode to the ESP32 and the 5V monitor both start there.</text>
-<text x="24.0" y="948.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• DRV8876 pin order is a placeholder: generic modules differ. Keep the connections, go by the names on your module. SLP = nSLEEP, PMD = PMODE, IPR = IPROPI, FLT = nFAULT (leave open).</text>
-<text x="24.0" y="969.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Add a 1.5k from IPROPI to GND only if the module has no IPROPI resistor.   Optional elbow / PIR: see the table in docs/phase2-power-test.md.</text>
-<metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo2MWIxYjllMS03MjMxLTQxYzctODQxMi0xN2ViYzY0YzUyODIAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaGbQ9KOUJQ+EI1w8KvcjnnEAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpmZTdmMjVlMy1mMDNmLTQwN2EtYTBkMi0zOWE5Nzc1OWMzY2FscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNorLfMgNDVgLOyD0VXREwg4wAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgglTXDCNvkzSERkqfR8UxdNE04dt1fHZznIxiri+cW1vukZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaJbTGgcwRpDqVYnk7HcBA0IAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRKAAAAAAAAAAAAAGRoYXNoWCA0NHqRmls6MKyh6gUcpEVc28nX5+PCpZDYAzex0fomO2RuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBoAAUCrZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjYxYjFiOWUxLTcyMzEtNDFjNy04NDEyLTE3ZWJjNjRjNTI4Mi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmM3NDFhZGIzLTQxM2QtNDk4MC1hZmU2LTQwZTZjZGNjZmQyM3JjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCCVNcMI2+TNIRGSp9HxTF00TTh23V8dnOcjGKuL5xbW+6JjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggJy85USdl0Jdsp9rQ8ibaRbJS71ezTt8RWBiHMeax+9KiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggZQWFTQugw9ChIMRq3ORldebck6sM+5qG3AX3KeaiSdJ0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQCGceg82/OC+GAMe54JSWL7noJBpVXMVTdAJ8UAfMrqCr8DNyQImSIzIwi1NQ2FJlzIpI3klzD7whu31bP0A78k=</c2pa:manifest></metadata></svg>
+<text x="24.0" y="948.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• DRV8876 board: chip side up, VM pins on the left. Its pins may land in different rows than drawn: any hole in the same column strip works. Leave the second VM/GND pair and FLT (nFAULT) open.</text>
+<text x="24.0" y="969.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Pin key: O1/O2 = OUT1/OUT2, IMD = IMODE (→ GND), PMD = PMODE, SLP = nSLEEP, VRF = VREF (all three → 3V3). If CS→GND measures open (no resistor on the board), add 1.5k from CS to GND.   Optional elbow / PIR: see docs/phase2-power-test.md.</text>
+</svg>

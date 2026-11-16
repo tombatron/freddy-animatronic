@@ -8,9 +8,9 @@
 
 - Freddy's 7.2V 4A adapter, the Phase 1 power breakout (5A fuse), one arm (cable 1 and cable 3)
 - ESP32-S3 dev board
-- Pololu S7V7F5 (5V buck-boost) and one DRV8876 module
+- Pololu S7V7F5 (5V buck-boost) and one DRV8876 board (the red "DRV887*" module, 2 rows of 7 pins)
 - 1000µF 16V capacitor, 1N5819 Schottky diode (or 1N5817; not a 1N400x, which drops too much voltage). The PCB uses the surface-mount SS34 instead
-- Resistors: 47k ×2, 22k ×2, 1k ×2, 100k ×1 (plus 1.5k if the DRV8876 module has no IPROPI resistor)
+- Resistors: 47k ×2, 22k ×2, 1k ×2, 100k ×1 (plus 1.5k if the DRV8876 board has no CS resistor; see below)
 - Optional, for the worst-case run: an elbow (cable 2) and the PIR, plus 1k ×2 and 100k ×1
 
 **Stock board fully disconnected** from the arm during this test.
@@ -34,17 +34,27 @@ There's no separate 5V rail: the Pololu's output lands on one column (13, bottom
 | 1000µF + / − | VMOT / GND | Close to the DRV8876. Stripe = negative |
 | Pololu VIN / GND | VMOT / GND | |
 | Pololu VOUT → 1N5819 → ESP32 **5V** pin | | Diode stripe toward the ESP32. Stops USB and the Pololu from fighting |
-| DRV8876 VM / GND | VMOT / GND | |
+| DRV8876 VM / GND | VMOT / GND | Each row has a VM and a GND; wire one pair, leave the other open |
 | DRV8876 OUT1 / OUT2 | cable 1 **black** / **red** | IN1 drives OUT1 high = lift |
-| DRV8876 IN1 / IN2 | GPIO11 / GPIO12 | |
-| DRV8876 nSLEEP, PMODE | 3V3 | PMODE high = PWM (IN/IN) mode. Names vary by module |
-| DRV8876 IPROPI → 1k → GPIO2 | | Current sense. Add 1.5k IPROPI→GND if the module lacks one |
+| DRV8876 EN/IN1 / PH/IN2 | GPIO11 / GPIO12 | |
+| DRV8876 nSLEEP, PMODE, VREF | 3V3 | PMODE high = PWM (IN/IN) mode. VREF sets the current limit (3.3V ÷ the CS resistor) |
+| DRV8876 IMODE | GND | Fixed off-time chopping, automatic retry after an overcurrent (floating would latch the outputs off) |
+| DRV8876 nFAULT | open | |
+| DRV8876 CS → 1k → GPIO2 | | Current sense (the chip's IPROPI pin) |
 | VMOT → 47k → **GPIO1** → 22k → GND | | Main rail monitor |
 | Pololu VOUT → 47k → **GPIO10** → 22k → GND | | 5V rail monitor (before the diode) |
 | Cable 3 red / black | 3V3 / GND | Shoulder switch power |
 | Cable 3 yellow → 1k → **GPIO5**, 100k GPIO5→GND | | Shoulder switch. White unused |
 | *Optional:* GPIO17 → 1k → cable 2 signal; cable 2 GND / ~7V pins → GND / VMOT | | Elbow |
 | *Optional:* PIR orange → 1k → **GPIO9**, 100k GPIO9→GND; yellow → VMOT, black → GND | | PIR |
+
+## Check the DRV8876 board first
+
+With nothing connected, measure resistance from **CS to GND**:
+
+- **About 1–3kΩ:** that's the board's current-sense resistor. Put the reading (in ohms) into `CS_MV_PER_A` at the top of the sketch: 1500Ω → 1500. The current limit is 3.3V ÷ (0.001 × R): 1.5kΩ → 2.2A, 2.2kΩ → 1.5A.
+- **Open / very high:** no resistor on the board. Add 1.5kΩ from CS to GND and leave `CS_MV_PER_A` at 1500.
+- **Above ~3kΩ:** the limit would be under 1.1A and could weaken lifts. Add a resistor in parallel to bring it down to about 1.5kΩ.
 
 ## Before powering the motor
 
@@ -89,6 +99,7 @@ If pass 2 is clean, stack everything at once: lift duty 100%, `e` to add elbow m
 - **5V dips but no reset:** add a second 1000µF on VMOT, or a 470µF right at the Pololu's input.
 - **Resets:** check that grounds are tied at one point (adapter −) and the main feed is 22AWG or heavier. If it still resets, it's time for the 7.5V 6A adapter.
 - **Lift timeout message:** the switch never went high. Check cable 3, or that OUT1 really is on black. If the arm went *down* first, swap OUT1 and OUT2.
-- **Peak current reads 0:** IPROPI isn't wired or has no resistor to ground. Fix the CS_MV_PER_A constant in the sketch once the module is known.
+- **Peak current reads 0:** CS isn't wired, or there's no resistor from CS to GND (see "Check the DRV8876 board first").
+- **Motor doesn't move at all:** check nSLEEP, PMODE and VREF are on 3V3 and IMODE is on GND.
 
 Record the results here (min VMOT, min 5V, peak current, resets) when the test is done.

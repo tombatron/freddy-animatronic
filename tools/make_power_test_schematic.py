@@ -96,11 +96,11 @@ with schemdraw.Drawing(file=OUT, show=False) as d:
     d += elm.Dot(open=True).label("5V_POL", "bottom", fontsize=10)
 
     # ---- motor driver
-    module(d, "U3 DRV8876 module",
-           [("IN1", "GPIO11"), ("IN2", "GPIO12"), ("nSLEEP", "+3V3"), ("PMODE", "+3V3"), ("IPROPI", "CS")],
+    module(d, "U3 DRV8876 board",
+           [("EN/IN1", "GPIO11"), ("PH/IN2", "GPIO12"), ("nSLEEP", "+3V3"), ("PMODE", "+3V3"), ("VREF", "+3V3"), ("IMODE", "GND"), ("CS", "CS")],
            [("VM", "VMOT"), ("GND", "GND"), ("OUT1", "cable 1 black"), ("OUT2", "cable 1 red")],
            at=(3, 0), width=3.4)
-    d += elm.Label().label("Shoulder motor = arm cable 1. OUT1 → black lifts. Pin names vary by module: check yours.",
+    d += elm.Label().label("Shoulder motor = arm cable 1. OUT1 → black lifts (right arm; swap if the left lowers first).",
                            fontsize=10, halign="left", color="#555").at((0, -1.4))
 
     # ---- dividers
@@ -108,8 +108,8 @@ with schemdraw.Drawing(file=OUT, show=False) as d:
     divider(d, 30, 9.6, "5V_POL", "GPIO10", "5V rail monitor")
 
     # ---- inputs
-    series_in(d, 19.5, 1.6, "CS", "GPIO2", "Motor current (IPROPI)")
-    d += elm.Label().label("If the module has no IPROPI resistor, add 1.5k from CS to GND.",
+    series_in(d, 19.5, 1.6, "CS", "GPIO2", "Motor current (CS)")
+    d += elm.Label().label("If CS→GND measures open on the board, add 1.5k from CS to GND.",
                            fontsize=10, halign="left", color="#555").at((19.5, 0.0))
     series_in(d, 19.5, -2.4, "cable 3 yellow", "GPIO5", "Shoulder switch (arm cable 3)", pull="100k")
     d += elm.Label().label("cable 3 red → +3V3, black → GND, white unused",

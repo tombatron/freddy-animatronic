@@ -181,42 +181,46 @@ wire((24, "a"), (24, "T-"), BLUE, via=[(xy(24, "a")[0] - 9, ROWS["T+"] + 6)])
 wire((22, "e"), (22, "f"), GREEN)
 tag(22, "j", "GPIO1", GREEN, False, 2.2)
 
-# ------------------------------------------------------------------ DRV8876 (cols 26-31, straddling the gap)
+# ------------------------------------------------------------------ DRV8876 board (DRV887x module, cols 26-32)
+# Chip side up, VM pins on the left: outputs row on top, control row on the bottom.
 x1, ye = xy(26, "e")
-x2, yf = xy(31, "f")
+x2, yf = xy(32, "f")
 add(f'<rect x="{x1 - 16}" y="{ye - 18}" width="{x2 - x1 + 32}" height="{yf - ye + 36}" rx="4" fill="#c0392b" stroke="#000"/>')
 text((x1 + x2) / 2, (ye + yf) / 2 + 5, "DRV8876", 14, color="white", weight="bold")
-for i, n in enumerate(["VM", "GND", "OUT1", "OUT2", "", ""]):
+for i, n in enumerate(["VM", "GND", "O2", "O1", "IMD", "FLT", "CS"]):
     pin(26 + i, "e", n, below=True)
-for i, n in enumerate(["IN1", "IN2", "SLP", "PMD", "IPR", "FLT"]):
+for i, n in enumerate(["VM", "GND", "IN1", "IN2", "PMD", "SLP", "VRF"]):
     pin(26 + i, "f", n, below=False)
-wire((26, "a"), (26, "T+"), RED)
-wire((27, "a"), (27, "T-"), BLUE, via=[(xy(27, "a")[0] - 9, ROWS["T+"] + 6)])
-tag(28, "b", "cable 1 black", BLACK, True, 5.6)
-tag(29, "b", "cable 1 red", RED, True, 3.4)
-tag(26, "j", "GPIO11", PURPLE, False, 4.2)
-tag(27, "j", "GPIO12", PURPLE, False, 6.2)
-resistor((30, "i"), (32, "i"), "1k", below=True)
-tag(32, "j", "GPIO2", GREEN, False, 2.2)
-# 3V3 strip: bottom col 35 (fed from the ESP32), bridged to top col 35 for cable 3 red
-wire((28, "g"), (35, "g"), ORANGE)
-wire((29, "h"), (35, "h"), ORANGE)
-wire((35, "e"), (35, "f"), ORANGE)
-tag(35, "j", "ESP32 3V3", ORANGE, False, 4.2)
-tag(35, "a", "cable 3 red", RED, True, 2.2)
-text(xy(36, "i")[0] - 4, ROWS["i"] + 4, "3V3 strip", 11, "start", ORANGE, "bold")
+wire((26, "a"), (26, "T+"), RED)                                         # VM
+wire((27, "a"), (27, "T-"), BLUE, via=[(xy(27, "a")[0] - 9, ROWS["T+"] + 6)])   # GND
+tag(29, "b", "cable 1 black", BLACK, True, 5.6)                          # OUT1 (long tag first)
+tag(28, "b", "cable 1 red", RED, True, 3.4)                              # OUT2
+wire((30, "a"), (30, "T-"), BLUE, via=[(xy(30, "a")[0] - 9, ROWS["T+"] + 6)])   # IMODE -> GND
+resistor((32, "c"), (35, "c"), "1k")                                     # CS -> 1k -> col 35
+wire((35, "e"), (35, "f"), GREEN)
+tag(35, "j", "GPIO2", GREEN, False, 2.2)
+tag(28, "j", "GPIO11", PURPLE, False, 6.2)                               # IN1
+tag(29, "j", "GPIO12", PURPLE, False, 4.2)                               # IN2
+# 3V3 strip: bottom col 38 (fed from the ESP32), bridged to top col 38 for cable 3 red
+wire((30, "g"), (38, "g"), ORANGE)                                       # PMODE
+wire((31, "h"), (38, "h"), ORANGE)                                       # nSLEEP
+wire((32, "i"), (38, "i"), ORANGE)                                       # VREF
+wire((38, "e"), (38, "f"), ORANGE)
+tag(38, "j", "ESP32 3V3", ORANGE, False, 4.2)
+tag(38, "a", "cable 3 red", RED, True, 2.2)
+text(xy(38, "i")[0] + 10, ROWS["i"] + 18, "3V3 strip", 11, "start", ORANGE, "bold")
 
 # ------------------------------------------------------------------ shoulder switch
-tag(40, "a", "cable 3 yellow", GOLD, True, 4.4)
-wire((40, "e"), (40, "f"), GOLD)
-resistor((40, "g"), (43, "g"), "1k")
-resistor((43, "i"), (46, "i"), "100k", below=True)
-wire((46, "j"), (46, "B-"), BLUE)
-tag(43, "j", "GPIO5", GREEN, False, 2.2)
+tag(41, "a", "cable 3 yellow", GOLD, True, 4.4)
+wire((41, "e"), (41, "f"), GOLD)
+resistor((41, "g"), (44, "g"), "1k")
+resistor((44, "i"), (47, "i"), "100k", below=True)
+wire((47, "j"), (47, "B-"), BLUE)
+tag(44, "j", "GPIO5", GREEN, False, 2.2)
 
 # ------------------------------------------------------------------ grounds out
-tag(47, "T-", "cable 3 black", BLUE, True, 2.2)
-tag(48, "B-", "ESP32 GND", BLUE, False, 3.4)
+tag(48, "T-", "cable 3 black", BLUE, True, 2.2)
+tag(49, "B-", "ESP32 GND", BLUE, False, 3.4)
 
 # ------------------------------------------------------------------ notes
 ny = ROWS["Bx"] + 230
@@ -224,8 +228,8 @@ notes = [
     "Columns are 5-hole strips: a–e is one strip, f–j is another. The orange/green/gold jumpers across the gap join the two halves of a column.",
     "Main rail monitor: VMOT → col 19 → 47k → col 22 → 22k → col 24 → GND; col 22 → GPIO1.   5V monitor: col 13 → 47k → col 16 → 22k → col 19 → GND; col 16 → GPIO10.",
     "Pololu VOUT feeds column 13 (bottom). That one column is the whole \"5V rail\": the diode to the ESP32 and the 5V monitor both start there.",
-    "DRV8876 pin order is a placeholder: generic modules differ. Keep the connections, go by the names on your module. SLP = nSLEEP, PMD = PMODE, IPR = IPROPI, FLT = nFAULT (leave open).",
-    "Add a 1.5k from IPROPI to GND only if the module has no IPROPI resistor.   Optional elbow / PIR: see the table in docs/phase2-power-test.md.",
+    "DRV8876 board: chip side up, VM pins on the left. Its pins may land in different rows than drawn: any hole in the same column strip works. Leave the second VM/GND pair and FLT (nFAULT) open.",
+    "Pin key: O1/O2 = OUT1/OUT2, IMD = IMODE (→ GND), PMD = PMODE, SLP = nSLEEP, VRF = VREF (all three → 3V3). If CS→GND measures open (no resistor on the board), add 1.5k from CS to GND.   Optional elbow / PIR: see docs/phase2-power-test.md.",
 ]
 for i, n in enumerate(notes):
     text(24, ny + i * 21, "• " + n, 13, "start")
