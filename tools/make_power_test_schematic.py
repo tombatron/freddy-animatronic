@@ -100,7 +100,7 @@ with schemdraw.Drawing(file=OUT, show=False) as d:
            [("EN/IN1", "GPIO11"), ("PH/IN2", "GPIO12"), ("nSLEEP", "+3V3"), ("PMODE", "+3V3"), ("VREF", "+3V3"), ("IMODE", "GND"), ("CS", "CS")],
            [("VM", "VMOT"), ("GND", "GND"), ("OUT1", "cable 1 black"), ("OUT2", "cable 1 red")],
            at=(3, 0), width=3.4)
-    d += elm.Label().label("Shoulder motor = arm cable 1. OUT1 → black lifts (right arm; swap if the left lowers first).",
+    d += elm.Label().label("Shoulder motor = arm cable 1. OUT1 → black lifts (same on both arms).",
                            fontsize=10, halign="left", color="#555").at((0, -1.4))
 
     # ---- dividers

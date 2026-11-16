@@ -7,7 +7,7 @@ Each arm has a shoulder (plain DC motor plus a switch) and an elbow (a smart ser
 ## Shoulder motor (cable 1)
 
 - Winding resistance ~4 Ω (worst-case stall ~1.8A at 7.2V).
-- Reversing H-bridge. Both arms use the same polarity:
+- Reversing H-bridge. Both arms use the same polarity: black is + while lifting (confirmed on the left arm with a meter: about +3 to +4.5V black-to-red during the stock lift):
 
 | Move | Row 1 (black) | Row 2 (red) | Duration (stock) |
 | --- | --- | --- | --- |
