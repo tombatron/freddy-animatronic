@@ -6,7 +6,7 @@ Reverse-engineering the control board of a Spirit Halloween Freddy Fazbear anima
 
 | Part | What it is | Status |
 | --- | --- | --- |
-| Shoulders | Reversing DC motor (~4 Ω) + one position switch | Decoded, both arms |
+| Shoulders | Reversing DC motor (~2 Ω) + one position switch | Decoded, both arms |
 | Elbows | Smart serial servo module, 9600 baud, custom frames | Decoded **and controlled** by the ESP32 |
 | Eyes | Sweep motor (cam), home switch, LEDs | Decoded; LED and motor currents measured |
 | Trigger | 3.5mm jack, contact closure | Confirmed |

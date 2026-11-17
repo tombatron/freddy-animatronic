@@ -2,7 +2,7 @@ Ref,Qty,Part,Value / rating,Source (suggested),Notes
 A1,1,ESP32-S3-DevKitC-1 N16R8,,Espressif / AliExpress,On 2x22 female headers; check v1.0 vs v1.1 (RGB LED pin)
 U1,1,Pololu S7V7F5,"5V buck-boost, ~1A",Pololu #2119,+5V_LOGIC
 U2,1,MP1584EN buck module,"5V out, 3A",Amazon (6-pack),+5V_AUDIO. Measure 5.0V out before connecting the amp
-U3 U4,2,DRV8876 module (generic red),"1.3A cont, 3.5A peak, IN/IN",Amazon (2-pack),Shoulders. Footprint and IPROPI resistor: confirm on arrival
+U3 U4,2,DRV8874 module (generic red "DRV887*" board),"2.1A cont, 6A peak, IN/IN",Amazon,Shoulders. Same board as the DRV8876 used on the bench. Set CS resistor for a ~2.5-3A limit
 U5,1,TB6612FNG module (generic red; SparkFun layout),1.2A/ch,Amazon (3-pack),Eye motor (A) and LEDs (B). Confirm pinout on arrival
 U6,1,MAX98357A I2S amp breakout (clone),"3W class D",Amazon (2-pack),Speaker amp
 F1,1,Mini blade fuse + PCB holder,5A,,Keep the Phase 1 rating

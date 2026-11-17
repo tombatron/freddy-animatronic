@@ -64,10 +64,12 @@ int measureCount = 0;
 String line;
 
 // ---------------------------------------------------------------- motor + LEDs
+// Slow-decay PWM: hold one input high, pulse the other between low (drive) and
+// high (short brake), so partial speeds keep their torque.
 void motorDrive(int d, int pct) {
-  int duty = constrain(pct, 0, 100) * 255 / 100;
-  if (d > 0) { ledcWrite(PIN_AIN2, 0); ledcWrite(PIN_AIN1, duty); }
-  else       { ledcWrite(PIN_AIN1, 0); ledcWrite(PIN_AIN2, duty); }
+  int brakeDuty = 255 - constrain(pct, 0, 100) * 255 / 100;
+  if (d > 0) { ledcWrite(PIN_AIN1, 255); ledcWrite(PIN_AIN2, brakeDuty); }
+  else       { ledcWrite(PIN_AIN2, 255); ledcWrite(PIN_AIN1, brakeDuty); }
 }
 void motorBrake() { ledcWrite(PIN_AIN1, 255); ledcWrite(PIN_AIN2, 255); }
 

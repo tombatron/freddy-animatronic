@@ -56,7 +56,7 @@ With nothing connected, measure resistance from **CS to GND**:
 - **Open / very high:** no resistor on the board. Add 1.5kΩ from CS to GND and leave `CS_MV_PER_A` at 1500.
 - **Above ~3kΩ:** the limit would be under 1.1A and could weaken lifts. Add a resistor in parallel to bring it down to about 1.5kΩ.
 
-**Measured on our boards:** CS→GND = 2.47kΩ (a 2.49k resistor), so the sketch uses 2470 mV/A and the current limit is about **1.3A**, matching the DRV8876's continuous rating. A normal lift draws 0.5–1A. The ESP32's ADC tops out around 3.1V, so current readings above ~1.25A all read as ~1.25A.
+**Measured on our boards:** CS→GND = 2.47kΩ (a 2.49k resistor), which gives only a **1.3A** limit. That turned out to be too low: the shoulder motor measures **~1.7–2Ω**, so it wants 1.5–1.8A just to start the stock-style lift, and the arm never moved. **Fix: add 2.2kΩ from CS to GND** (in parallel with the board's resistor): CS→GND then reads ~1.16kΩ, the limit is **~2.8A**, and the sketches use 1163 mV/A. Current readings top out around 2.7A (the ESP32's ADC maxes out near 3.1V).
 
 ## Before powering the motor
 

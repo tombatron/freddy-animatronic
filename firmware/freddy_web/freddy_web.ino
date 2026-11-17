@@ -56,7 +56,7 @@ const int PIN_RGB = 48;
 
 // ---------------- tuning
 const float DIV = 69.0f / 22.0f;            // 47k/22k divider
-const float CS_MV_PER_A = 2470.0f;          // = CS-to-GND resistance in ohms (measured 2.47k)
+const float CS_MV_PER_A = 1163.0f;          // = CS-to-GND resistance in ohms: board 2.47k || added 2.2k = 1.16k (limit ~2.8A)
 int liftDuty = 50;                          // %, stock lift is ~3V across the motor
 const int LOWER_DUTY = 100;
 const uint32_t LIFT_EXTRA_MS = 800, LIFT_TIMEOUT_MS = 6000, LOWER_TIMEOUT_MS = 4000;
@@ -91,11 +91,16 @@ float readAmps()     { return analogReadMilliVolts(PIN_CS) / CS_MV_PER_A; }
 bool switchHigh()    { return digitalRead(PIN_SW) == HIGH; }
 void rgb(uint8_t r, uint8_t g, uint8_t b) { rgbLedWrite(PIN_RGB, r, g, b); }
 
-void motor(int in1Duty, int in2Duty) {
-  ledcWrite(PIN_IN1, in1Duty * 255 / 100);
-  ledcWrite(PIN_IN2, in2Duty * 255 / 100);
+// Slow-decay PWM, like the stock board: hold one side high and pulse the other
+// between low (drive) and high (brake). At 50% this really delivers about half the
+// voltage. (Pulsing to "coast" instead wastes most of the push at partial duty.)
+// Writing 255 at 8-bit resolution means fully on in Arduino-ESP32 3.x.
+void drive(int dir, int pct) {
+  int brakeDuty = 255 - constrain(pct, 0, 100) * 255 / 100;
+  if (dir > 0) { ledcWrite(PIN_IN1, 255); ledcWrite(PIN_IN2, brakeDuty); }   // OUT1 high: lift
+  else         { ledcWrite(PIN_IN2, 255); ledcWrite(PIN_IN1, brakeDuty); }   // OUT2 high: lower
 }
-void motorOff() { motor(0, 0); }
+void motorOff() { ledcWrite(PIN_IN1, 0); ledcWrite(PIN_IN2, 0); }          // both low = coast
 
 void elbowSend(int pos, int ms) {
   uint8_t f[9] = {0xAB, 0x01, 0x09, 0x41, (uint8_t)(pos & 0xFF), (uint8_t)((pos >> 8) & 0xFF),
@@ -167,14 +172,14 @@ void enter(State s) {
   switch (s) {
     case LIFT:
       resetExtremes();
-      motor(liftDuty, 0);
+      drive(+1, liftDuty);
       if (elbowOn) { elbowTarget = ELBOW_UP; elbowSend(elbowTarget, 1500); }
       rgb(0, 0, 40);
       break;
     case LIFT_EXTRA: break;
     case HOLD: motorOff(); break;
     case LOWER:
-      motor(0, LOWER_DUTY);
+      drive(-1, LOWER_DUTY);
       if (elbowOn) { elbowTarget = ELBOW_HOME; elbowSend(elbowTarget, 1500); }
       break;
     case REST:

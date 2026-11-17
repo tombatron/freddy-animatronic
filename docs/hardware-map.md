@@ -14,7 +14,7 @@ Everything plugs into the stock board with SM-style connectors (2.54mm pitch). V
 
 | Cable | Pins | Freddy's wire colors | Role | Notes |
 | --- | --- | --- | --- | --- |
-| Arm cable 1 | 2 | black, red | Shoulder motor | ~4 Ω, reversing H-bridge. Same on both arms |
+| Arm cable 1 | 2 | black, red | Shoulder motor | ~1.7–2 Ω (measured), reversing H-bridge. Same on both arms |
 | Arm cable 2 | 3 | right: white, black, black · left: black, white, white | Elbow servo module | Tap rows: 3 = GND, 4 = ~7V, 5 = serial signal. Same pin positions on both arms despite the colors |
 | Arm cable 3 | 4 | red, black, yellow, white | Shoulder sensor | Red 3.3V, black GND, yellow position switch, white unknown (always 0V) |
 | Head cable 1 | 2 | yellow, white | Eye home switch | Yellow pulled up to 4.8V, white GND |

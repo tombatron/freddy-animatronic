@@ -8,7 +8,7 @@ Replace the stock board with one ESP32-S3 that plugs into the existing harness c
 
 | Function | Count | Interface | Notes |
 | --- | --- | --- | --- |
-| Shoulder motors | 2 | H-bridge channel each (DRV8871 or similar) | ~4 Ω, stall ~1.8A at 7.2V. PWM sets lift speed |
+| Shoulder motors | 2 | H-bridge channel each (DRV8874; see phase2-pcb.md) | ~2 Ω measured, stall 3.5A+ at 7.2V. PWM sets lift speed |
 | Shoulder switches | 2 | GPIO input | Already 3.3V logic. Provide 3.3V on cable 3 red |
 | Elbow servos | 2 | UART TX, one pin per elbow, 1kΩ series | 9600 8N1, frames per [elbow-protocol.md](elbow-protocol.md). Power from 7V |
 | Eye motor | 1 | Low-side MOSFET | One direction |

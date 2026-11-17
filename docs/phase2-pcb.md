@@ -2,7 +2,7 @@
 
 A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and driver parts are off-the-shelf modules on headers, so rev A is easy to hand-solder, debug and rework. A later revision can put the parts directly on the board once the design has proven itself.
 
-**Status:** schematic draft and placement sketch. Not in KiCad yet. Modules are ordered (generic DRV8876, TB6612 and MP1584 boards instead of the Pololu ones first planned). The DRV8876 board is confirmed: a red "DRV887*" module, two rows of 7 pins (VM, GND, EN/IN1, PH/IN2, PMODE, nSLEEP, VREF / VM, GND, OUT2, OUT1, IMODE, nFAULT, CS); the same board takes a DRV8874. It has a 2.49k CS resistor (2.47kΩ measured): 2.47V/A and, with VREF at 3.3V, a ≈1.3A current limit. TB6612 and MP1584 footprints are still to confirm. The [power test](phase2-power-test.md) is the last design check.
+**Status:** schematic draft and placement sketch. Not in KiCad yet. Modules are ordered (generic DRV8876, TB6612 and MP1584 boards instead of the Pololu ones first planned). The DRV8876 board is confirmed: a red "DRV887*" module, two rows of 7 pins (VM, GND, EN/IN1, PH/IN2, PMODE, nSLEEP, VREF / VM, GND, OUT2, OUT1, IMODE, nFAULT, CS); the same board takes a DRV8874. It has a 2.49k CS resistor (2.47kΩ measured), giving only a ≈1.3A limit, too low for the ~2Ω shoulder motors. The bench test adds 2.2k in parallel (~2.8A limit); the PCB should use **DRV8874** boards (same footprint) with a ~1k CS resistor. TB6612 and MP1584 footprints are still to confirm. The [power test](phase2-power-test.md) is the last design check.
 
 | Sheet | File |
 | --- | --- |
@@ -45,7 +45,7 @@ flowchart LR
 - **Modules, not bare chips (rev A).** The driver and regulator modules already have their bypass caps, current-sense resistors and thermal copper. Each one sits on 0.1" headers, so a dead driver is a 30-second swap.
 - **Three rails.** VMOT is the raw adapter after the fuse. It drives the shoulders, eye motor and elbows directly, as the stock board does. Logic and audio each get their **own regulator**, because a class-D amp on the ESP32's rail would put noise on WiFi and the ADC. Logic uses a **buck-boost** (Pololu S7V7F5) because the adapter sags to ~4.9V during a lift. Audio uses a plain **buck** (MP1584): the amp runs from 2.5 to 5.5V, so a sag only makes it a little quieter.
 - **D2 Schottky into the ESP32's 5V pin**, so plugging in USB while the board is powered can't backfeed the regulator (and the other way around).
-- **DRV8876 for the shoulders** instead of the DRV8871 from the plan. It runs down to 4.5V (the DRV8871 needs 6.5V, and the adapter sags to ~4.9V), has IN/IN control and an analog current output (IPROPI), so the ESP32 can see a stall or a "the arm hit the stop" spike. That covers most of what the INA219 was for. It's rated 1.3A continuous, 3.5A peak: a normal lift is 0.5–1A; a 1.8A stall hits its current limit, and the firmware stops on stalls anyway. (The DRV8874, 2.1A continuous, is the upgrade path if more headroom is ever needed.)
+- **DRV8874 for the shoulders** (bench-tested with the DRV8876, which shares the board). It runs down to 4.5V (the DRV8871 needs 6.5V, and the adapter sags to ~4.9V), has IN/IN control and an analog current output (IPROPI/CS), so the ESP32 can see a stall or a "the arm hit the stop" spike. That covers most of what the INA219 was for. The shoulder motor measured ~2Ω, so starting a lift takes 1.5–1.8A and a stall is 3.5A+: the DRV8876 (1.3A continuous) couldn't start the arm at its stock current limit. The DRV8874 (2.1A continuous, 6A peak) with the limit set around 2.5–3A has the headroom, and the firmware stops on stalls.
 - **TB6612 for the head.** Channel A runs the eye motor (one direction, but the H-bridge gives braking). Channel B runs the LEDs (measured: one direction, yellow +, ~2.8V at ~20mA). R3 = 220Ω sets about the stock brightness at full on; PWM dims and flickers.
 - **Every external input** has a 1k series resistor and a pull resistor. The trigger jack (the only user-facing input) also gets a TVS. The PIR output only reaches ~1.3V on motion (measured), which is too low to read reliably as a digital input on a 3.3V ESP32. So GPIO9 reads it with the **ADC** (it's on ADC1) against a ~0.6V threshold, with a 100k pulldown so an unplugged sensor reads idle. The BAT54S clamp stays as protection.
 - **Audio:** MAX98357A (I2S in, 3W class D out, no DAC needed). The INMP441 microphone shares BCLK/WS, so it's one full-duplex I2S bus and costs only one extra GPIO.
@@ -101,7 +101,7 @@ Avoided: strapping pins 0, 3, 45, 46; USB 19, 20; octal PSRAM 35–37; UART0 43,
 
 | Load | Rail | Typical | Peak |
 | --- | --- | --- | --- |
-| Shoulder motor, each | VMOT | 0.5–1A while lifting | 1.8A stall |
+| Shoulder motor, each | VMOT | ~1–2A while lifting (to be measured) | 3.5A+ stall (current-limited to ~2.8A) |
 | Elbow module, each | VMOT | ~0.1A | ~0.5A moving (estimate) |
 | Eye motor + LEDs | VMOT | ~0.1A (motor 80–90mA measured, LEDs ~20mA) | ~0.4A (motor start, estimate) |
 | ESP32-S3 (WiFi on) | +5V_LOGIC | 0.15A | 0.5A bursts |
