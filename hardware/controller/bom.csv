@@ -1,5 +1,5 @@
 Ref,Qty,Part,Value / rating,Source (suggested),Notes
-A1,1,ESP32-S3-N16R8 dev board (dual USB-C; DevKitC-1 pinout),,In hand,"On 2x22 female headers, rows 25.4mm apart. RGB LED on GPIO48"
+A1,1,ESP32-S3-N16R8 dev board (dual USB-C; DevKitC-1 pinout),,In hand,"On 2x22 female headers, rows 25.4mm apart; board 63.6 x 28.1mm. RGB LED on GPIO48"
 U1,1,Pololu S7V7F5,"5V buck-boost, ~1A",Pololu #2119,+5V_LOGIC
 U2,1,MP1584EN buck module,"5V out, 3A",Amazon (6-pack),+5V_AUDIO. Measure 5.0V out before connecting the amp
 U3 U4,2,DRV8874 module (generic red "DRV887*" board),"2.1A cont, 6A peak, IN/IN",Amazon,Shoulders. Same board as the DRV8876 used on the bench. Set CS resistor for a ~2.5-3A limit
