@@ -154,7 +154,7 @@ with drawing("controller_signals.svg") as d:
 
     switch_in(16, 10, "Right shoulder switch · J5", "J5.3 yellow", "SW_SH_R (GPIO5)", "100k", "GND")
     switch_in(16, 4.8, "Left shoulder switch · J8", "J8.3 yellow", "SW_SH_L (GPIO6)", "100k", "GND")
-    d += elm.Label().label("J5/J8: pin 1 = +3V3 (red), 2 = GND (black), 3 = switch (yellow), 4 = white → TP only", fontsize=10, halign="left", color="#555").at((16, 0.6))
+    d += elm.Label().label("J5/J8: pin 1 = +3V3 via 220Ω (R22/R23, red), 2 = GND, 3 = switch (yellow), 4 = white → TP", fontsize=10, halign="left", color="#555").at((16, 0.6))
 
     switch_in(0, 2.5, "Eye home switch · J9 (head cable 1)", "J9.1 yellow", "SW_EYE (GPIO7)", "10k", "3V3")
     d += elm.Label().label("J9.2 white = GND", fontsize=10, halign="left", color="#555").at((0, -1.5))

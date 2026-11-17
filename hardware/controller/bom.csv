@@ -5,7 +5,7 @@ U2,1,MP1584EN buck module,"5V out, 3A",Amazon (6-pack),+5V_AUDIO. Measure 5.0V o
 U3 U4,2,DRV8874 module (generic red "DRV887*" board),"2.1A cont, 6A peak, IN/IN",Amazon,Shoulders. Same board as the DRV8876 used on the bench. Set CS resistor for a ~2.5-3A limit
 U5,1,TB6612FNG module (generic red; SparkFun layout),1.2A/ch,Amazon (3-pack),Eye motor (A) and LEDs (B). Confirm pinout on arrival
 U6,1,MAX98357A I2S amp breakout (clone),"3W class D",Amazon (2-pack),Speaker amp
-F1,1,Mini blade fuse + PCB holder,5A,,Keep the Phase 1 rating
+F1,1,PCB-mount mini blade fuse holder (through-hole) + fuse,"5A (4A adapter), 7.5A (6A adapter)",,Same fuses as the Phase 1 breakout
 Q1,1,P-channel MOSFET,"-20V or more, Rds<20mΩ (e.g. AO3401A / SI2323)",LCSC,Reverse polarity protection
 D1,1,TVS diode,SMBJ8.5A,LCSC,On VMOT
 D2,1,Schottky diode,"SS34, 3A 40V",LCSC,Blocks USB backfeed into U1
@@ -23,8 +23,11 @@ R4-R12,9,Resistor,1k 0805,,Series on every external line and CS lines
 R13 R14 R21,3,Resistor,100k 0805,,Shoulder switch pulldowns; PIR pulldown
 R15 R16,2,Resistor,10k 0805,,Eye home and trigger pull-ups
 R17 R18,2,Resistor,4.7k 0805,,I2C pull-ups
-R19 R20,2,Resistor,10k 0805,,DRV8876 nFAULT pull-ups (skip if the module has them)
-J1,1,DC barrel jack,"5.5x2.1, 5A",,Plus parallel 2-pin 5.08mm screw terminal footprint
+R19 R20,2,Resistor,10k 0805,,DRV8874 nFAULT pull-ups (skip if the module has them)
+R22 R23,2,Resistor,220Ω 0805,,In series with +3V3 to each shoulder switch (J5.1/J8.1): a harness short can't pull down the 3.3V rail
+R24 R25,2,Resistor,DNP (e.g. 2.2k),,Optional: CS to GND beside each DRV8874 to tune the current limit
+J1,1,DC barrel jack (through-hole),"5.5x2.1mm, rated 5A+",,Matches the 7.2V adapter's plug (confirmed)
+J2,1,Screw terminal 2-pin 5.08mm,10A+,,In parallel with J1: bigger brick or battery
 J3 J6,2,JST SM pigtail (2-pin),Opposite gender to Freddy's plug,,Shoulder motors; soldered to pads
 J4 J7,2,JST SM pigtail (3-pin),Opposite gender to Freddy's plug,,Elbows
 J5 J8,2,JST SM pigtail (4-pin),Opposite gender to Freddy's plug,,Shoulder switches

@@ -83,10 +83,10 @@ Avoided: strapping pins 0, 3, 45, 46; USB 19, 20; octal PSRAM 35–37; UART0 43,
 
 | Ref | Goes to | Pins |
 | --- | --- | --- |
-| J1 | Adapter | 5.5×2.1 barrel, center + (plus a 2-pin screw terminal footprint in parallel) |
+| J1 | Adapter | Through-hole 5.5×2.1mm barrel jack, center + (matches the current 7.2V adapter). J2: 2-pin 5.08mm screw terminal in parallel, for a bigger brick or a battery (barrel jacks top out around 5A) |
 | J3 / J6 | Right / left shoulder motor (cable 1) | 1 OUT1, 2 OUT2 |
 | J4 / J7 | Right / left elbow (cable 2) | 1 GND, 2 VMOT, 3 signal |
-| J5 / J8 | Right / left shoulder switch (cable 3) | 1 +3V3 (red), 2 GND (black), 3 switch (yellow), 4 white (test point only) |
+| J5 / J8 | Right / left shoulder switch (cable 3) | 1 +3V3 through 220Ω (R22/R23, red), 2 GND (black), 3 switch (yellow), 4 white (test point only) |
 | J9 | Eye home switch (head cable 1) | 1 switch (yellow), 2 GND (white) |
 | J10 | Eye LEDs (head cable 2) | 1 LED + (yellow), 2 LED − (white) |
 | J11 | Eye motor (head cable 3) | 1 motor (yellow), 2 motor (orange) |
@@ -101,22 +101,27 @@ Avoided: strapping pins 0, 3, 45, 46; USB 19, 20; octal PSRAM 35–37; UART0 43,
 
 | Load | Rail | Typical | Peak |
 | --- | --- | --- | --- |
-| Shoulder motor, each | VMOT | ~1–2A while lifting (to be measured) | 3.5A+ stall (current-limited to ~2.8A) |
+| Shoulder motor, each | VMOT | ~1–2A once moving (estimate: a moving motor draws far less than a stalled one) | ~2.8A (current limit); 3.5A+ unlimited stall |
 | Elbow module, each | VMOT | ~0.1A | ~0.5A moving (estimate) |
 | Eye motor + LEDs | VMOT | ~0.1A (motor 80–90mA measured, LEDs ~20mA) | ~0.4A (motor start, estimate) |
 | ESP32-S3 (WiFi on) | +5V_LOGIC | 0.15A | 0.5A bursts |
 | Speaker amp, 3W into 4Ω | +5V_AUDIO | 0.3A | 0.8A |
 
-Worst case is both shoulders stalled while audio plays: about 5A, which is right at the fuse. The stock show never lifts both arms at full drive at once, and the firmware can stop that from ever happening (stagger lifts, or use the CS readings). A **7.5V 6A adapter** is still recommended.
+**Bench results (breadboard, DRV8876, one arm):** a stalled or barely moving shoulder drew 2.1A at 40% and 2.6–2.7A at 70%, and the 7.2V adapter sagged to ~5.0V at 2.7A (about 0.8Ω of source resistance in the adapter and wiring). The arm was weak because the DRV8876 (~0.7Ω) and the breadboard ate about half the voltage; the DRV8874 (~0.2Ω) and real copper fix that.
+
+The stock board lifts both arms at once on the same 4A adapter because its gentle ~3V drive actually reaches the motors, and **moving** motors draw much less than stalled ones. So two arms together should fit the existing adapter once our drive is efficient. Design the copper for **~6A** anyway, so a **7.5V 6A adapter** (into J2) works as an upgrade. Firmware: don't start both shoulders at full drive at the same instant, and stop on stall (CS readings).
+
+**Fuse:** F1 is a through-hole PCB mini blade fuse holder, the same fuses as the Phase 1 breakout. Use 5A with the 4A adapter, 7.5A with a 6A adapter.
 
 ## Layout guidelines
 
 - 100×80 mm, 2 layers, 1 oz copper, M3 holes in the corners. See [placement.svg](../hardware/controller/placement.svg).
 - Power enters top-left. Harness connectors run along the bottom edge in body order (right arm, head, left arm, inputs). Audio sits top-right, away from the motor drivers.
 - Bottom layer: solid ground pour. Motor return currents go straight back to J1 on wide copper (star point at J1). Do not route motor current under the ESP32 or the amp.
-- VMOT traces: ≥2 mm wide (≈3A at a 10°C rise on 1 oz), or a pour. Shoulder outputs: ≥1.5 mm.
+- VMOT and GND return: copper pours, or traces ≥3 mm wide (≈6A on 1 oz copper with a modest rise; or order 2 oz copper). Shoulder outputs: ≥2 mm. Keep J1/J2 → F1 → VMOT short.
 - Keep the ESP32 antenna end past the board edge or over a copper-free cutout.
 - Test points on VMOT, +5V_LOGIC, +5V_AUDIO, +3V3, GND, both elbow TX lines, and each FAULT pin.
+- Next to each DRV8874, a footprint for an optional resistor from CS to GND (R24/R25, not fitted by default) to tune the current limit without touching the module.
 
 ## Open questions
 
