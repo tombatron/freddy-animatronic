@@ -81,10 +81,32 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
       <output>40%</output>
       <button>Set</button>
     </form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="elbow"><button>Toggle elbow</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="elbow"><button>Elbow moves with cycles</button></form>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="clear"><button>Clear counters &amp; peaks</button></form>
   </section>
   <div id="msg"></div>
+
+  <h2>Elbow</h2>
+  <section class="controls">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="elbhome"><button>Elbow home</button></form>
+    <form action="/cmd" method="post" class="duty">
+      <label>Step</label><input type="number" name="v" value="50" min="5" max="300" step="5" style="width:70px">
+      <label>over</label><input type="number" name="t" value="500" min="100" max="3000" step="100" style="width:80px"> ms
+      <button name="a" value="elbup">Elbow up (+)</button>
+      <button name="a" value="elbdn">Elbow down (&minus;)</button>
+    </form>
+  </section>
+  <section class="controls">
+    <form action="/cmd" method="post" class="duty">
+      <label>Go to</label><input type="number" name="v" value="0" min="-700" max="550" step="10" style="width:80px">
+      <label>over</label><input type="number" name="t" value="1000" min="100" max="3000" step="100" style="width:80px"> ms
+      <button name="a" value="elbgo">Go</button>
+    </form>
+    <form action="/cmd" method="post" class="duty">
+      <select name="v"><option value="1" selected>Left arm (&minus;700&hellip;550)</option><option value="0">Right arm (&minus;700&hellip;350)</option></select>
+      <button name="a" value="elbarm">Set arm</button>
+    </form>
+  </section>
 
   <h2>Cycles</h2>
   <table>

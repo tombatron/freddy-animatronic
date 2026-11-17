@@ -75,7 +75,12 @@ uint32_t jogMs = 0;
 State state = IDLE;
 bool cycling = false, singleMove = false, elbowOn = false;
 uint32_t stateStart = 0, cycles = 0, lastElbow = 0, lastPush = 0;
-int elbowTarget = ELBOW_HOME;
+int elbowTarget = ELBOW_HOME;              // last commanded elbow position (the module never reports back)
+bool elbowLeft = true;                      // which arm is on GPIO17: sets the allowed range
+bool elbowActive = false;                   // true once commanded from the page: keep-alive runs from then on
+int elbowMs = 500;                          // move time for elbow commands
+const int ELBOW_MAX_LEFT = 550, ELBOW_MAX_RIGHT = 350;
+int elbowMax() { return elbowLeft ? ELBOW_MAX_LEFT : ELBOW_MAX_RIGHT; }
 float vmot = 0, v5 = 0, amps = 0;
 float minVmot, minV5, maxAmps;                       // this cycle
 float allMinVmot = 99, allMinV5 = 99, allMaxAmps = 0; // this boot
@@ -87,7 +92,7 @@ int resetReason = 0;
 // ---------------- web
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
-struct Cmd { char a; int v; };
+struct Cmd { char a; int v; int t; };
 QueueHandle_t cmdQueue;                     // web callbacks run in another task: hand commands to loop()
 
 // ---------------------------------------------------------------- hardware helpers
@@ -138,7 +143,7 @@ void report(const char *fmt, ...) {
 void pushLive() {
   float shownVmot = allMinVmot, shownV5 = allMinV5, shownAmps = allMaxAmps;
   bool v5bad = shownV5 < V5_MIN_OK, resetBad = boots > 1 || brownouts > 0;
-  char b[1600];
+  char b[2048];
   snprintf(b, sizeof b,
     "<turbo-stream action=\"update\" target=\"live\"><template>"
     "<div class=\"card\"><div class=\"k\">Main rail</div><div class=\"v\">%.2f V</div><div class=\"s\">min %s</div></div>"
@@ -146,6 +151,7 @@ void pushLive() {
     "<div class=\"card\"><div class=\"k\">Motor</div><div class=\"v\">%.2f A</div><div class=\"s\">peak %.2f A</div></div>"
     "<div class=\"card\"><div class=\"k\">Arm</div><div class=\"v\">%s</div><div class=\"s\">switch %s</div></div>"
     "<div class=\"card\"><div class=\"k\">Cycles</div><div class=\"v\">%lu</div><div class=\"s\">%s &middot; lift %d%%%s</div></div>"
+    "<div class=\"card\"><div class=\"k\">Elbow (%s arm)</div><div class=\"v\">%d</div><div class=\"s\">%s</div></div>"
     "<div class=\"card%s\"><div class=\"k\">Boots since clear</div><div class=\"v\">%lu</div><div class=\"s\">brownouts %lu &middot; other %lu</div></div>"
     "</template></turbo-stream>",
     vmot, shownVmot > 90 ? "&ndash;" : String(shownVmot, 2).c_str(),
@@ -153,6 +159,7 @@ void pushLive() {
     amps, shownAmps,
     STATE_NAMES[state], switchHigh() ? "raised" : "home",
     cycles, cycling ? "cycling" : "stopped", liftDuty, elbowOn ? " &middot; elbow" : "",
+    elbowLeft ? "left" : "right", elbowTarget, elbowActive ? "commanded position" : "not commanded yet: press Elbow home",
     resetBad ? " warn" : "", boots, brownouts, otherResets);
   ws.textAll(b);
 }
@@ -230,8 +237,19 @@ void clearCounters() {
   report("reset counters and min/peak readings cleared (the next boot counts as 1)");
 }
 
+// Elbow: send a position (clamped to this arm's measured range) and keep resending it.
+void elbowGo(int pos, int ms, const char *what) {
+  int clamped = constrain(pos, ELBOW_HOME, elbowMax());
+  if (ms > 0) elbowMs = constrain(ms, 100, 3000);
+  elbowTarget = clamped;
+  elbowActive = true;
+  elbowSend(elbowTarget, elbowMs);
+  lastElbow = millis();
+  report("elbow %s: %d over %d ms%s", what, clamped, elbowMs, clamped != pos ? " (clamped to the arm's range)" : "");
+}
+
 // One place for every command, from the web or the serial monitor.
-void runCmd(char a, int v) {
+void runCmd(char a, int v, int t = 0) {
   switch (a) {
     case 'x': stopAll("stop pressed"); break;
     case 'g': if (!cycling) startCycle(); break;
@@ -253,6 +271,14 @@ void runCmd(char a, int v) {
     case ']': runCmd('d', liftDuty + 10); break;
     case 'e': elbowOn = !elbowOn; report("elbow moves %s", elbowOn ? "ON (stock board must be disconnected)" : "off"); break;
     case 'c': clearCounters(); break;
+    case 'h': elbowGo(ELBOW_HOME, t, "home"); break;
+    case 'E': if (v) elbowGo(elbowTarget + v, t, v > 0 ? "up" : "down"); break;
+    case 'G': elbowGo(v, t, "go to"); break;
+    case 'A':
+      elbowLeft = v != 0;
+      report("elbow arm set to %s (range %d..%d)", elbowLeft ? "left" : "right", ELBOW_HOME, elbowMax());
+      if (elbowTarget > elbowMax()) elbowGo(elbowMax(), 0, "clamp");
+      break;
     case 's':
       report("boots %lu | brownouts %lu | other %lu | cycles %lu | main min %.2fV | 5V min %.2fV | peak %.2fA",
              boots, brownouts, otherResets, cycles, allMinVmot, allMinV5, allMaxAmps);
@@ -274,12 +300,18 @@ void setupWeb() {
   server.on("/cmd", HTTP_POST, [](AsyncWebServerRequest *r) {
     String a = r->hasParam("a", true) ? r->getParam("a", true)->value() : "";
     int v = r->hasParam("v", true) ? r->getParam("v", true)->value().toInt() : 0;
-    Cmd c = {0, v};
+    int t = r->hasParam("t", true) ? r->getParam("t", true)->value().toInt() : 0;
+    Cmd c = {0, v, t};
     if (a == "stop") c.a = 'x';
     else if (a == "lift") c.a = 'l';
     else if (a == "lower") c.a = 'o';
     else if (a == "jogup") c.a = 'u';
     else if (a == "jogdown") c.a = 'n';
+    else if (a == "elbup") { c.a = 'E'; c.v = abs(v); }
+    else if (a == "elbdn") { c.a = 'E'; c.v = -abs(v); }
+    else if (a == "elbhome") c.a = 'h';
+    else if (a == "elbgo") c.a = 'G';
+    else if (a == "elbarm") c.a = 'A';
     else if (a == "cycle") c.a = 'g';
     else if (a == "duty") c.a = 'd';
     else if (a == "elbow") c.a = 'e';
@@ -290,7 +322,7 @@ void setupWeb() {
     r->send(200, "text/vnd.turbo-stream.html", body);
   });
   ws.onEvent([](AsyncWebSocket *s, AsyncWebSocketClient *client, AwsEventType type, void *, uint8_t *, size_t) {
-    if (type == WS_EVT_CONNECT) { Cmd c = {'s', 0}; xQueueSend(cmdQueue, &c, 0); }  // greet with stats
+    if (type == WS_EVT_CONNECT) { Cmd c = {'s', 0, 0}; xQueueSend(cmdQueue, &c, 0); }  // greet with stats
   });
   server.addHandler(&ws);
   server.onNotFound([](AsyncWebServerRequest *r) { r->send(404, "text/plain", "not found"); });
@@ -368,7 +400,7 @@ void loop() {
   esp_task_wdt_reset();
   // commands from the page
   Cmd c;
-  while (xQueueReceive(cmdQueue, &c, 0) == pdTRUE) runCmd(c.a, c.v);
+  while (xQueueReceive(cmdQueue, &c, 0) == pdTRUE) runCmd(c.a, c.v, c.t);
   // commands from the serial monitor
   while (Serial.available()) {
     char k = Serial.read();
@@ -422,7 +454,11 @@ void loop() {
   if ((state == LIFT || state == LIFT_EXTRA || state == LOWER || state == JOG) && inState > MAX_RUN_MS)
     stopAll("safety limit: motor ran too long");
 
-  if (elbowOn && state != IDLE && now - lastElbow > 1000) { elbowSend(elbowTarget, 1500); lastElbow = now; }
+  // elbow keep-alive: the stock board resends about once a second
+  if ((elbowActive || (elbowOn && state != IDLE)) && now - lastElbow > 1000) {
+    elbowSend(elbowTarget, elbowActive ? elbowMs : 1500);
+    lastElbow = now;
+  }
 
   // live dashboard: 4 updates a second
   if (now - lastPush >= 250) {
