@@ -31,6 +31,7 @@
 #include <ESPAsyncWebServer.h>
 #include <Preferences.h>
 #include "esp_system.h"
+#include "esp_task_wdt.h"
 #include "page.h"
 #include "turbo_js.h"
 
@@ -57,16 +58,20 @@ const int PIN_RGB = 48;
 // ---------------- tuning
 const float DIV = 69.0f / 22.0f;            // 47k/22k divider
 const float CS_MV_PER_A = 1163.0f;          // = CS-to-GND resistance in ohms: board 2.47k || added 2.2k = 1.16k (limit ~2.8A)
-int liftDuty = 50;                          // %, stock lift is ~3V across the motor
+int liftDuty = 40;                          // %, stock lift is ~3V across the motor (~43%)
 const int LOWER_DUTY = 100;
-const uint32_t LIFT_EXTRA_MS = 800, LIFT_TIMEOUT_MS = 6000, LOWER_TIMEOUT_MS = 4000;
+const uint32_t LIFT_EXTRA_MS = 300, LIFT_TIMEOUT_MS = 4000, LOWER_TIMEOUT_MS = 4000;
+const uint32_t MAX_RUN_MS = 4000;           // hard cap on any single motor run
+const uint32_t JOG_MAX_MS = 1500;           // jogs ignore the switch, so keep them short
 const uint32_t HOLD_MS = 1500, REST_MS = 2000;
 const float V5_MIN_OK = 4.75f;
 const int ELBOW_HOME = -700, ELBOW_UP = 0;  // right arm range is -700..350, left -700..550
 
 // ---------------- state
-enum State { IDLE, LIFT, LIFT_EXTRA, HOLD, LOWER, REST };
-const char *STATE_NAMES[] = {"idle", "lifting", "lifting", "holding", "lowering", "resting"};
+enum State { IDLE, LIFT, LIFT_EXTRA, HOLD, LOWER, REST, JOG };
+const char *STATE_NAMES[] = {"idle", "lifting", "lifting", "holding", "lowering", "resting", "jogging"};
+int jogDir = 0;
+uint32_t jogMs = 0;
 State state = IDLE;
 bool cycling = false, singleMove = false, elbowOn = false;
 uint32_t stateStart = 0, cycles = 0, lastElbow = 0, lastPush = 0;
@@ -194,6 +199,11 @@ void enter(State s) {
       motorOff();
       rgb(0, 20, 0);
       break;
+    case JOG:
+      resetExtremes();
+      drive(jogDir, liftDuty);
+      rgb(0, 0, 40);
+      break;
   }
 }
 
@@ -231,6 +241,13 @@ void runCmd(char a, int v) {
       else { singleMove = true; enter(LIFT); report("single lift"); }
       break;
     case 'o': if (state == IDLE) { singleMove = true; enter(LOWER); report("single lower"); } break;
+    case 'u': case 'n':                     // jog up / down: timed, ignores the switch
+      if (state != IDLE) break;
+      jogDir = a == 'u' ? 1 : -1;
+      jogMs = constrain(v > 0 ? v : 300, 50, (int)JOG_MAX_MS);
+      report("jog %s %lu ms at %d%%", jogDir > 0 ? "up" : "down", jogMs, liftDuty);
+      enter(JOG);
+      break;
     case 'd': liftDuty = constrain(v, 20, 100); report("lift duty %d%%", liftDuty); break;
     case '[': runCmd('d', liftDuty - 10); break;
     case ']': runCmd('d', liftDuty + 10); break;
@@ -261,6 +278,8 @@ void setupWeb() {
     if (a == "stop") c.a = 'x';
     else if (a == "lift") c.a = 'l';
     else if (a == "lower") c.a = 'o';
+    else if (a == "jogup") c.a = 'u';
+    else if (a == "jogdown") c.a = 'n';
     else if (a == "cycle") c.a = 'g';
     else if (a == "duty") c.a = 'd';
     else if (a == "elbow") c.a = 'e';
@@ -337,10 +356,16 @@ void setup() {
   setupWifi();
   setupWeb();
   enter(IDLE);
+  // Watchdog: if loop() ever stops running (a hang), reset the chip. A reset drops
+  // the motor pins, so the motor can't be left running.
+  esp_task_wdt_config_t wdt = {.timeout_ms = 2000, .idle_core_mask = 0, .trigger_panic = true};
+  if (esp_task_wdt_reconfigure(&wdt) != ESP_OK) esp_task_wdt_init(&wdt);
+  esp_task_wdt_add(NULL);
   report("booted (reset reason %d). Ready: press Start cycling or Lift.", resetReason);
 }
 
 void loop() {
+  esp_task_wdt_reset();
   // commands from the page
   Cmd c;
   while (xQueueReceive(cmdQueue, &c, 0) == pdTRUE) runCmd(c.a, c.v);
@@ -385,8 +410,17 @@ void loop() {
     case REST:
       if (cycling && inState > REST_MS) enter(LIFT);
       break;
+    case JOG:
+      if (inState >= jogMs) {
+        enter(IDLE);
+        report("jog done: main rail min %.2fV | 5V min %.2fV | peak %.2fA", minVmot, minV5, maxAmps);
+      }
+      break;
     case IDLE: break;
   }
+  // hard cap: no single motor run longer than MAX_RUN_MS, whatever the switch says
+  if ((state == LIFT || state == LIFT_EXTRA || state == LOWER || state == JOG) && inState > MAX_RUN_MS)
+    stopAll("safety limit: motor ran too long");
 
   if (elbowOn && state != IDLE && now - lastElbow > 1000) { elbowSend(elbowTarget, 1500); lastElbow = now; }
 

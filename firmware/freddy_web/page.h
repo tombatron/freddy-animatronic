@@ -65,12 +65,20 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="lift"><button>Lift</button></form>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="lower"><button>Lower</button></form>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="cycle"><button>Start cycling</button></form>
+  </section>
+  <section class="controls">
+    <form action="/cmd" method="post" class="duty">
+      <label for="jm">Jog (ignores the switch)</label>
+      <input id="jm" type="number" name="v" min="50" max="1500" step="50" value="300" style="width:80px"> ms
+      <button name="a" value="jogup">Jog up</button>
+      <button name="a" value="jogdown">Jog down</button>
+    </form>
     <form action="/cmd" method="post" class="duty">
       <input type="hidden" name="a" value="duty">
       <label for="v">Lift duty</label>
-      <input id="v" type="range" name="v" min="20" max="100" step="10" value="50"
+      <input id="v" type="range" name="v" min="20" max="100" step="10" value="40"
              oninput="this.nextElementSibling.value = this.value + '%'">
-      <output>50%</output>
+      <output>40%</output>
       <button>Set</button>
     </form>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="elbow"><button>Toggle elbow</button></form>
