@@ -2,7 +2,7 @@
 
 A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and driver parts are off-the-shelf modules on headers, so rev A is easy to hand-solder, debug and rework. A later revision can put the parts directly on the board once the design has proven itself.
 
-**Status:** schematic draft and placement sketch. Not in KiCad yet. Modules are ordered (generic DRV8876, TB6612 and MP1584 boards instead of the Pololu ones first planned). The DRV8876 board is confirmed: a red "DRV887*" module, two rows of 7 pins (VM, GND, EN/IN1, PH/IN2, PMODE, nSLEEP, VREF / VM, GND, OUT2, OUT1, IMODE, nFAULT, CS); the same board takes a DRV8874. It has a 2.49k CS resistor (2.47kΩ measured), giving only a ≈1.3A limit, too low for the ~2Ω shoulder motors. The bench test adds 2.2k in parallel (~2.8A limit); the PCB should use **DRV8874** boards (same footprint) with a ~1k CS resistor. TB6612 and MP1584 footprints are still to confirm. The [power test](phase2-power-test.md) is the last design check.
+**Status:** schematic draft and placement sketch. Not in KiCad yet. Modules are ordered (generic DRV8876, TB6612 and MP1584 boards instead of the Pololu ones first planned). The DRV8876 board is confirmed: a red "DRV887*" module, two rows of 7 pins (VM, GND, EN/IN1, PH/IN2, PMODE, nSLEEP, VREF / VM, GND, OUT2, OUT1, IMODE, nFAULT, CS); the same board takes a DRV8874. It has a 2.49k CS resistor (2.47kΩ measured), giving only a ≈1.3A limit, too low for the ~2Ω shoulder motors. The bench test adds 2.2k in parallel (~2.8A limit); the PCB should use **DRV8874** boards (same footprint) with a ~1k CS resistor. The ESP32 board is confirmed too: a dual-USB-C ESP32-S3-N16R8 board (YD-ESP32-S3 style) with the standard DevKitC-1 pinout, 2×22 pins, rows 1.0" (25.4 mm) apart (from a photo; measure to confirm), about 63 × 27 mm including the antenna overhang. Its RGB LED is on GPIO48, so there's no clash with the eye motor on GPIO38. TB6612, MP1584 and Pololu S7V7F5 (3-pin version) footprints are still to confirm. The [power test](phase2-power-test.md) is the last design check.
 
 | Sheet | File |
 | --- | --- |
@@ -126,8 +126,7 @@ The stock board lifts both arms at once on the same 4A adapter because its gentl
 ## Open questions
 
 1. **Cable 3 white wire.** Still unknown. It goes to a test point only, so nothing depends on it.
-2. **RGB LED pin.** DevKitC-1 v1.0 uses GPIO48 for the RGB LED; v1.1 uses GPIO38, which this map gives to the eye motor. With a v1.1 board the LED will flicker while the eyes move (harmless), or swap GPIO38 and GPIO48.
-3. **Elbow current.** Not measured yet. Add an INA219 on J14 during bring-up to log it.
+2. **Elbow current.** Not measured yet. Add an INA219 on J14 during bring-up to log it.
 
 ## Next steps
 
