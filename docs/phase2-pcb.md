@@ -93,7 +93,7 @@ Avoided: strapping pins 0, 3, 45, 46; USB 19, 20; octal PSRAM 35–37; UART0 43,
 | J12 | Trigger | 3.5mm mono jack: tip = TRIG, sleeve = GND |
 | J13 | PIR | 1 VMOT (yellow, power), 2 signal (orange), 3 GND (black). Powered from VMOT, as the stock board does |
 | J14 | I2C | JST-SH 4-pin Qwiic: GND, 3V3, SDA, SCL |
-| J15 | Speaker | 2-pin JST-PH (matches the 8Ω speakers' plug), wired from the amp's speaker holes |
+| J15 | Speaker | 2 solder pads (1 +, 2 −), wired from the amp's speaker holes. Cut the speaker's JST-PH plug off and solder its wires straight in, extending them to reach the head. Zip-tie holes behind |
 | J16 | INMP441 module | 1×6 female header |
 | JP1 | Amp gain | 3-pin jumper on the amp's GAIN pin: open = 9 dB (default), to GND = 12 dB, to VIN = 6 dB (15 dB would need 100k to GND) |
 
@@ -116,7 +116,7 @@ The stock board lifts both arms at once on the same 4A adapter because its gentl
 ## Layout guidelines
 
 - 100×100 mm (still JLCPCB's cheapest size), 2 layers, 1 oz copper, M3 holes in the corners. It doesn't have to fit the original control box. See [placement.svg](../hardware/controller/placement.svg).
-- Cables leave toward the body part they serve. Viewed from the component side with the head end up: head pigtails (J9–J11) and the speaker (J15) on the top edge, left arm (J6–J8) on the left edge, right arm (J3–J5) on the right edge, power (J1/J2/F1) on the bottom edge. Trigger, PIR, I2C and mic headers sit bottom-right. If the board ends up mounted facing the other way, mirror left and right.
+- Cables leave toward the body part they serve. Viewed from the component side with the head end up: head pigtails (J9–J11) and the speaker pads (J15, wires soldered in like the pigtails, with zip-tie holes) on the top edge, left arm (J6–J8) on the left edge, right arm (J3–J5) on the right edge, power (J1/J2/F1) on the bottom edge. Trigger, PIR, I2C and mic headers sit bottom-right. If the board ends up mounted facing the other way, mirror left and right.
 - Each arm's DRV8874 sits right next to its arm connectors; the TB6612 sits under the head connectors. Audio (amp + MP1584) stays top-right, away from the arm drivers.
 - ESP32 runs vertically down the middle with USB-C at the bottom edge for programming, antenna end up.
 - Bottom layer: solid ground pour. Motor return currents go straight back to J1 on wide copper (star point at J1). Do not route motor current under the ESP32 or the amp.

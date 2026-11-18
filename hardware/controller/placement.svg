@@ -6,7 +6,7 @@
 <text x="308.0" y="50.5" font-size="13" text-anchor="middle">Head: J9 · J10 · J11</text>
 <rect x="462" y="14" width="112" height="63" rx="6" fill="#ede9fe" stroke="#64748b"/>
 <text x="518.0" y="42.5" font-size="13" text-anchor="middle">J15 speaker</text>
-<text x="518.0" y="58.5" font-size="13" text-anchor="middle">(JST-PH)</text>
+<text x="518.0" y="58.5" font-size="13" text-anchor="middle">(solder pads)</text>
 <rect x="84" y="91" width="140" height="140" rx="6" fill="#dcfce7" stroke="#64748b"/>
 <text x="154.0" y="158.0" font-size="13" text-anchor="middle">U5 TB6612</text>
 <text x="154.0" y="174.0" font-size="13" text-anchor="middle">eyes</text>

@@ -177,7 +177,7 @@ with drawing("controller_audio.svg") as d:
     module(d, "U6 MAX98357A I2S amp module (3W, class D)",
            [("VIN", "+5V_AUDIO"), ("GND", "GND"), ("BCLK", "I2S_BCLK (GPIO40)"), ("LRC", "I2S_WS (GPIO21)"),
             ("DIN", "I2S_DOUT (GPIO47)"), ("GAIN", "JP1: open 9dB / GND 12dB / VIN 6dB"), ("SD", None)],
-           [("SPK+", "J15.1 speaker +"), ("SPK−", "J15.2 speaker −")], (3, -1), width=3.4)
+           [("SPK+", "J15.1 speaker + (pad)"), ("SPK−", "J15.2 speaker − (pad)")], (3, -1), width=3.4)
     module(d, "J16 microphone header (INMP441 module)",
            [("VDD", "+3V3"), ("GND", "GND"), ("SCK", "I2S_BCLK (GPIO40)"), ("WS", "I2S_WS (GPIO21)"),
             ("SD", "I2S_DIN (GPIO10)"), ("L/R", "GND (left)")], [], (20, -1), width=2.6)
@@ -204,7 +204,7 @@ W, H, S = 100, 100, 7  # board size in mm (≤100×100 keeps JLCPCB's cheapest p
 blocks = [
     # (label, x, y, w, h, color)  origin top-left, mm
     ("Head: J9 · J10 · J11", 26, 2, 36, 9, "#e0f2fe"),
-    ("J15 speaker\n(JST-PH)", 66, 2, 16, 9, "#ede9fe"),
+    ("J15 speaker\n(solder pads)", 66, 2, 16, 9, "#ede9fe"),
     ("U5 TB6612\neyes", 12, 13, 20, 20, "#dcfce7"),
     ("U6 MAX98357A\namp", 66, 13, 20, 20, "#ede9fe"),
     ("antenna keep-out\n(no copper)", 38, 24, 24, 14, "#fef9c3"),
