@@ -39,6 +39,12 @@ J15,-,2 solder pads (1.2mm drill),,,"Speaker wires soldered straight in (cut the
 J16,1,Female header,1x6 2.54mm,,INMP441 module
 JP1,1,Pin header + jumper,1x3,,Amp gain
 SPK,1,Speaker,"8Ω 5W (ordered); 4-8Ω works",Amazon (2-pack),Fits in the torso
--,6,Female headers,various 2.54mm,,Module sockets
+-,2,Female header 1x22 2.54mm,,,"A1 ESP32 socket (rows 25.4mm apart)"
+-,4,Female header 1x7 2.54mm (machined/round-pin preferred),,,"U3/U4 DRV8874 sockets (2 per module); round-pin for better contact at ~3A"
+-,2,Female header 1x8 2.54mm,,,U5 TB6612 socket
+-,1,Female header 1x7 2.54mm,,,U6 amp socket
+-,1,Female header 1x3 2.54mm,,,U1 S7V7F5 socket (stands upright)
+-,4,Single-pin female sockets (2.54mm machined),,,"U2 MP1584 corner pads (off the 0.1in grid), or solder the module flat instead"
+-,-,Male header pins,,,"Solder onto each module (the Pololu boards ship with loose headers)"
 -,10,Heat-shrink labels / zip ties,,,Pigtail labels and strain relief
 -,2,Single-pin female sockets (2.54mm machined),,,"Under the amp's speaker holes, so the speaker output reaches the J15 pads through the PCB"
