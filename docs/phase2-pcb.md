@@ -115,11 +115,13 @@ The stock board lifts both arms at once on the same 4A adapter because its gentl
 
 ## Layout guidelines
 
-- 100×80 mm, 2 layers, 1 oz copper, M3 holes in the corners. See [placement.svg](../hardware/controller/placement.svg).
-- Power enters top-left. Harness connectors run along the bottom edge in body order (right arm, head, left arm, inputs). Audio sits top-right, away from the motor drivers.
+- 100×100 mm (still JLCPCB's cheapest size), 2 layers, 1 oz copper, M3 holes in the corners. It doesn't have to fit the original control box. See [placement.svg](../hardware/controller/placement.svg).
+- Cables leave toward the body part they serve. Viewed from the component side with the head end up: head pigtails (J9–J11) and the speaker (J15) on the top edge, left arm (J6–J8) on the left edge, right arm (J3–J5) on the right edge, power (J1/J2/F1) on the bottom edge. Trigger, PIR, I2C and mic headers sit bottom-right. If the board ends up mounted facing the other way, mirror left and right.
+- Each arm's DRV8874 sits right next to its arm connectors; the TB6612 sits under the head connectors. Audio (amp + MP1584) stays top-right, away from the arm drivers.
+- ESP32 runs vertically down the middle with USB-C at the bottom edge for programming, antenna end up.
 - Bottom layer: solid ground pour. Motor return currents go straight back to J1 on wide copper (star point at J1). Do not route motor current under the ESP32 or the amp.
 - VMOT and GND return: copper pours, or traces ≥3 mm wide (≈6A on 1 oz copper with a modest rise; or order 2 oz copper). Shoulder outputs: ≥2 mm. Keep J1/J2 → F1 → VMOT short.
-- Keep the ESP32 antenna end past the board edge or over a copper-free cutout.
+- The antenna lands mid-board, so keep a copper-free zone (both layers, no traces) under and around it, about 24×14 mm. Sitting on headers ~10 mm above the board helps. If WiFi range is poor, rev B can move the ESP32 to an edge.
 - Test points on VMOT, +5V_LOGIC, +5V_AUDIO, +3V3, GND, both elbow TX lines, and each FAULT pin.
 - Next to each DRV8874, a footprint for an optional resistor from CS to GND (R24/R25, not fitted by default) to tune the current limit without touching the module.
 

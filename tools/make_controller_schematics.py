@@ -198,38 +198,43 @@ with drawing("controller_esp32.svg") as d:
            (6, 0), width=5)
 
 # ---------------------------------------------------------------- placement (to scale, mm)
-W, H, S = 100, 80, 7  # board size in mm, px per mm
+# Cables leave by body part: head at the top, left arm on the left, right arm on the
+# right, power at the bottom. Viewed from the component side, head end up.
+W, H, S = 100, 100, 7  # board size in mm (≤100×100 keeps JLCPCB's cheapest price), px per mm
 blocks = [
     # (label, x, y, w, h, color)  origin top-left, mm
-    ("J1 barrel + F1 fuse + Q1", 2, 2, 22, 12, "#fde2e2"),
-    ("C1 1000µF\nD1 TVS", 2, 16, 12, 12, "#fde2e2"),
-    ("U1 S7V7F5\nlogic 5V", 16, 16, 12, 8, "#fff1d6"),
-    ("U2 MP1584\naudio 5V", 16, 26, 12, 8, "#fff1d6"),
-    ("ESP32-S3 dev board\n(on female headers, USB-C at top edge)", 30, 2, 30, 64, "#dbeafe"),
-    ("U6 MAX98357A", 64, 4, 18, 12, "#ede9fe"),
-    ("J15 speaker", 84, 4, 14, 8, "#ede9fe"),
-    ("J16 mic hdr", 84, 14, 14, 8, "#ede9fe"),
-    ("J14 I2C", 64, 18, 10, 6, "#e5e7eb"),
-    ("U3 DRV8876 R", 2, 38, 14, 16, "#dcfce7"),
-    ("U4 DRV8876 L", 64, 38, 14, 16, "#dcfce7"),
-    ("U5 TB6612\neyes", 80, 38, 18, 16, "#dcfce7"),
-    ("Right arm: J3 · J4 · J5", 2, 66, 26, 12, "#e0f2fe"),
-    ("Head: J9 · J10 · J11", 38, 68, 22, 10, "#e0f2fe"),
-    ("Left arm: J6 · J7 · J8", 62, 66, 22, 12, "#e0f2fe"),
-    ("J12 trig\nJ13 PIR", 86, 58, 12, 20, "#e0f2fe"),
+    ("Head: J9 · J10 · J11", 26, 2, 36, 9, "#e0f2fe"),
+    ("J15 speaker\n(JST-PH)", 66, 2, 16, 9, "#ede9fe"),
+    ("U5 TB6612\neyes", 12, 13, 20, 20, "#dcfce7"),
+    ("U6 MAX98357A\namp", 66, 13, 20, 20, "#ede9fe"),
+    ("antenna keep-out\n(no copper)", 38, 24, 24, 14, "#fef9c3"),
+    ("U2 MP1584\naudio 5V", 68, 36, 12, 16, "#fff1d6"),
+    ("Left arm:\nJ6 motor\nJ7 elbow\nJ8 switch", 2, 36, 11, 40, "#e0f2fe"),
+    ("U4 DRV8874\nleft", 15, 40, 18, 20, "#dcfce7"),
+    ("ESP32-S3 dev board\n(antenna up,\nUSB-C at the\nbottom edge)", 36, 34, 28.1, 63.6, "#dbeafe"),
+    ("U3 DRV8874\nright", 67, 56, 18, 20, "#dcfce7"),
+    ("Right arm:\nJ3 motor\nJ4 elbow\nJ5 switch", 87, 36, 11, 40, "#e0f2fe"),
+    ("U1 S7V7F5\nlogic 5V", 21, 64, 10, 13, "#fff1d6"),
+    ("J1 barrel · J2 terminal\nF1 fuse · Q1 · C1 · D1", 6, 80, 28, 14, "#fde2e2"),
+    ("J12 trigger · J13 PIR\nJ14 I2C · J16 mic", 66, 80, 28, 14, "#e5e7eb"),
 ]
-svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W * S + 40} {H * S + 90}" font-family="sans-serif">',
+svg = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W * S + 160} {H * S + 120}" font-family="sans-serif">',
        f'<rect width="100%" height="100%" fill="white"/>',
-       f'<text x="20" y="28" font-size="18" font-weight="600">Controller rev A · placement sketch (to scale, {W}×{H} mm, 2-layer)</text>',
-       f'<g transform="translate(20,44)"><rect x="0" y="0" width="{W * S}" height="{H * S}" rx="10" fill="#f8fafc" stroke="#334155" stroke-width="2"/>']
+       f'<text x="20" y="28" font-size="18" font-weight="600">Controller rev A · placement sketch (to scale, {W}×{H} mm, 2-layer, component side)</text>',
+       f'<g transform="translate(80,64)"><rect x="0" y="0" width="{W * S}" height="{H * S}" rx="10" fill="#f8fafc" stroke="#334155" stroke-width="2"/>']
 for (lbl, x, y, w, h, c) in blocks:
     svg.append(f'<rect x="{x * S}" y="{y * S}" width="{w * S}" height="{h * S}" rx="6" fill="{c}" stroke="#64748b"/>')
     lines = lbl.split("\n")
     for k, ln in enumerate(lines):
         svg.append(f'<text x="{(x + w / 2) * S}" y="{(y + h / 2) * S + (k - (len(lines) - 1) / 2) * 16 + 5}" font-size="13" text-anchor="middle">{ln}</text>')
-for (cx, cy) in [(4, 4), (96, 4), (4, 76), (96, 76)]:
+for (cx, cy) in [(4, 4), (96, 4), (4, 96), (96, 96)]:
     svg.append(f'<circle cx="{cx * S}" cy="{cy * S}" r="{1.6 * S}" fill="white" stroke="#334155"/>')
-svg.append(f'<text x="{W * S / 2}" y="{H * S + 30}" font-size="13" text-anchor="middle" fill="#475569">Harness connectors along the bottom edge · power entry top-left · audio top-right, away from motor drivers · M3 holes in corners</text>')
+# edge labels: where the cables go
+svg.append(f'<text x="{W * S / 2}" y="-12" font-size="14" font-weight="600" text-anchor="middle" fill="#0369a1">TOP: head cables + speaker</text>')
+svg.append(f'<text x="{W * S / 2}" y="{H * S + 26}" font-size="14" font-weight="600" text-anchor="middle" fill="#b91c1c">BOTTOM: power in · USB-C · trigger, PIR, I2C</text>')
+svg.append(f'<text x="-40" y="{H * S / 2}" font-size="14" font-weight="600" text-anchor="middle" fill="#0369a1" transform="rotate(-90 -40 {H * S / 2})">LEFT ARM</text>')
+svg.append(f'<text x="{W * S + 40}" y="{H * S / 2}" font-size="14" font-weight="600" text-anchor="middle" fill="#0369a1" transform="rotate(90 {W * S + 40} {H * S / 2})">RIGHT ARM</text>')
+svg.append(f'<text x="{W * S / 2}" y="{H * S + 48}" font-size="12" text-anchor="middle" fill="#475569">Motor power runs up the sides from F1 to each arm driver · audio stays at the top, away from the motor drivers · M3 holes in the corners</text>')
 svg.append('</g></svg>')
 os.makedirs(os.path.join(HERE, "..", "hardware", "controller"), exist_ok=True)
 with open(os.path.join(HERE, "..", "hardware", "controller", "placement.svg"), "w") as f:

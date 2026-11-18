@@ -1,48 +1,61 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 650" font-family="sans-serif" xmlns:c2pa="http://c2pa.org/manifest">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 820" font-family="sans-serif">
 <rect width="100%" height="100%" fill="white"/>
-<text x="20" y="28" font-size="18" font-weight="600">Controller rev A · placement sketch (to scale, 100×80 mm, 2-layer)</text>
-<g transform="translate(20,44)"><rect x="0" y="0" width="700" height="560" rx="10" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
-<rect x="14" y="14" width="154" height="84" rx="6" fill="#fde2e2" stroke="#64748b"/>
-<text x="91.0" y="61.0" font-size="13" text-anchor="middle">J1 barrel + F1 fuse + Q1</text>
-<rect x="14" y="112" width="84" height="84" rx="6" fill="#fde2e2" stroke="#64748b"/>
-<text x="56.0" y="151.0" font-size="13" text-anchor="middle">C1 1000µF</text>
-<text x="56.0" y="167.0" font-size="13" text-anchor="middle">D1 TVS</text>
-<rect x="112" y="112" width="84" height="56" rx="6" fill="#fff1d6" stroke="#64748b"/>
-<text x="154.0" y="137.0" font-size="13" text-anchor="middle">U1 S7V7F5</text>
-<text x="154.0" y="153.0" font-size="13" text-anchor="middle">logic 5V</text>
-<rect x="112" y="182" width="84" height="56" rx="6" fill="#fff1d6" stroke="#64748b"/>
-<text x="154.0" y="207.0" font-size="13" text-anchor="middle">U2 MP1584</text>
-<text x="154.0" y="223.0" font-size="13" text-anchor="middle">audio 5V</text>
-<rect x="210" y="14" width="210" height="448" rx="6" fill="#dbeafe" stroke="#64748b"/>
-<text x="315.0" y="235.0" font-size="13" text-anchor="middle">ESP32-S3 dev board</text>
-<text x="315.0" y="251.0" font-size="13" text-anchor="middle">(on female headers, USB-C at top edge)</text>
-<rect x="448" y="28" width="126" height="84" rx="6" fill="#ede9fe" stroke="#64748b"/>
-<text x="511.0" y="75.0" font-size="13" text-anchor="middle">U6 MAX98357A</text>
-<rect x="588" y="28" width="98" height="56" rx="6" fill="#ede9fe" stroke="#64748b"/>
-<text x="637.0" y="61.0" font-size="13" text-anchor="middle">J15 speaker</text>
-<rect x="588" y="98" width="98" height="56" rx="6" fill="#ede9fe" stroke="#64748b"/>
-<text x="637.0" y="131.0" font-size="13" text-anchor="middle">J16 mic hdr</text>
-<rect x="448" y="126" width="70" height="42" rx="6" fill="#e5e7eb" stroke="#64748b"/>
-<text x="483.0" y="152.0" font-size="13" text-anchor="middle">J14 I2C</text>
-<rect x="14" y="266" width="98" height="112" rx="6" fill="#dcfce7" stroke="#64748b"/>
-<text x="63.0" y="327.0" font-size="13" text-anchor="middle">U3 DRV8876 R</text>
-<rect x="448" y="266" width="98" height="112" rx="6" fill="#dcfce7" stroke="#64748b"/>
-<text x="497.0" y="327.0" font-size="13" text-anchor="middle">U4 DRV8876 L</text>
-<rect x="560" y="266" width="126" height="112" rx="6" fill="#dcfce7" stroke="#64748b"/>
-<text x="623.0" y="319.0" font-size="13" text-anchor="middle">U5 TB6612</text>
-<text x="623.0" y="335.0" font-size="13" text-anchor="middle">eyes</text>
-<rect x="14" y="462" width="182" height="84" rx="6" fill="#e0f2fe" stroke="#64748b"/>
-<text x="105.0" y="509.0" font-size="13" text-anchor="middle">Right arm: J3 · J4 · J5</text>
-<rect x="266" y="476" width="154" height="70" rx="6" fill="#e0f2fe" stroke="#64748b"/>
-<text x="343.0" y="516.0" font-size="13" text-anchor="middle">Head: J9 · J10 · J11</text>
-<rect x="434" y="462" width="154" height="84" rx="6" fill="#e0f2fe" stroke="#64748b"/>
-<text x="511.0" y="509.0" font-size="13" text-anchor="middle">Left arm: J6 · J7 · J8</text>
-<rect x="602" y="406" width="84" height="140" rx="6" fill="#e0f2fe" stroke="#64748b"/>
-<text x="644.0" y="473.0" font-size="13" text-anchor="middle">J12 trig</text>
-<text x="644.0" y="489.0" font-size="13" text-anchor="middle">J13 PIR</text>
+<text x="20" y="28" font-size="18" font-weight="600">Controller rev A · placement sketch (to scale, 100×100 mm, 2-layer, component side)</text>
+<g transform="translate(80,64)"><rect x="0" y="0" width="700" height="700" rx="10" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
+<rect x="182" y="14" width="252" height="63" rx="6" fill="#e0f2fe" stroke="#64748b"/>
+<text x="308.0" y="50.5" font-size="13" text-anchor="middle">Head: J9 · J10 · J11</text>
+<rect x="462" y="14" width="112" height="63" rx="6" fill="#ede9fe" stroke="#64748b"/>
+<text x="518.0" y="42.5" font-size="13" text-anchor="middle">J15 speaker</text>
+<text x="518.0" y="58.5" font-size="13" text-anchor="middle">(JST-PH)</text>
+<rect x="84" y="91" width="140" height="140" rx="6" fill="#dcfce7" stroke="#64748b"/>
+<text x="154.0" y="158.0" font-size="13" text-anchor="middle">U5 TB6612</text>
+<text x="154.0" y="174.0" font-size="13" text-anchor="middle">eyes</text>
+<rect x="462" y="91" width="140" height="140" rx="6" fill="#ede9fe" stroke="#64748b"/>
+<text x="532.0" y="158.0" font-size="13" text-anchor="middle">U6 MAX98357A</text>
+<text x="532.0" y="174.0" font-size="13" text-anchor="middle">amp</text>
+<rect x="266" y="168" width="168" height="98" rx="6" fill="#fef9c3" stroke="#64748b"/>
+<text x="350.0" y="214.0" font-size="13" text-anchor="middle">antenna keep-out</text>
+<text x="350.0" y="230.0" font-size="13" text-anchor="middle">(no copper)</text>
+<rect x="476" y="252" width="84" height="112" rx="6" fill="#fff1d6" stroke="#64748b"/>
+<text x="518.0" y="305.0" font-size="13" text-anchor="middle">U2 MP1584</text>
+<text x="518.0" y="321.0" font-size="13" text-anchor="middle">audio 5V</text>
+<rect x="14" y="252" width="77" height="280" rx="6" fill="#e0f2fe" stroke="#64748b"/>
+<text x="52.5" y="373.0" font-size="13" text-anchor="middle">Left arm:</text>
+<text x="52.5" y="389.0" font-size="13" text-anchor="middle">J6 motor</text>
+<text x="52.5" y="405.0" font-size="13" text-anchor="middle">J7 elbow</text>
+<text x="52.5" y="421.0" font-size="13" text-anchor="middle">J8 switch</text>
+<rect x="105" y="280" width="126" height="140" rx="6" fill="#dcfce7" stroke="#64748b"/>
+<text x="168.0" y="347.0" font-size="13" text-anchor="middle">U4 DRV8874</text>
+<text x="168.0" y="363.0" font-size="13" text-anchor="middle">left</text>
+<rect x="252" y="238" width="196.70000000000002" height="445.2" rx="6" fill="#dbeafe" stroke="#64748b"/>
+<text x="350.34999999999997" y="441.59999999999997" font-size="13" text-anchor="middle">ESP32-S3 dev board</text>
+<text x="350.34999999999997" y="457.59999999999997" font-size="13" text-anchor="middle">(antenna up,</text>
+<text x="350.34999999999997" y="473.59999999999997" font-size="13" text-anchor="middle">USB-C at the</text>
+<text x="350.34999999999997" y="489.59999999999997" font-size="13" text-anchor="middle">bottom edge)</text>
+<rect x="469" y="392" width="126" height="140" rx="6" fill="#dcfce7" stroke="#64748b"/>
+<text x="532.0" y="459.0" font-size="13" text-anchor="middle">U3 DRV8874</text>
+<text x="532.0" y="475.0" font-size="13" text-anchor="middle">right</text>
+<rect x="609" y="252" width="77" height="280" rx="6" fill="#e0f2fe" stroke="#64748b"/>
+<text x="647.5" y="373.0" font-size="13" text-anchor="middle">Right arm:</text>
+<text x="647.5" y="389.0" font-size="13" text-anchor="middle">J3 motor</text>
+<text x="647.5" y="405.0" font-size="13" text-anchor="middle">J4 elbow</text>
+<text x="647.5" y="421.0" font-size="13" text-anchor="middle">J5 switch</text>
+<rect x="147" y="448" width="70" height="91" rx="6" fill="#fff1d6" stroke="#64748b"/>
+<text x="182.0" y="490.5" font-size="13" text-anchor="middle">U1 S7V7F5</text>
+<text x="182.0" y="506.5" font-size="13" text-anchor="middle">logic 5V</text>
+<rect x="42" y="560" width="196" height="98" rx="6" fill="#fde2e2" stroke="#64748b"/>
+<text x="140.0" y="606.0" font-size="13" text-anchor="middle">J1 barrel · J2 terminal</text>
+<text x="140.0" y="622.0" font-size="13" text-anchor="middle">F1 fuse · Q1 · C1 · D1</text>
+<rect x="462" y="560" width="196" height="98" rx="6" fill="#e5e7eb" stroke="#64748b"/>
+<text x="560.0" y="606.0" font-size="13" text-anchor="middle">J12 trigger · J13 PIR</text>
+<text x="560.0" y="622.0" font-size="13" text-anchor="middle">J14 I2C · J16 mic</text>
 <circle cx="28" cy="28" r="11.200000000000001" fill="white" stroke="#334155"/>
 <circle cx="672" cy="28" r="11.200000000000001" fill="white" stroke="#334155"/>
-<circle cx="28" cy="532" r="11.200000000000001" fill="white" stroke="#334155"/>
-<circle cx="672" cy="532" r="11.200000000000001" fill="white" stroke="#334155"/>
-<text x="350.0" y="590" font-size="13" text-anchor="middle" fill="#475569">Harness connectors along the bottom edge · power entry top-left · audio top-right, away from motor drivers · M3 holes in corners</text>
-</g><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToyOTJlOTk4NS0zM2Q2LTRlNWEtYTA4Yi1hYjg0MGJiM2U2NWUAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaN65b86MqOA1KNG3UUyqCzkAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDowODExNWVjOS00MDg4LTRhODAtYWUzNS1iOTNmZWVjZjYxZWZscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoB0n/SB9hx6Jih3hzPRzcggAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggwaga/leI1CJec3RI9qjXeIanVMuY8OltXyG+sbLRK/+kZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaErh8QchCb51036Qkatos7YAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIHrgcq7gfYRVe2D/A5bAplUvEK6+6car4UFPa0fmUjCfZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GRBuZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjI5MmU5OTg1LTMzZDYtNGU1YS1hMDhiLWFiODQwYmIzZTY1ZS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjhkZGQ3ODM2LTg5NWQtNDg2YS1iZDA4LWZkMzRhOGEzYmRhZHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCDBqBr+V4jUIl5zdEj2qNd4hqdUy5jw6W1fIb6xstEr/6JjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg+PPeOeVp96aQWiDUjkVDbtfCqZVlpZ3PDARQMeHLmlGiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggYBDW9NbptFEBZuCdfeqPrubOAgI+gZGvCvUq5vBhpSx0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQCyWdgUJI1rQR3BTekTCESZTzx2Ln8AUUyI0yHLLbqjb8fvgWlbEkBGRpgaZBxQt2TdYLz/lU9qhkUS7jBsF2aQ=</c2pa:manifest></metadata></svg>
+<circle cx="28" cy="672" r="11.200000000000001" fill="white" stroke="#334155"/>
+<circle cx="672" cy="672" r="11.200000000000001" fill="white" stroke="#334155"/>
+<text x="350.0" y="-12" font-size="14" font-weight="600" text-anchor="middle" fill="#0369a1">TOP: head cables + speaker</text>
+<text x="350.0" y="726" font-size="14" font-weight="600" text-anchor="middle" fill="#b91c1c">BOTTOM: power in · USB-C · trigger, PIR, I2C</text>
+<text x="-40" y="350.0" font-size="14" font-weight="600" text-anchor="middle" fill="#0369a1" transform="rotate(-90 -40 350.0)">LEFT ARM</text>
+<text x="740" y="350.0" font-size="14" font-weight="600" text-anchor="middle" fill="#0369a1" transform="rotate(90 740 350.0)">RIGHT ARM</text>
+<text x="350.0" y="748" font-size="12" text-anchor="middle" fill="#475569">Motor power runs up the sides from F1 to each arm driver · audio stays at the top, away from the motor drivers · M3 holes in the corners</text>
+</g></svg>
