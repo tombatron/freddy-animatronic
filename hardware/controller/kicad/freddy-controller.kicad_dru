@@ -1,0 +1,3 @@
+(version 1)
+(rule "thermals may lose a spoke to a track"
+  (constraint min_resolved_spokes (min 1)))

@@ -3,3 +3,11 @@ __pycache__/
 .DS_Store
 Claude outputs/
 firmware/**/secrets.h
+
+# KiCad local state
+*-backups/
+*.kicad_prl
+fp-info-cache
+_autosave-*
+*.lck
+hardware/controller/fab/gerbers/

@@ -13,6 +13,8 @@ Each sketch lives in its own folder, as the Arduino IDE requires. Board: **ESP32
 | [freddy_power_test](freddy_power_test/) | Phase 2 breadboard power test: shoulder lift cycles while logging VMOT, the 5V rail and motor current; counts resets. See [phase2-power-test.md](../docs/phase2-power-test.md) | **Drives a shoulder**: stock board must be disconnected |
 | [freddy_left_test](freddy_left_test/) | Elbow test suite: find device ID, automatic range explorer | **Transmits**: stock board must be disconnected |
 
+**Controller PCB pins:** [`freddy_pcb_pins.h`](freddy_pcb_pins.h) is the rev A board's GPIO map, generated from the KiCad design. The bench sketches above still use breadboard pins; sketches for the PCB should copy this header into their folder.
+
 Wiring for each sketch is described in the comment block at the top of its `.ino` file and in [docs/phase1-harness.md](../docs/phase1-harness.md).
 
 The controller sketches clamp positions to the measured elbow ranges. Press `h` (home) after a reset, since the sketch assumes the elbow is at home when it boots.

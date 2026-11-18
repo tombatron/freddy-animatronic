@@ -1,50 +1,52 @@
-Ref,Qty,Part,Value / rating,Source (suggested),Notes
-A1,1,ESP32-S3-N16R8 dev board (dual USB-C; DevKitC-1 pinout),,In hand,"On 2x22 female headers, rows 25.4mm apart; board 63.6 x 28.1mm. RGB LED on GPIO48"
-U1,1,Pololu S7V7F5 (reg09a 3-pin version),"5V buck-boost, ~1A",Pololu #2119 (in hand),"+5V_LOGIC. 1x3 header 2.54mm: VIN, GND, VOUT; board 12.4 x 8.9mm, stands upright"
-U2,1,MP1584EN buck module (fixed 5V),"5V out, 3A",Amazon (6-pack; panels of 3: snap apart),"+5V_AUDIO. Corner pads on an 8.3 x 13.2mm grid: IN-/IN+ one end, OUT-/OUT+ other, + pads on the same side. Custom footprint"
-U3 U4,2,Pololu DRV8874 carrier (#4035),"2.1A cont, 6A peak, IN/IN",Pololu (arriving 2026-11-19),"Shoulders. 0.6 x 0.7in, 2x7 pins, rows 0.5in (Pololu drawing). Power into VIN (reverse-protected). Onboard 2.49k CS = 1.12V/A; limit ~2.9A at VREF 3.3V, no mods"
-U5,1,TB6612FNG module (generic red; SparkFun layout),1.2A/ch,Amazon (3-pack),"Eye motor (A) and LEDs (B). Pinout confirmed (SparkFun layout); 2x8, rows 0.6in (15.24mm)"
-U6,1,MAX98357A I2S amp breakout (Adafruit-style clone),"3W class D",Amazon (2-pack),"Speaker amp. 1x7 header: LRC, BCLK, DIN, GAIN, SD, GND, VIN; speaker holes +/- 3.5mm apart, 13mm from the pin row, centered on pin 4"
-F1,1,PCB-mount mini blade fuse holder (through-hole) + fuse,"5A (4A adapter), 7.5A (6A adapter)",,Same fuses as the Phase 1 breakout
-Q1,1,P-channel MOSFET,"-20V or more, Rds<20mΩ (e.g. AO3401A / SI2323)",LCSC,Reverse polarity protection
-D1,1,TVS diode,SMBJ8.5A,LCSC,On VMOT
-D2,1,Schottky diode,"SS34, 3A 40V",LCSC,Blocks USB backfeed into U1
-D3,1,TVS diode,ESD5Z3V3,LCSC,Trigger jack
-D4,1,Dual Schottky,BAT54S,LCSC,PIR input clamp
-C1,1,Electrolytic,"1000µF 16V, low ESR",,VMOT bulk
-C2,1,Electrolytic,470µF 10V,,+5V_LOGIC
-C3 C4,2,Electrolytic,470µF 16V,,U1 and U2 inputs
-C5,1,Electrolytic,100µF 10V,,+5V_AUDIO
-C6-C10,5,Ceramic,100nF 0805,,Local bypass at each module header
-R1,1,Resistor,47k 1% 0805,,VMON divider top
-R2,1,Resistor,22k 1% 0805,,VMON divider bottom
-R3,1,Resistor,220Ω 1206,,Eye LED series: (7V - 2.8V) / 20mA
-R4-R12,9,Resistor,1k 0805,,Series on every external line and CS lines
-R13 R14 R21,3,Resistor,100k 0805,,Shoulder switch pulldowns; PIR pulldown
-R15 R16,2,Resistor,10k 0805,,Eye home and trigger pull-ups
-R17 R18,2,Resistor,4.7k 0805,,I2C pull-ups
-R19 R20,2,Resistor,10k 0805,,DRV8874 FLT pull-ups (open-drain; the Pololu board has none)
-R22 R23,2,Resistor,220Ω 0805,,In series with +3V3 to each shoulder switch (J5.1/J8.1): a harness short can't pull down the 3.3V rail
-R24 R25,2,Resistor,DNP (e.g. 10k),,Optional: VREF to GND beside each DRV8874 to lower the current limit (10k: ~1.5A)
-J1,1,DC barrel jack (through-hole),"5.5x2.1mm, rated 5A+",,Matches the 7.2V adapter's plug (confirmed)
-J2,1,Screw terminal 2-pin 5.08mm,10A+,,In parallel with J1: bigger brick or battery
-J3 J6,2,JST SM pigtail (2-pin),Opposite gender to Freddy's plug,,Shoulder motors; soldered to pads
-J4 J7,2,JST SM pigtail (3-pin),Opposite gender to Freddy's plug,,Elbows
-J5 J8,2,JST SM pigtail (4-pin),Opposite gender to Freddy's plug,,Shoulder switches
-J9 J10 J11,3,JST SM pigtail (2-pin),Opposite gender to Freddy's plug,,Head: eye switch / LEDs / motor
-J12,1,3.5mm mono jack,PCB mount,,Trigger
-J13,1,JST SM pigtail (3-pin),Opposite gender to Freddy's plug,,PIR
-J14,1,JST-SH 4-pin,Qwiic / STEMMA QT,,I2C
-J15,-,2 solder pads (1.2mm drill),,,"Speaker wires soldered straight in (cut the speaker's JST-PH plug off), zip-tie holes behind"
-J16,1,Female header,1x6 2.54mm,,INMP441 module
-JP1,1,Pin header + jumper,1x3,,Amp gain
-SPK,1,Speaker,"8Ω 5W (ordered); 4-8Ω works",Amazon (2-pack),Goes in the head
--,2,Female header 1x22 2.54mm,,,"A1 ESP32 socket (rows 25.4mm apart)"
--,4,Female header 1x7 2.54mm (machined/round-pin preferred),,,"U3/U4 DRV8874 sockets (2 per module); round-pin for better contact at ~3A"
--,2,Female header 1x8 2.54mm,,,U5 TB6612 socket
--,1,Female header 1x7 2.54mm,,,U6 amp socket
--,1,Female header 1x3 2.54mm,,,U1 S7V7F5 socket (stands upright)
--,4,Single-pin female sockets (2.54mm machined),,,"U2 MP1584 corner pads (off the 0.1in grid), or solder the module flat instead"
--,-,Male header pins,,,"Solder onto each module (the Pololu boards ship with loose headers)"
--,10,Heat-shrink labels / zip ties,,,Pigtail labels and strain relief
--,2,Single-pin female sockets (2.54mm machined),,,"Under the amp's speaker holes, so the speaker output reaches the J15 pads through the PCB"
+Refs,Qty,Value,Part / MPN,Footprint,Fitting
+A1,1,ESP32-S3-DevKitC-1 N16R8,YD-ESP32-S3 / DevKitC-1 (in hand),Freddy:ESP32-S3-DevKitC-1_Socket,hand-solder
+C1,1,1000µF 16V,"1000µF 16V low-ESR, 10mm",Capacitor_THT:CP_Radial_D10.0mm_P5.00mm,hand-solder
+C2,1,470µF 10V,"470µF 10V, 6.3mm",Capacitor_THT:CP_Radial_D6.3mm_P2.50mm,hand-solder
+C3 C4,2,470µF 16V,"470µF 16V, 8mm",Capacitor_THT:CP_Radial_D8.0mm_P3.50mm,hand-solder
+C5,1,100µF 10V,"100µF 10V, 5mm",Capacitor_THT:CP_Radial_D5.0mm_P2.00mm,hand-solder
+C6 C7 C8 C9 C10 C11 C12 C13 C14,9,100nF,,Capacitor_SMD:C_0805_2012Metric,JLC assembly (SMD)
+D1,1,SMBJ8.5A,SMBJ8.5A (unidirectional TVS),Diode_SMD:D_SMB,JLC assembly (SMD)
+D2,1,SS34,SS34,Diode_SMD:D_SMA,JLC assembly (SMD)
+D3,1,ESD5Z3V3,ESD5Z3V3,Diode_SMD:D_SOD-523,JLC assembly (SMD)
+D4,1,BAT54S,BAT54S,Package_TO_SOT_SMD:SOT-23,JLC assembly (SMD)
+F1,1,5A mini blade,Keystone 3568 + 5A mini blade fuse,Fuse:Fuseholder_Blade_Mini_Keystone_3568,hand-solder
+J1,1,Barrel 5.5x2.1,"5.5x2.1mm PCB barrel jack, 5A+, CUI PJ-002A-style pinout (check against the footprint)",Connector_BarrelJack:BarrelJack_Horizontal,hand-solder
+J3,1,R SHOULDER,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J4,1,R ELBOW,JST SM 3-pin pigtail (in hand),Freddy:Pigtail_1x3_P2.54mm_ZipTie,hand-solder
+J5,1,R SWITCH,JST SM 4-pin pigtail (in hand),Freddy:Pigtail_1x4_P2.54mm_ZipTie,hand-solder
+J6,1,L SHOULDER,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J7,1,L ELBOW,JST SM 3-pin pigtail (in hand),Freddy:Pigtail_1x3_P2.54mm_ZipTie,hand-solder
+J8,1,L SWITCH,JST SM 4-pin pigtail (in hand),Freddy:Pigtail_1x4_P2.54mm_ZipTie,hand-solder
+J9,1,EYE SW,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J10,1,EYE LED,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J11,1,EYE MTR,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J12,1,TRIGGER,PJ-320D 3.5mm jack,Connector_Audio:Jack_3.5mm_KoreanHropartsElec_PJ-320D-4A_Horizontal,JLC assembly (SMD)
+J13,1,PIR,JST SM 3-pin pigtail (in hand),Freddy:Pigtail_1x3_P2.54mm_ZipTie,hand-solder
+J14,1,Qwiic,JST SM04B-SRSS-TB,Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal,JLC assembly (SMD)
+J15,1,SPEAKER,solder pads: speaker wires straight in,Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J16,1,MIC,"1x6 female header (INMP441, later)",Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Vertical,hand-solder
+JP1,1,GAIN,1x3 pin header + jumper,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,hand-solder
+Q1,1,AO4407A,AO4407A,Package_SO:SOIC-8_3.9x4.9mm_P1.27mm,JLC assembly (SMD)
+R1,1,47k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R2,1,22k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R3,1,220,,Resistor_SMD:R_1206_3216Metric,JLC assembly (SMD)
+R4 R5 R6 R7 R8 R9 R10 R11 R12,9,1k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R13 R14 R21,3,100k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R15 R16 R19 R20 R26,5,10k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R17 R18,2,4.7k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R22 R23,2,220,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R24 R25,2,DNP,,Resistor_SMD:R_0805_2012Metric,DNP
+U1,1,Pololu S7V7F5,Pololu #2119 (in hand),Freddy:Pololu_S7V7F5_Upright,hand-solder
+U2,1,MP1584 5V,MP1584EN fixed 5V module (in hand),Freddy:MP1584_Module,hand-solder
+U3 U4,2,Pololu DRV8874 carrier,Pololu #4035 (in hand),Freddy:Pololu_DRV8874_Carrier_Socket,hand-solder
+U5,1,TB6612FNG breakout,SparkFun-layout TB6612FNG (in hand),Freddy:TB6612FNG_SparkFun_Socket,hand-solder
+U6,1,MAX98357A breakout,Adafruit-style MAX98357A (in hand),Freddy:MAX98357A_Breakout_Socket,hand-solder
+sockets,2,1x22 female header 2.54mm,A1 ESP32 (rows 25.4mm apart),,hand-solder
+sockets,4,1x7 female header 2.54mm,"U3/U4 DRV8874, round-pin preferred (~3A pins)",,hand-solder
+sockets,2,1x8 female header 2.54mm,U5 TB6612,,hand-solder
+sockets,1,1x7 female header 2.54mm,U6 amp,,hand-solder
+sockets,1,1x3 female header 2.54mm,U1 S7V7F5 (upright),,hand-solder
+sockets,6,single-pin machined socket,U2 MP1584 corners (4) or solder flat; U6 speaker holes (2),,hand-solder
+-,1,male header pins,for each module (Pololu boards ship with loose headers),,hand-solder
+-,1,jumper cap 2.54mm,JP1 (optional: open = 9dB),,hand-solder
+enclosure,4,M3x8 self-tapping screw,PCB to enclosure standoffs,,assembly

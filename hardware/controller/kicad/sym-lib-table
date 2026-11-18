@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "Freddy")(type "KiCad")(uri "${KIPRJMOD}/freddy.kicad_sym")(options "")(descr "Freddy controller custom symbols"))
+)
