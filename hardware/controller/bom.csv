@@ -38,7 +38,7 @@ J14,1,JST-SH 4-pin,Qwiic / STEMMA QT,,I2C
 J15,-,2 solder pads (1.2mm drill),,,"Speaker wires soldered straight in (cut the speaker's JST-PH plug off), zip-tie holes behind"
 J16,1,Female header,1x6 2.54mm,,INMP441 module
 JP1,1,Pin header + jumper,1x3,,Amp gain
-SPK,1,Speaker,"8Ω 5W (ordered); 4-8Ω works",Amazon (2-pack),Fits in the torso
+SPK,1,Speaker,"8Ω 5W (ordered); 4-8Ω works",Amazon (2-pack),Goes in the head
 -,2,Female header 1x22 2.54mm,,,"A1 ESP32 socket (rows 25.4mm apart)"
 -,4,Female header 1x7 2.54mm (machined/round-pin preferred),,,"U3/U4 DRV8874 sockets (2 per module); round-pin for better contact at ~3A"
 -,2,Female header 1x8 2.54mm,,,U5 TB6612 socket
