@@ -12,6 +12,7 @@ A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and
 | 4. Audio | [controller_audio.svg](../schematics/controller_audio.svg) |
 | 5. ESP32-S3 pin map | [controller_esp32.svg](../schematics/controller_esp32.svg) |
 | Placement (to scale) | [placement.svg](../hardware/controller/placement.svg) |
+| PCB preview (bare + assembled, to scale) | [pcb_preview.svg](../hardware/controller/pcb_preview.svg) |
 | BOM | [bom.csv](../hardware/controller/bom.csv) |
 | Net list | [netlist.csv](../hardware/controller/netlist.csv) |
 
