@@ -2,7 +2,7 @@ Ref,Qty,Part,Value / rating,Source (suggested),Notes
 A1,1,ESP32-S3-N16R8 dev board (dual USB-C; DevKitC-1 pinout),,In hand,"On 2x22 female headers, rows 25.4mm apart; board 63.6 x 28.1mm. RGB LED on GPIO48"
 U1,1,Pololu S7V7F5 (reg09a 3-pin version),"5V buck-boost, ~1A",Pololu #2119 (in hand),"+5V_LOGIC. 1x3 header 2.54mm: VIN, GND, VOUT; board 12.4 x 8.9mm, stands upright"
 U2,1,MP1584EN buck module (fixed 5V),"5V out, 3A",Amazon (6-pack; panels of 3: snap apart),"+5V_AUDIO. Corner pads on an 8.3 x 13.2mm grid: IN-/IN+ one end, OUT-/OUT+ other, + pads on the same side. Custom footprint"
-U3 U4,2,Pololu DRV8874 carrier (#4035),"2.1A cont, 6A peak, IN/IN",Pololu (arriving 2026-11-19),"Shoulders. 0.6 x 0.7in, 2x7 pins, rows 0.5in (confirm). Power into VIN (reverse-protected). Onboard 2.49k CS = 1.12V/A; limit ~2.9A at VREF 3.3V, no mods"
+U3 U4,2,Pololu DRV8874 carrier (#4035),"2.1A cont, 6A peak, IN/IN",Pololu (arriving 2026-11-19),"Shoulders. 0.6 x 0.7in, 2x7 pins, rows 0.5in (Pololu drawing). Power into VIN (reverse-protected). Onboard 2.49k CS = 1.12V/A; limit ~2.9A at VREF 3.3V, no mods"
 U5,1,TB6612FNG module (generic red; SparkFun layout),1.2A/ch,Amazon (3-pack),"Eye motor (A) and LEDs (B). Pinout confirmed (SparkFun layout); 2x8, rows 0.6in (15.24mm)"
 U6,1,MAX98357A I2S amp breakout (Adafruit-style clone),"3W class D",Amazon (2-pack),"Speaker amp. 1x7 header: LRC, BCLK, DIN, GAIN, SD, GND, VIN; speaker holes +/- 3.5mm apart, 13mm from the pin row, centered on pin 4"
 F1,1,PCB-mount mini blade fuse holder (through-hole) + fuse,"5A (4A adapter), 7.5A (6A adapter)",,Same fuses as the Phase 1 breakout

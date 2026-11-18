@@ -1401,5 +1401,5 @@
 <rect x="91.74" y="15.70" width="0.60" height="0.60" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
 <rect x="94.28" y="15.70" width="0.60" height="0.60" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
 </g></g>
-<text x="30" y="907.0" font-size="14" fill="#555">Preview of the placement, not the routed board: only the VMOT trunk (darker green) is drawn; signal routing comes in KiCad. DRV8874 (Pololu #4035) row spacing 0.5", to confirm with calipers. Pigtail wire colors show which of Freddy's wires each pad meets.</text>
+<text x="30" y="907.0" font-size="14" fill="#555">Preview of the placement, not the routed board: only the VMOT trunk (darker green) is drawn; signal routing comes in KiCad. Pigtail wire colors show which of Freddy's wires each pad meets.</text>
 </svg>

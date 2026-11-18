@@ -3,7 +3,7 @@
 assembled board side by side. Writes hardware/controller/pcb_preview.svg.
 
 This is a picture of the placement, not the routed board: only the VMOT trunk is
-drawn, and the DRV8874 (Pololu #4035) row spacing (0.5") is still to be confirmed.
+drawn, and the DRV8874 (Pololu #4035) row spacing is 0.5" per the Pololu drawing.
 """
 import os
 
@@ -87,7 +87,7 @@ ESP = dict(x=36, y=34, w=28.1, h=63.6)
 esp_l = pins_col(ESP["x"] + 1.35, 41.5, 22)
 esp_r = pins_col(ESP["x"] + 1.35 + 25.4, 41.5, 22)
 
-# Pololu DRV8874 carriers (#4035): 0.6 x 0.7in, 2x7, rows 0.5in (to confirm).
+# Pololu DRV8874 carriers (#4035): 0.6 x 0.7in, 2x7, rows 0.5in (per the Pololu dimension drawing).
 # The VIN/OUT column faces the arm connectors, the logic column faces the ESP32.
 U4 = dict(x=17.23, y=39.73, w=15.24, h=17.78)       # left
 U4_out, U4_log = pins_col(18.5, 41.0, 7), pins_col(18.5 + 12.7, 41.0, 7)
@@ -488,7 +488,7 @@ def main():
     out.append(panel(40 + pw, 90, "Assembled, pigtails soldered in", True))
     ny = (H + 2 * M) * PX + 115
     notes = ("Preview of the placement, not the routed board: only the VMOT trunk (darker green) is drawn; signal routing comes in KiCad. "
-             "DRV8874 (Pololu #4035) row spacing 0.5\", to confirm with calipers. Pigtail wire colors show which of Freddy's wires each pad meets.")
+             "Pigtail wire colors show which of Freddy's wires each pad meets.")
     out.append(f'<text x="30" y="{ny}" font-size="14" fill="#555">{esc(notes)}</text>')
     out.append("</svg>")
     with open(OUT, "w") as f:
