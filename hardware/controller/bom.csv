@@ -4,7 +4,7 @@ U1,1,Pololu S7V7F5 (reg09a 3-pin version),"5V buck-boost, ~1A",Pololu #2119 (in 
 U2,1,MP1584EN buck module,"5V out, 3A",Amazon (6-pack),+5V_AUDIO. Measure 5.0V out before connecting the amp
 U3 U4,2,DRV8874 module (generic red "DRV887*" board),"2.1A cont, 6A peak, IN/IN",Amazon,Shoulders. Same board as the DRV8876 used on the bench. Set CS resistor for a ~2.5-3A limit
 U5,1,TB6612FNG module (generic red; SparkFun layout),1.2A/ch,Amazon (3-pack),"Eye motor (A) and LEDs (B). Pinout confirmed (SparkFun layout); 2x8, rows 0.6in (15.24mm)"
-U6,1,MAX98357A I2S amp breakout (Adafruit-style clone),"3W class D",Amazon (2-pack),"Speaker amp. 1x7 header: LRC, BCLK, DIN, GAIN, SD, GND, VIN; speaker holes +/- ~3.5mm"
+U6,1,MAX98357A I2S amp breakout (Adafruit-style clone),"3W class D",Amazon (2-pack),"Speaker amp. 1x7 header: LRC, BCLK, DIN, GAIN, SD, GND, VIN; speaker holes +/- 3.5mm apart, 13mm from the pin row, centered on pin 4"
 F1,1,PCB-mount mini blade fuse holder (through-hole) + fuse,"5A (4A adapter), 7.5A (6A adapter)",,Same fuses as the Phase 1 breakout
 Q1,1,P-channel MOSFET,"-20V or more, Rds<20mΩ (e.g. AO3401A / SI2323)",LCSC,Reverse polarity protection
 D1,1,TVS diode,SMBJ8.5A,LCSC,On VMOT
@@ -41,3 +41,4 @@ JP1,1,Pin header + jumper,1x3,,Amp gain
 SPK,1,Speaker,"8Ω 5W (ordered); 4-8Ω works",Amazon (2-pack),Fits in the torso
 -,6,Female headers,various 2.54mm,,Module sockets
 -,10,Heat-shrink labels / zip ties,,,Pigtail labels and strain relief
+-,2,Single-pin female sockets (2.54mm machined),,,"Under the amp's speaker holes, so the speaker output reaches J15 through the PCB"
