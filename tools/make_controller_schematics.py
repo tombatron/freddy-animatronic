@@ -176,7 +176,7 @@ with drawing("controller_audio.svg") as d:
     title(d, "Controller rev A · sheet 4: audio", "One I2S bus, full duplex: amplifier out, optional microphone in", (0, 7))
     module(d, "U6 MAX98357A I2S amp module (3W, class D)",
            [("VIN", "+5V_AUDIO"), ("GND", "GND"), ("BCLK", "I2S_BCLK (GPIO40)"), ("LRC", "I2S_WS (GPIO21)"),
-            ("DIN", "I2S_DOUT (GPIO47)"), ("GAIN", "JP1 gain select"), ("SD", None)],
+            ("DIN", "I2S_DOUT (GPIO47)"), ("GAIN", "JP1: open 9dB / GND 12dB / VIN 6dB"), ("SD", None)],
            [("SPK+", "J15.1 speaker +"), ("SPK−", "J15.2 speaker −")], (3, -1), width=3.4)
     module(d, "J16 microphone header (INMP441 module)",
            [("VDD", "+3V3"), ("GND", "GND"), ("SCK", "I2S_BCLK (GPIO40)"), ("WS", "I2S_WS (GPIO21)"),

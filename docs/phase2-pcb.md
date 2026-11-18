@@ -2,7 +2,7 @@
 
 A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and driver parts are off-the-shelf modules on headers, so rev A is easy to hand-solder, debug and rework. A later revision can put the parts directly on the board once the design has proven itself.
 
-**Status:** schematic draft and placement sketch. Not in KiCad yet. Modules are ordered (generic DRV8876, TB6612 and MP1584 boards instead of the Pololu ones first planned). The DRV8876 board is confirmed: a red "DRV887*" module, two rows of 7 pins (VM, GND, EN/IN1, PH/IN2, PMODE, nSLEEP, VREF / VM, GND, OUT2, OUT1, IMODE, nFAULT, CS); the same board takes a DRV8874. It has a 2.49k CS resistor (2.47kΩ measured), giving only a ≈1.3A limit, too low for the ~2Ω shoulder motors. The bench test adds 2.2k in parallel (~2.8A limit); the PCB should use **DRV8874** boards (same footprint) with a ~1k CS resistor. The ESP32 board is confirmed too: a dual-USB-C ESP32-S3-N16R8 board (YD-ESP32-S3 style) with the standard DevKitC-1 pinout, 2×22 pins, rows 1.0" (25.4 mm) apart, 63.6 × 28.1 mm overall including the antenna overhang (measured). Its RGB LED is on GPIO48, so there's no clash with the eye motor on GPIO38. The TB6612 board is confirmed: SparkFun-style layout, 2×8 pins (PWMA, AIN2, AIN1, STBY, BIN1, BIN2, PWMB, GND / VM, VCC, GND, AO1, AO2, BO2, BO1, GND), rows 0.6" (15.24 mm) apart (measured). The Pololu S7V7F5 is the 3-pin version (reg09a): one row of 3 pins at 0.1" (VIN, GND, VOUT) along a short edge, board 12.4 × 8.9 mm, standing upright on the PCB (measured). The MP1584 footprint is still to confirm. The [power test](phase2-power-test.md) is the last design check.
+**Status:** schematic draft and placement sketch. Not in KiCad yet. Modules are ordered (generic DRV8876, TB6612 and MP1584 boards instead of the Pololu ones first planned). The DRV8876 board is confirmed: a red "DRV887*" module, two rows of 7 pins (VM, GND, EN/IN1, PH/IN2, PMODE, nSLEEP, VREF / VM, GND, OUT2, OUT1, IMODE, nFAULT, CS); the same board takes a DRV8874. It has a 2.49k CS resistor (2.47kΩ measured), giving only a ≈1.3A limit, too low for the ~2Ω shoulder motors. The bench test adds 2.2k in parallel (~2.8A limit); the PCB should use **DRV8874** boards (same footprint) with a ~1k CS resistor. The ESP32 board is confirmed too: a dual-USB-C ESP32-S3-N16R8 board (YD-ESP32-S3 style) with the standard DevKitC-1 pinout, 2×22 pins, rows 1.0" (25.4 mm) apart, 63.6 × 28.1 mm overall including the antenna overhang (measured). Its RGB LED is on GPIO48, so there's no clash with the eye motor on GPIO38. The MAX98357A board is confirmed: Adafruit-style layout, one row of 7 pins at 0.1" (LRC, BCLK, DIN, GAIN, SD, GND, VIN), plus two speaker holes (+/−, ~3.5 mm apart) and two mounting holes; SD left open = (L+R)/2 mono output. Speaker-hole position relative to the pin row still to measure, so the PCB can carry the speaker output to J15. The TB6612 board is confirmed: SparkFun-style layout, 2×8 pins (PWMA, AIN2, AIN1, STBY, BIN1, BIN2, PWMB, GND / VM, VCC, GND, AO1, AO2, BO2, BO1, GND), rows 0.6" (15.24 mm) apart (measured). The Pololu S7V7F5 is the 3-pin version (reg09a): one row of 3 pins at 0.1" (VIN, GND, VOUT) along a short edge, board 12.4 × 8.9 mm, standing upright on the PCB (measured). The MP1584 footprint is still to confirm. The [power test](phase2-power-test.md) is the last design check.
 
 | Sheet | File |
 | --- | --- |
@@ -93,9 +93,9 @@ Avoided: strapping pins 0, 3, 45, 46; USB 19, 20; octal PSRAM 35–37; UART0 43,
 | J12 | Trigger | 3.5mm mono jack: tip = TRIG, sleeve = GND |
 | J13 | PIR | 1 VMOT (yellow, power), 2 signal (orange), 3 GND (black). Powered from VMOT, as the stock board does |
 | J14 | I2C | JST-SH 4-pin Qwiic: GND, 3V3, SDA, SCL |
-| J15 | Speaker | 2-pin, 4–8Ω |
+| J15 | Speaker | 2-pin JST-PH (matches the 8Ω speakers' plug), wired from the amp's speaker holes |
 | J16 | INMP441 module | 1×6 female header |
-| JP1 | Amp gain | 3-pin jumper (9 / 12 / 15 dB) |
+| JP1 | Amp gain | 3-pin jumper on the amp's GAIN pin: open = 9 dB (default), to GND = 12 dB, to VIN = 6 dB (15 dB would need 100k to GND) |
 
 ## Power budget
 
