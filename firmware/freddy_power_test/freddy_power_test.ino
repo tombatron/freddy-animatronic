@@ -52,6 +52,7 @@ const int PIN_RGB    = 48;
 // ---------------- tuning
 const float DIV        = 69.0f / 22.0f;   // 47k/22k divider -> x3.136
 float CS_MV_PER_A      = 1163.0f;         // = CS-to-GND resistance in ohms (DRV8876: 1000 uA/A). Board 2.47k || added 2.2k = 1.16k
+                                               // Pololu DRV8874 (450 uA/A, onboard 2.49k, no added resistor): 1121
 int   liftDuty         = 50;              // %; stock lift is ~3V across the motor (~45%)
 const int LOWER_DUTY   = 100;             // stock lowers at full drive
 const uint32_t LIFT_EXTRA_MS   = 800;     // keep lifting after the switch goes high (stock ~1200)

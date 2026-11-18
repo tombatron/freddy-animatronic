@@ -6,8 +6,8 @@
 <text x="396.0" y="-14" font-size="20" font-weight="650" text-anchor="middle" fill="#1d1d1f">Bare board (component side)</text>
 <g transform="scale(6.0) translate(16,16)" font-family="Helvetica, Arial, sans-serif">
 <rect x="0.00" y="0.00" width="100.00" height="100.00" rx="2.5" fill="#14532d" stroke="#0b3b1f" stroke-width="0.6" />
-<polyline points="24.00,85.00 14.00,85.00 14.00,12.00 86.00,12.00 86.00,56.00 83.24,56.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
-<polyline points="14.00,41.00 18.00,41.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
+<polyline points="24.00,85.00 14.00,85.00 14.00,12.00 86.00,12.00 86.00,56.00 81.50,56.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
+<polyline points="14.00,41.00 18.50,41.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
 <polyline points="29.64,12.00 29.64,14.40" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
 <polyline points="86.00,38.00 78.15,38.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
 <polyline points="14.00,76.00 23.46,76.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
@@ -114,68 +114,68 @@
 <circle cx="62.75" cy="92.30" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
 <circle cx="62.75" cy="94.84" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
 <circle cx="62.75" cy="94.84" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<rect x="16.50" y="39.00" width="18.30" height="19.50" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
-<text x="25.65" y="48.15" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U4</text>
-<text x="25.65" y="50.35" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">DRV8874 L</text>
-<rect x="66.50" y="54.00" width="18.30" height="19.50" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
-<text x="75.65" y="63.15" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U3</text>
-<text x="75.65" y="65.35" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">DRV8874 R</text>
-<rect x="17.00" y="40.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
-<circle cx="18.00" cy="41.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="43.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="43.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="46.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="46.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="48.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="48.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="51.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="51.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="53.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="53.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="56.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="56.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<rect x="32.24" y="40.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
-<circle cx="33.24" cy="41.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="43.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="43.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="46.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="46.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="48.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="48.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="51.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="51.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="53.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="53.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="56.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="56.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<rect x="67.00" y="55.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
-<circle cx="68.00" cy="56.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="58.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="58.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="61.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="61.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="63.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="63.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="66.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="66.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="68.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="68.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="71.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="71.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<rect x="82.24" y="55.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
-<circle cx="83.24" cy="56.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="58.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="58.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="61.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="61.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="63.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="63.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="66.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="66.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="68.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="68.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="71.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="71.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<rect x="17.23" y="39.73" width="15.24" height="17.78" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
+<text x="24.85" y="48.02" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U4</text>
+<text x="24.85" y="50.22" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">DRV8874 L</text>
+<rect x="67.53" y="54.73" width="15.24" height="17.78" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
+<text x="75.15" y="63.02" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U3</text>
+<text x="75.15" y="65.22" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">DRV8874 R</text>
+<rect x="17.50" y="40.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
+<circle cx="18.50" cy="41.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="43.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="43.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="46.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="46.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="48.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="48.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="51.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="51.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="53.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="53.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="56.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="56.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<rect x="30.20" y="40.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
+<circle cx="31.20" cy="41.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="43.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="43.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="46.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="46.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="48.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="48.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="51.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="51.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="53.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="53.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="56.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="56.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<rect x="67.80" y="55.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
+<circle cx="68.80" cy="56.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="58.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="58.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="61.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="61.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="63.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="63.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="66.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="66.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="68.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="68.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="71.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="71.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<rect x="80.50" y="55.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
+<circle cx="81.50" cy="56.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="58.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="58.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="61.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="61.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="63.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="63.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="66.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="66.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="68.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="68.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="71.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="71.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
 <rect x="12.00" y="12.80" width="20.30" height="20.80" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
 <text x="22.15" y="22.60" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U5</text>
 <text x="22.15" y="24.80" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">TB6612 eyes</text>
@@ -575,8 +575,8 @@
 <text x="396.0" y="-14" font-size="20" font-weight="650" text-anchor="middle" fill="#1d1d1f">Assembled, pigtails soldered in</text>
 <g transform="scale(6.0) translate(16,16)" font-family="Helvetica, Arial, sans-serif">
 <rect x="0.00" y="0.00" width="100.00" height="100.00" rx="2.5" fill="#14532d" stroke="#0b3b1f" stroke-width="0.6" />
-<polyline points="24.00,85.00 14.00,85.00 14.00,12.00 86.00,12.00 86.00,56.00 83.24,56.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
-<polyline points="14.00,41.00 18.00,41.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
+<polyline points="24.00,85.00 14.00,85.00 14.00,12.00 86.00,12.00 86.00,56.00 81.50,56.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
+<polyline points="14.00,41.00 18.50,41.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
 <polyline points="29.64,12.00 29.64,14.40" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
 <polyline points="86.00,38.00 78.15,38.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
 <polyline points="14.00,76.00 23.46,76.00" fill="none" stroke="#1f7a45" stroke-width="3.0" stroke-linecap="round" stroke-linejoin="round" />
@@ -681,68 +681,68 @@
 <circle cx="62.75" cy="92.30" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
 <circle cx="62.75" cy="94.84" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
 <circle cx="62.75" cy="94.84" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<rect x="16.50" y="39.00" width="18.30" height="19.50" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
-<text x="25.65" y="48.15" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U4</text>
-<text x="25.65" y="50.35" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">DRV8874 L</text>
-<rect x="66.50" y="54.00" width="18.30" height="19.50" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
-<text x="75.65" y="63.15" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U3</text>
-<text x="75.65" y="65.35" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">DRV8874 R</text>
-<rect x="17.00" y="40.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
-<circle cx="18.00" cy="41.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="43.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="43.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="46.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="46.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="48.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="48.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="51.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="51.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="53.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="53.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="56.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="56.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<rect x="32.24" y="40.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
-<circle cx="33.24" cy="41.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="43.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="43.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="46.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="46.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="48.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="48.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="51.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="51.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="53.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="53.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="56.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="56.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<rect x="67.00" y="55.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
-<circle cx="68.00" cy="56.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="58.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="58.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="61.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="61.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="63.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="63.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="66.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="66.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="68.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="68.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="71.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="71.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<rect x="82.24" y="55.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
-<circle cx="83.24" cy="56.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="58.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="58.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="61.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="61.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="63.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="63.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="66.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="66.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="68.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="68.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="71.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="71.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<rect x="17.23" y="39.73" width="15.24" height="17.78" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
+<text x="24.85" y="48.02" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U4</text>
+<text x="24.85" y="50.22" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">DRV8874 L</text>
+<rect x="67.53" y="54.73" width="15.24" height="17.78" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
+<text x="75.15" y="63.02" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U3</text>
+<text x="75.15" y="65.22" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">DRV8874 R</text>
+<rect x="17.50" y="40.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
+<circle cx="18.50" cy="41.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="43.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="43.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="46.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="46.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="48.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="48.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="51.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="51.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="53.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="53.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="56.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="56.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<rect x="30.20" y="40.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
+<circle cx="31.20" cy="41.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="43.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="43.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="46.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="46.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="48.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="48.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="51.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="51.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="53.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="53.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="56.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="56.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<rect x="67.80" y="55.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
+<circle cx="68.80" cy="56.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="58.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="58.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="61.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="61.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="63.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="63.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="66.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="66.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="68.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="68.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="71.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="71.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<rect x="80.50" y="55.00" width="2.00" height="2.00" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
+<circle cx="81.50" cy="56.00" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="58.54" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="58.54" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="61.08" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="61.08" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="63.62" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="63.62" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="66.16" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="66.16" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="68.70" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="68.70" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="71.24" r="1.00" fill="#d6a849" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="71.24" r="0.50" fill="#1b1b1b" stroke="none" stroke-width="0.2"/>
 <rect x="12.00" y="12.80" width="20.30" height="20.80" rx="0.6" fill="none" stroke="#f5f5f0" stroke-width="0.2" />
 <text x="22.15" y="22.60" font-size="1.8" fill="#f5f5f0" text-anchor="middle" font-weight="600">U5</text>
 <text x="22.15" y="24.80" font-size="1.2" fill="#f5f5f0" text-anchor="middle" font-weight="400">TB6612 eyes</text>
@@ -1198,42 +1198,42 @@
 <circle cx="29.64" cy="27.10" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
 <circle cx="29.64" cy="29.64" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
 <circle cx="29.64" cy="32.18" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<rect x="16.50" y="39.00" width="18.30" height="19.50" rx="0.8" fill="#b3261e" stroke="#00000055" stroke-width="0.25" />
-<rect x="23.35" y="45.25" width="4.50" height="4.50" rx="0.3" fill="#151515" stroke="none" stroke-width="0.2" />
-<text x="25.65" y="56.10" font-size="1.6" fill="#fff" text-anchor="middle" font-weight="600">DRV8874</text>
-<text x="25.65" y="57.60" font-size="1.0" fill="#ffffffcc" text-anchor="middle" font-weight="400">left arm</text>
-<circle cx="18.00" cy="41.00" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="43.54" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="46.08" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="48.62" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="51.16" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="53.70" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="18.00" cy="56.24" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="41.00" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="43.54" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="46.08" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="48.62" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="51.16" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="53.70" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="33.24" cy="56.24" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<rect x="66.50" y="54.00" width="18.30" height="19.50" rx="0.8" fill="#b3261e" stroke="#00000055" stroke-width="0.25" />
-<rect x="73.35" y="60.25" width="4.50" height="4.50" rx="0.3" fill="#151515" stroke="none" stroke-width="0.2" />
-<text x="75.65" y="71.10" font-size="1.6" fill="#fff" text-anchor="middle" font-weight="600">DRV8874</text>
-<text x="75.65" y="72.60" font-size="1.0" fill="#ffffffcc" text-anchor="middle" font-weight="400">right arm</text>
-<circle cx="68.00" cy="56.00" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="58.54" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="61.08" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="63.62" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="66.16" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="68.70" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="68.00" cy="71.24" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="56.00" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="58.54" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="61.08" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="63.62" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="66.16" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="68.70" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
-<circle cx="83.24" cy="71.24" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<rect x="17.23" y="39.73" width="15.24" height="17.78" rx="0.8" fill="#1f8a5a" stroke="#00000055" stroke-width="0.25" />
+<rect x="22.85" y="45.00" width="4.00" height="4.00" rx="0.3" fill="#151515" stroke="none" stroke-width="0.2" />
+<text x="24.85" y="55.11" font-size="1.6" fill="#fff" text-anchor="middle" font-weight="600">DRV8874</text>
+<text x="24.85" y="56.61" font-size="1.0" fill="#ffffffcc" text-anchor="middle" font-weight="400">left arm</text>
+<circle cx="18.50" cy="41.00" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="43.54" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="46.08" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="48.62" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="51.16" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="53.70" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="18.50" cy="56.24" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="41.00" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="43.54" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="46.08" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="48.62" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="51.16" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="53.70" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="31.20" cy="56.24" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<rect x="67.53" y="54.73" width="15.24" height="17.78" rx="0.8" fill="#1f8a5a" stroke="#00000055" stroke-width="0.25" />
+<rect x="73.15" y="60.00" width="4.00" height="4.00" rx="0.3" fill="#151515" stroke="none" stroke-width="0.2" />
+<text x="75.15" y="70.11" font-size="1.6" fill="#fff" text-anchor="middle" font-weight="600">DRV8874</text>
+<text x="75.15" y="71.61" font-size="1.0" fill="#ffffffcc" text-anchor="middle" font-weight="400">right arm</text>
+<circle cx="68.80" cy="56.00" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="58.54" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="61.08" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="63.62" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="66.16" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="68.70" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="68.80" cy="71.24" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="56.00" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="58.54" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="61.08" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="63.62" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="66.16" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="68.70" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
+<circle cx="81.50" cy="71.24" r="0.55" fill="#c9c9c9" stroke="none" stroke-width="0.2"/>
 <rect x="67.10" y="14.00" width="17.80" height="19.30" rx="0.8" fill="#1f3c88" stroke="#00000055" stroke-width="0.25" />
 <rect x="74.50" y="22.50" width="3.00" height="3.00" rx="0.3" fill="#151515" stroke="none" stroke-width="0.2" />
 <text x="76.00" y="28.00" font-size="1.6" fill="#fff" text-anchor="middle" font-weight="600">MAX98357A</text>
@@ -1401,5 +1401,5 @@
 <rect x="91.74" y="15.70" width="0.60" height="0.60" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
 <rect x="94.28" y="15.70" width="0.60" height="0.60" rx="0" fill="#d6a849" stroke="none" stroke-width="0.2" />
 </g></g>
-<text x="30" y="907.0" font-size="14" fill="#555">Preview of the placement, not the routed board: only the VMOT trunk (darker green) is drawn; signal routing comes in KiCad. DRV8874 row spacing assumed 0.6" until measured. Pigtail wire colors show which of Freddy's wires each pad meets.</text>
+<text x="30" y="907.0" font-size="14" fill="#555">Preview of the placement, not the routed board: only the VMOT trunk (darker green) is drawn; signal routing comes in KiCad. DRV8874 (Pololu #4035) row spacing 0.5", to confirm with calipers. Pigtail wire colors show which of Freddy's wires each pad meets.</text>
 </svg>

@@ -58,6 +58,16 @@ With nothing connected, measure resistance from **CS to GND**:
 
 **Measured on our boards:** CS→GND = 2.47kΩ (a 2.49k resistor), which gives only a **1.3A** limit. That turned out to be too low: the shoulder motor measures **~1.7–2Ω**, so it wants 1.5–1.8A just to start the stock-style lift, and the arm never moved. **Fix: add 2.2kΩ from CS to GND** (in parallel with the board's resistor): CS→GND then reads ~1.16kΩ, the limit is **~2.8A**, and the sketches use 1163 mV/A. Current readings top out around 2.7A (the ESP32's ADC maxes out near 3.1V).
 
+## Swapping in the DRV8874 (Pololu #4035)
+
+The DRV8874 we bought is the Pololu carrier, **not** the same board as the red DRV8876, so it doesn't drop into the same breadboard holes:
+
+- **Different pin positions.** Bottom view: one column VIN, GND, OUT1, OUT2, IMODE, FLT, CS; the other VM, GND, IN1, IN2, PMODE, SLP, VREF. Rewire by name, not by position.
+- **Power goes into VIN**, not VM (VIN has reverse protection; VM is the protected output and stays open).
+- **Remove the 2.2k on CS.** The DRV8874 scales CS at 450µA/A, so its onboard 2.49k already gives 1.12 V/A and a ≈2.9A limit at VREF 3.3V. With the 2.2k still on, the limit jumps past 6A, more than the adapter can give.
+- In the sketch, set `CS_MV_PER_A` to **1121**.
+- SLP and PMODE still go to 3V3, IMODE to GND (it's pulled low on the board anyway), FLT open. VREF can go to 3V3 or stay open (it's pulled up to SLP on the board).
+
 ## Before powering the motor
 
 1. **Pololu alone:** adapter on, nothing else connected to VOUT. Meter on VOUT: 4.9–5.1V.

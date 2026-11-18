@@ -2,7 +2,7 @@ Ref,Qty,Part,Value / rating,Source (suggested),Notes
 A1,1,ESP32-S3-N16R8 dev board (dual USB-C; DevKitC-1 pinout),,In hand,"On 2x22 female headers, rows 25.4mm apart; board 63.6 x 28.1mm. RGB LED on GPIO48"
 U1,1,Pololu S7V7F5 (reg09a 3-pin version),"5V buck-boost, ~1A",Pololu #2119 (in hand),"+5V_LOGIC. 1x3 header 2.54mm: VIN, GND, VOUT; board 12.4 x 8.9mm, stands upright"
 U2,1,MP1584EN buck module (fixed 5V),"5V out, 3A",Amazon (6-pack; panels of 3: snap apart),"+5V_AUDIO. Corner pads on an 8.3 x 13.2mm grid: IN-/IN+ one end, OUT-/OUT+ other, + pads on the same side. Custom footprint"
-U3 U4,2,DRV8874 module (generic red "DRV887*" board),"2.1A cont, 6A peak, IN/IN",Amazon,Shoulders. Same board as the DRV8876 used on the bench. Set CS resistor for a ~2.5-3A limit
+U3 U4,2,Pololu DRV8874 carrier (#4035),"2.1A cont, 6A peak, IN/IN",Pololu (in hand),"Shoulders. 0.6 x 0.7in, 2x7 pins, rows 0.5in (confirm). Power into VIN (reverse-protected). Onboard 2.49k CS = 1.12V/A; limit ~2.9A at VREF 3.3V, no mods"
 U5,1,TB6612FNG module (generic red; SparkFun layout),1.2A/ch,Amazon (3-pack),"Eye motor (A) and LEDs (B). Pinout confirmed (SparkFun layout); 2x8, rows 0.6in (15.24mm)"
 U6,1,MAX98357A I2S amp breakout (Adafruit-style clone),"3W class D",Amazon (2-pack),"Speaker amp. 1x7 header: LRC, BCLK, DIN, GAIN, SD, GND, VIN; speaker holes +/- 3.5mm apart, 13mm from the pin row, centered on pin 4"
 F1,1,PCB-mount mini blade fuse holder (through-hole) + fuse,"5A (4A adapter), 7.5A (6A adapter)",,Same fuses as the Phase 1 breakout
@@ -23,9 +23,9 @@ R4-R12,9,Resistor,1k 0805,,Series on every external line and CS lines
 R13 R14 R21,3,Resistor,100k 0805,,Shoulder switch pulldowns; PIR pulldown
 R15 R16,2,Resistor,10k 0805,,Eye home and trigger pull-ups
 R17 R18,2,Resistor,4.7k 0805,,I2C pull-ups
-R19 R20,2,Resistor,10k 0805,,DRV8874 nFAULT pull-ups (skip if the module has them)
+R19 R20,2,Resistor,10k 0805,,DRV8874 FLT pull-ups (open-drain; the Pololu board has none)
 R22 R23,2,Resistor,220Ω 0805,,In series with +3V3 to each shoulder switch (J5.1/J8.1): a harness short can't pull down the 3.3V rail
-R24 R25,2,Resistor,DNP (e.g. 2.2k),,Optional: CS to GND beside each DRV8874 to tune the current limit
+R24 R25,2,Resistor,DNP (e.g. 10k),,Optional: VREF to GND beside each DRV8874 to lower the current limit (10k: ~1.5A)
 J1,1,DC barrel jack (through-hole),"5.5x2.1mm, rated 5A+",,Matches the 7.2V adapter's plug (confirmed)
 J2,1,Screw terminal 2-pin 5.08mm,10A+,,In parallel with J1: bigger brick or battery
 J3 J6,2,JST SM pigtail (2-pin),Opposite gender to Freddy's plug,,Shoulder motors; soldered to pads

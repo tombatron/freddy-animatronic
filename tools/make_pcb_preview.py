@@ -3,7 +3,7 @@
 assembled board side by side. Writes hardware/controller/pcb_preview.svg.
 
 This is a picture of the placement, not the routed board: only the VMOT trunk is
-drawn, and the DRV887x row spacing is still a guess (0.6") until it's measured.
+drawn, and the DRV8874 (Pololu #4035) row spacing (0.5") is still to be confirmed.
 """
 import os
 
@@ -87,11 +87,12 @@ ESP = dict(x=36, y=34, w=28.1, h=63.6)
 esp_l = pins_col(ESP["x"] + 1.35, 41.5, 22)
 esp_r = pins_col(ESP["x"] + 1.35 + 25.4, 41.5, 22)
 
-# DRV887x boards (2x7). Output row faces the arm connectors, logic row faces the ESP32.
-U4 = dict(x=16.5, y=39, w=18.3, h=19.5)             # left
-U4_out, U4_log = pins_col(18.0, 41.0, 7), pins_col(18.0 + 15.24, 41.0, 7)
-U3 = dict(x=66.5, y=54, w=18.3, h=19.5)             # right (mirrored)
-U3_log, U3_out = pins_col(68.0, 56.0, 7), pins_col(68.0 + 15.24, 56.0, 7)
+# Pololu DRV8874 carriers (#4035): 0.6 x 0.7in, 2x7, rows 0.5in (to confirm).
+# The VIN/OUT column faces the arm connectors, the logic column faces the ESP32.
+U4 = dict(x=17.23, y=39.73, w=15.24, h=17.78)       # left
+U4_out, U4_log = pins_col(18.5, 41.0, 7), pins_col(18.5 + 12.7, 41.0, 7)
+U3 = dict(x=67.53, y=54.73, w=15.24, h=17.78)       # right (mirrored)
+U3_log, U3_out = pins_col(68.8, 56.0, 7), pins_col(68.8 + 12.7, 56.0, 7)
 
 # TB6612 (2x8, rows 0.6")
 U5 = dict(x=12, y=12.8, w=20.3, h=20.8)
@@ -159,8 +160,8 @@ HOLES = [(4, 4), (96, 4), (4, 96), (96, 96)]
 
 # VMOT trunk: F1 up the left, across the top (above the antenna keep-out), down the right
 VMOT = [
-    [(24.0, 85.0), (14.0, 85.0), (14.0, 12.0), (86.0, 12.0), (86.0, 56.0), (83.24, 56.0)],
-    [(14.0, 41.0), (18.0, 41.0)],                    # U4 VM
+    [(24.0, 85.0), (14.0, 85.0), (14.0, 12.0), (86.0, 12.0), (86.0, 56.0), (81.5, 56.0)],
+    [(14.0, 41.0), (18.5, 41.0)],                    # U4 VIN
     [(29.64, 12.0), (29.64, 14.4)],                  # U5 VM
     [(86.0, 38.0), (78.15, 38.0)],                   # U2 IN+
     [(14.0, 76.0), (23.46, 76.0)],                   # U1 VIN
@@ -382,9 +383,9 @@ def populate(p):
     # modules
     module_board(p, U5, "#b3261e", "TB6612", "eyes", chip=(22.0, 23.0, 4.0))
     header_dots(p, U5_a + U5_b)
-    module_board(p, U4, "#b3261e", "DRV8874", "left arm", chip=(25.6, 47.5, 4.5))
+    module_board(p, U4, "#1f8a5a", "DRV8874", "left arm", chip=(24.85, 47.0, 4.0))
     header_dots(p, U4_out + U4_log)
-    module_board(p, U3, "#b3261e", "DRV8874", "right arm", chip=(75.6, 62.5, 4.5))
+    module_board(p, U3, "#1f8a5a", "DRV8874", "right arm", chip=(75.15, 62.0, 4.0))
     header_dots(p, U3_log + U3_out)
     module_board(p, U6, "#1f3c88", "MAX98357A", "amp", chip=(76.0, 24.0, 3.0), ly=28.0)
     header_dots(p, U6_pins + U6_spk)
@@ -487,7 +488,7 @@ def main():
     out.append(panel(40 + pw, 90, "Assembled, pigtails soldered in", True))
     ny = (H + 2 * M) * PX + 115
     notes = ("Preview of the placement, not the routed board: only the VMOT trunk (darker green) is drawn; signal routing comes in KiCad. "
-             "DRV8874 row spacing assumed 0.6\" until measured. Pigtail wire colors show which of Freddy's wires each pad meets.")
+             "DRV8874 (Pololu #4035) row spacing 0.5\", to confirm with calipers. Pigtail wire colors show which of Freddy's wires each pad meets.")
     out.append(f'<text x="30" y="{ny}" font-size="14" fill="#555">{esc(notes)}</text>')
     out.append("</svg>")
     with open(OUT, "w") as f:

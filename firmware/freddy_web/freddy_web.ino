@@ -58,6 +58,7 @@ const int PIN_RGB = 48;
 // ---------------- tuning
 const float DIV = 69.0f / 22.0f;            // 47k/22k divider
 const float CS_MV_PER_A = 1163.0f;          // = CS-to-GND resistance in ohms: board 2.47k || added 2.2k = 1.16k (limit ~2.8A)
+                                             // Pololu DRV8874 (450 uA/A, onboard 2.49k, no added resistor): use 1121
 int liftDuty = 40;                          // %, stock lift is ~3V across the motor (~43%)
 const int LOWER_DUTY = 100;
 const uint32_t LIFT_EXTRA_MS = 300, LIFT_TIMEOUT_MS = 4000, LOWER_TIMEOUT_MS = 4000;

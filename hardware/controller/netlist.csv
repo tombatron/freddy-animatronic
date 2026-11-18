@@ -1,11 +1,11 @@
 Net,Connections,Notes
-VMOT,"Q1 drain, C1+, D1, R1, U1 VIN, U2 IN+, U3 VM, U4 VM, U5 VM, J4.2, J7.2, J13.1",Adapter after fuse and reverse protection
+VMOT,"Q1 drain, C1+, D1, R1, U1 VIN, U2 IN+, U3 VIN, U4 VIN, U5 VM, J4.2, J7.2, J13.1",Adapter after fuse and reverse protection
 GND,"J1-, C1-, D1, all module GND pins, J4.1, J7.1, J5.2, J8.2, J9.2, J12 sleeve, J13.3, J14.1",Star point at J1
 +5V_LOGIC,"D2 cathode, C2+, A1 5V",
 +5V_AUDIO,"U2 OUT+, C5+, U6 VIN",
-+3V3,"A1 3V3, U3/U4 PMODE, U3/U4 nSLEEP, U3/U4 VREF, U5 VCC, U5 STBY, U5 PWMA, U5 PWMB, R22/R23 (to J5.1/J8.1), J14.2, J16 VDD, pull-ups",From the dev board's regulator. Shoulder switches get 3.3V only through 220Ω
++3V3,"A1 3V3, U3/U4 PMODE, U3/U4 SLP, U3/U4 VREF, U5 VCC, U5 STBY, U5 PWMA, U5 PWMB, R22/R23 (to J5.1/J8.1), J14.2, J16 VDD, pull-ups",From the dev board's regulator. Shoulder switches get 3.3V only through 220Ω
 VMON,"R1/R2 junction, A1 GPIO1",x0.319
-CS_R,"U3 IPROPI via 1k, A1 GPIO2",1000µA/A × module IPROPI resistor (1.5k → 1.5V/A)
+CS_R,"U3 IPROPI via 1k, A1 GPIO2",DRV8874: 450µA/A × onboard 2.49k = 1.12V/A
 CS_L,"U4 IPROPI via 1k, A1 GPIO4",
 SH_R_IN1 / IN2,"U3 IN1/IN2, A1 GPIO11/12",PWM
 SH_L_IN1 / IN2,"U4 IN1/IN2, A1 GPIO13/14",PWM
