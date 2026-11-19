@@ -2,7 +2,7 @@
 
 A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and driver parts are off-the-shelf modules on headers, so rev A is easy to hand-solder, debug and rework. A later revision can put the parts directly on the board once the design has proven itself.
 
-**Status:** KiCad 9 project done: schematic, 100×100 mm two-layer layout, fully routed, DRC clean, with fab files for JLCPCB and a 3D-printable enclosure. Not ordered yet. Everything is generated from one file, [`tools/kicad/design.py`](../tools/kicad/design.py) (parts, nets, placement), so a change there flows into the schematic, the board and the enclosure. See [KiCad project](#kicad-project) below for how to open, regenerate and order it.
+**Status:** KiCad project done: schematic, 100×100 mm two-layer layout, fully routed, DRC clean, with fab files for JLCPCB and a 3D-printable enclosure. Not ordered yet. Everything is generated from one file, [`tools/kicad/design.py`](../tools/kicad/design.py) (parts, nets, placement), so a change there flows into the schematic, the board and the enclosure. See [KiCad project](#kicad-project) below for how to open, regenerate and order it.
 
 ![PCB, 3D](../hardware/controller/renders/pcb_3d.png)
 
@@ -143,7 +143,7 @@ The stock board lifts both arms at once on the same 4A adapter because its gentl
 
 ## KiCad project
 
-Open `hardware/controller/kicad/freddy-controller.kicad_pro` in KiCad 9 (Arch: `sudo pacman -S kicad kicad-library kicad-library-3d`). The project carries its own symbol and footprint libraries (`freddy.kicad_sym`, `freddy.pretty`) for the modules and pigtail pads.
+Open `hardware/controller/kicad/freddy-controller.kicad_pro` in KiCad 9 or 10 (Arch: `sudo pacman -S kicad kicad-library kicad-library-3d`). The project carries its own symbol and footprint libraries (`freddy.kicad_sym`, `freddy.pretty`) for the modules and pigtail pads. The generator writes KiCad 9 files; KiCad 10 upgrades them when you open the project, which is harmless (commit the upgraded files or not, either way).
 
 Regenerating needs KiCad 9 (its Python module), Java 21+ and the [Freerouting 2.1 jar](https://github.com/freerouting/freerouting/releases). Freerouting is randomised, so `route.py` tries up to eight times and keeps the first fully connected result; each run gives a slightly different (equally valid) layout.
 
