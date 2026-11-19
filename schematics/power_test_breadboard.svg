@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1634" height="985" viewBox="0 0 1634 985" xmlns:c2pa="http://c2pa.org/manifest">
+<svg xmlns="http://www.w3.org/2000/svg" width="1634" height="985" viewBox="0 0 1634 985">
 <rect width="100%" height="100%" fill="white"/>
 <text x="24.0" y="34.0" font-size="22" text-anchor="start" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">Power test: breadboard layout</text>
 <text x="24.0" y="58.0" font-size="13" text-anchor="start" fill="#555" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">Rounded tags are wires that leave the board (Freddy's cables and the adapter up top, ESP32 pins below). Tag wires pass OVER the rails; they don't plug into them.</text>
