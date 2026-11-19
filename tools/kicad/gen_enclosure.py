@@ -66,7 +66,7 @@ screw_pilot = 2.6;        // M3 self-tapping into the lid posts (or 4.0 for heat
 holes = %(HOLES)s;        // PCB mounting holes (M3)
 // openings: [name, wall, from, to, z_bottom, z_top]   (z above the PCB top)
 openings = %(NOTCHES)s;
-face = true;              // portrait on the lid
+face = false;             // portrait on the lid (baby_face.svg); off by default
 face_at = [63, 30];       // centre, board coordinates (clear of the vents and labels)
 face_h = 44;              // height in mm
 // lid vents over the warm parts: [x0, y0, x1, y1] board coordinates

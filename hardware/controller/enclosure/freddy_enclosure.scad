@@ -24,7 +24,7 @@ screw_pilot = 2.6;        // M3 self-tapping into the lid posts (or 4.0 for heat
 holes = [[4, 4], [96, 4], [4, 96], [96, 96]];        // PCB mounting holes (M3)
 // openings: [name, wall, from, to, z_bottom, z_top]   (z above the PCB top)
 openings = [["J9 eye switch", "top", 26, 34, 0, 4.5], ["J10 eye LEDs", "top", 37, 45, 0, 4.5], ["J11 eye motor", "top", 48, 56, 0, 4.5], ["J15 speaker", "top", 71, 79, 0, 4.5], ["J14 Qwiic", "top", 84.5, 90.7, 0, 4.5], ["J6 shoulder", "left", 35.3, 43.3, 0, 4.5], ["J7 elbow", "left", 48, 56, 0, 4.5], ["J8 switch", "left", 62, 70.6, 0, 4.5], ["J3 shoulder", "right", 35.3, 43.3, 0, 4.5], ["J4 elbow", "right", 48, 56, 0, 4.5], ["J5 switch", "right", 62, 70.6, 0, 4.5], ["J1 barrel jack", "bottom", 6.6, 18.2, 0, 12.5], ["ESP32 USB-C", "bottom", 37, 63, 9.5, 19], ["J12 trigger", "bottom", 65.6, 73.6, 0, 6], ["J13 PIR", "bottom", 77.5, 85.5, 0, 4.5]];
-face = true;              // portrait on the lid
+face = false;             // portrait on the lid (baby_face.svg); off by default
 face_at = [63, 30];       // centre, board coordinates (clear of the vents and labels)
 face_h = 44;              // height in mm
 // lid vents over the warm parts: [x0, y0, x1, y1] board coordinates
