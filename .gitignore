@@ -6,6 +6,7 @@ firmware/**/secrets.h
 
 # KiCad local state
 *-backups/
+.history/
 *.kicad_prl
 fp-info-cache
 _autosave-*
