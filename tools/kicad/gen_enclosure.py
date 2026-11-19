@@ -66,6 +66,9 @@ screw_pilot = 2.6;        // M3 self-tapping into the lid posts (or 4.0 for heat
 holes = %(HOLES)s;        // PCB mounting holes (M3)
 // openings: [name, wall, from, to, z_bottom, z_top]   (z above the PCB top)
 openings = %(NOTCHES)s;
+face = true;              // portrait on the lid
+face_at = [63, 30];       // centre, board coordinates (clear of the vents and labels)
+face_h = 44;              // height in mm
 // lid vents over the warm parts: [x0, y0, x1, y1] board coordinates
 vents = [[17, 40, 33, 58], [67, 55, 83, 73], [12, 13, 32, 34]];
 
@@ -171,6 +174,9 @@ module lid() {
         translate([bx(50), 5, top_z - 0.6]) linear_extrude(1) text("USB", size = 4, halign = "center");
         translate([bx(69.6), 5, top_z - 0.6]) linear_extrude(1) text("TRIG", size = 3.5, halign = "center");
         translate([bx(81.5), 5, top_z - 0.6]) linear_extrude(1) text("PIR", size = 3.5, halign = "center");
+        // portrait (line art traced from the GitHub avatar, baby_face.svg next to this file)
+        if (face) translate([bx(face_at[0]), by(face_at[1]), top_z - 0.6]) linear_extrude(1)
+            resize([0, face_h], auto = true) import("baby_face.svg", center = true);
     }
 }
 
