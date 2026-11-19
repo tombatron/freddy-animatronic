@@ -70,9 +70,36 @@ module base() {
             cylinder(d = screw_clear, h = floor_t + standoff_h + 2, $fn = 24);
             cylinder(d = 6.2, h = 1 + 1.8, $fn = 32);        // counterbore for the screw head
         }
-        translate([out_w / 2, out_h / 2, 0.6]) rotate([180, 0, 0])
-            linear_extrude(1) text("FREDDY rev A", size = 7, halign = "center", valign = "center");
+        // underside art, recessed 0.6mm; mirrored so it reads correctly from below (head end up)
+        translate([out_w / 2, out_h / 2, -0.01]) mirror([1, 0, 0]) linear_extrude(0.61) bottom_art();
     }
+}
+
+// a friendly teddy bear (recessed shape, face details left raised) and the maker's mark
+module teddy() {
+    difference() {
+        union() {
+            circle(r = 14, $fn = 96);                                        // head
+            for (sx = [-1, 1]) translate([sx * 11.5, 11]) circle(r = 6, $fn = 64);   // ears
+        }
+        for (sx = [-1, 1]) translate([sx * 11.5, 11]) circle(r = 3.2, $fn = 48);     // inner ears
+        for (sx = [-1, 1]) translate([sx * 5.2, 3]) circle(r = 1.9, $fn = 32);       // eyes
+        translate([0, -5]) scale([1, 0.78]) circle(r = 6.5, $fn = 64);              // muzzle
+        for (sx = [-1, 1]) translate([sx * 9.6, -4.2]) circle(r = 1.5, $fn = 24);   // cheeks
+    }
+    translate([0, -3.2]) scale([1.4, 1]) circle(r = 1.6, $fn = 32);                 // nose
+    translate([0, -4.6]) square([0.9, 2.2], center = true);                          // nose to mouth
+    for (sx = [-1, 1]) translate([sx * 1.9, -6.0]) difference() {                    // smile
+        circle(r = 2.2, $fn = 40);
+        circle(r = 1.4, $fn = 40);
+        translate([-3, -0.3]) square([6, 3]);
+    }
+}
+
+module bottom_art() {
+    translate([0, 16]) teddy();
+    translate([0, -12]) text("Freddy 2.0", size = 9, font = "Liberation Sans:style=Bold", halign = "center", valign = "center");
+    translate([0, -25]) text("by Tombatron", size = 5.5, font = "Liberation Sans", halign = "center", valign = "center");
 }
 
 module ear() {
