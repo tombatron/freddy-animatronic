@@ -88,7 +88,7 @@ def full_bom():
             ("sockets", 6, "single-pin machined socket", "U2 MP1584 corners (4) or solder flat; U6 speaker holes (2)", "", "hand-solder"),
             ("-", 1, "male header pins", "for each module (Pololu boards ship with loose headers)", "", "hand-solder"),
             ("-", 1, "jumper cap 2.54mm", "JP1 (optional: open = 9dB)", "", "hand-solder"),
-            ("enclosure", 4, "M3x8 self-tapping screw", "PCB to enclosure standoffs", "", "assembly"),
+            ("enclosure", 4, "M3x20 screw (self-tapping, or with heat-set inserts)", "base -> PCB -> lid posts", "", "assembly"),
         ]:
             w.writerow(row)
 

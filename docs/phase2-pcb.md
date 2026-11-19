@@ -169,10 +169,10 @@ python3 gen_enclosure.py       # OpenSCAD enclosure + STLs
 
 ![Enclosure](../hardware/controller/renders/enclosure.png)
 
-A two-part printed box: a base with standoffs for the PCB, and a lid with a locating lip, vents over the drivers and the TB6612, and raised labels (HEAD, LEFT ARM, RIGHT ARM, 7.2V, USB, TRIG, PIR). Every cable exits through a notch on the matching side; the notches are open at the top so the board drops in with the pigtails already soldered, and tabs on the lid close them down to a 7 mm cable window (taller for the barrel jack and USB-C). Mounting ears on the sides take screws into Freddy's base.
+A two-part printed box, split just above the PCB: a shallow base (floor, standoffs, walls 2.5 mm above the board) and a deep lid that holds the height for the tall parts. Each cable lies in a shallow notch in the base rim and the lid's matching notch closes down over it, leaving a 4.5 mm window, so the walls stay solid between openings and the cables get clamped (strain relief on top of the zip ties). The barrel jack, USB-C and trigger jack get their own windows. The board drops in with the pigtails already soldered: lay each cable in its notch and put the lid on. The lid has vents over the drivers and the TB6612 and recessed labels (HEAD, LEFT ARM, RIGHT ARM, 7.2V, USB, TRIG, PIR); mounting ears on the base take screws into Freddy.
 
-- About 106 × 106 × 36 mm outside (base, plus the mounting ears) and a 2 mm lid. Inside clearance above the PCB is 26 mm: the tallest parts are the upright S7V7F5 (~23.5 mm on its socket) and C1 (use a 10×16 or 10×20 mm can).
-- PCB on 6 mm standoffs, held with four M3×8 self-tapping screws.
+- About 106 × 106 × 38 mm outside, plus the mounting ears. Inside clearance above the PCB is 26 mm: the tallest parts are the upright S7V7F5 (~23.5 mm on its socket) and C1 (use a 10×16 or 10×20 mm can).
+- Four **M3×20** screws go up from underneath, through the base standoffs (6 mm) and the PCB's corner holes, into posts in the lid (self-tapping, or switch `screw_pilot` to 4.0 for heat-set inserts). The posts clamp the board against the standoffs, so the same four screws hold the board and close the box.
 - `freddy_enclosure.scad` is parametric: wall thickness, clearances, notch positions and vents are named lists at the top. Render a part with `openscad -D 'part="base"' -o base.stl freddy_enclosure.scad`.
 - Print the first one at home in PETG to check fit; order the final from JLC3DP in nylon (MJF PA12) if you want it tough.
 
