@@ -34,7 +34,7 @@ The stock board uses the head in exactly one way: eye motor forward at full powe
 | Head cable 1 **yellow** → 1k → GPIO7, plus 10k from GPIO7 to 3V3; cable 1 **white** → GND | eye home switch |
 | ESP32 GND | GND rail |
 
-These are the same pins the controller board uses, so the firmware carries straight over.
+These are breadboard pins. The controller PCB drives the eyes from GPIO11/12 (motor) and GPIO15/16 (LEDs) instead (see [`firmware/freddy_pcb_pins.h`](../firmware/freddy_pcb_pins.h)), so change the four pin numbers at the top of the sketch when moving to the board.
 
 ## Run it
 
