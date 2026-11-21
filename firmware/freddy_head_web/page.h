@@ -41,6 +41,13 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .jog button { min-width:56px; }
   .gap { width:14px; }
   button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .wiz { margin-top:16px; background:var(--card); border:2px solid var(--accent); border-radius:12px; padding:12px 16px; }
+  .wiz h3 { margin:0 0 4px; font-size:16px; }
+  .wiz p { margin:0 0 10px; color:var(--mute); }
+  .wiz form { margin-top:8px; }
+  .wbtns button { margin-right:4px; }
+  details.manual { margin-top:22px; }
+  details.manual summary { cursor:pointer; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); }
   .bar i { position:absolute; top:-3px; width:16px; height:16px; margin-left:-8px; border-radius:50%; background:var(--accent); }
   .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
   form { margin:0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
@@ -79,7 +86,32 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   </section>
   <div id="msg"></div>
 
-  <h2>Find center</h2>
+  <section id="wiz" class="wiz"></section>
+
+  <h2>Go to</h2>
+  <div class="row">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto">
+      <button name="v" value="0">Center</button><button name="v" value="1">Right</button><button name="v" value="2">Left</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto"><input type="hidden" name="v" value="3">
+      <input type="number" name="t" min="0" max="99" value="25">% of a turn<button>Go</button></form>
+    <form action="/cmd" method="post"><label>Dart</label>
+      <input type="number" name="v" min="40" max="800" step="10" value="180"> ms<button name="a" value="dart">Dart</button></form>
+  </div>
+  <p class="hint">Go-to moves run forward only, so the eyes may sweep past other positions on the way.</p>
+
+  <h2>Free run</h2>
+  <div class="row">
+    <form action="/cmd" method="post"><button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
+    <form action="/cmd" method="post">
+      <input type="hidden" name="a" value="speed"><label>Speed</label>
+      <span id="f_speed"><input type="range" name="v" min="5" max="100" step="5" value="100"
+             oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output></span>
+    </form>
+  </div>
+  <p class="hint">Below 100% the position isn't tracked: set center again afterwards.</p>
+
+  <details class="manual"><summary>Manual calibration</summary>
+  <h2>Jog and mark</h2>
   <div class="row">
     <form action="/cmd" method="post" class="jog">
       <button name="a" value="jogr" onclick="this.form.v.value=250">&laquo; 250</button>
@@ -102,17 +134,6 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   <p class="hint">Jog pulses are in ms at full speed (&rsaquo; forward, &lsaquo; reverse). Jog until the eyes look dead
     ahead and press Set center here. Then jog to the far right and mark it, and the same for the left.</p>
 
-  <h2>Go to</h2>
-  <div class="row">
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto">
-      <button name="v" value="0">Center</button><button name="v" value="1">Right</button><button name="v" value="2">Left</button></form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto"><input type="hidden" name="v" value="3">
-      <input type="number" name="t" min="0" max="99" value="25">% of a turn<button>Go</button></form>
-    <form action="/cmd" method="post"><label>Dart</label>
-      <input type="number" name="v" min="40" max="800" step="10" value="180"> ms<button name="a" value="dart">Dart</button></form>
-  </div>
-  <p class="hint">Go-to moves run forward only, so the eyes may sweep past other positions on the way.</p>
-
   <h2>Turn length</h2>
   <div class="row">
     <form action="/cmd" method="post"><input type="hidden" name="a" value="spin"><label>Spin</label>
@@ -129,16 +150,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
     press Back at center. It divides the whole trip by the number of turns, so a few ms of jog error barely counts.
     If go-to moves keep landing a little past the target, raise the aim lead.</p>
 
-  <h2>Free run</h2>
-  <div class="row">
-    <form action="/cmd" method="post"><button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
-    <form action="/cmd" method="post">
-      <input type="hidden" name="a" value="speed"><label>Speed</label>
-      <span id="f_speed"><input type="range" name="v" min="5" max="100" step="5" value="100"
-             oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output></span>
-    </form>
-  </div>
-  <p class="hint">Below 100% the position isn't tracked: set center again afterwards.</p>
+  </details>
 
   <h2>Lights</h2>
   <div class="row">

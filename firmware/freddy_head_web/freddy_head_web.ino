@@ -15,6 +15,9 @@
   so it survives a reboot (the gearbox shouldn't move with the power off). Timing
   errors add up with every start and stop, so re-center by eye now and then.
 
+  v2: a calibration wizard on the page walks through all of that (center, turn length,
+  full right, full left, a check tour), plus a one-step Quick re-center for drift.
+
   Also: free running at any speed (position becomes unknown below 100%), dart,
   LED modes (off, on, breathe, flicker, blink), LED steps.
 
@@ -52,7 +55,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "1.2.2"
+#define FW_VERSION "2.0.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -107,8 +110,16 @@ bool motorOn() { return mv.type == MV_RUN || mv.type == MV_TIMED; }
 uint32_t since(uint32_t t, uint32_t now) { return (int32_t)(now - t) > 0 ? now - t : 0; }
 
 // ---------------- jobs
-enum Job { J_NONE, J_DART, J_SPIN };
-const char *JOB_NAMES[] = {"none", "dart", "spin"};
+enum Job { J_NONE, J_DART, J_SPIN, J_TOUR };
+const char *JOB_NAMES[] = {"none", "dart", "spin", "tour"};
+
+// ---------------- calibration wizard
+// 0 = not running; 1 center, 2 turn length, 3 full right, 4 full left, 5 check.
+// Quick re-center is step 1 alone.
+int wizStep = 0;
+bool wizQuick = false;
+int wizSnapTurn, wizSnapRight, wizSnapLeft;   // restored on Cancel
+bool wizSpun = false;
 Job job = J_NONE;
 int jStep = 0, jArg = 0;
 int spinTurns = 0;
@@ -227,8 +238,8 @@ void sendPageState() {
 
 // Live values: each card is sent only when its HTML changes, and at most every
 // 100 ms (sys every 2 s). Values are rounded first so noise doesn't count as change.
-enum { C_EYES, C_POS, C_CAL, C_LED, C_SYS, N_CARDS };
-const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_cal", "c_led", "c_sys"};
+enum { C_EYES, C_POS, C_CAL, C_LED, C_SYS, C_WIZ, N_CARDS };
+const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_cal", "c_led", "c_sys", "wiz"};
 uint32_t cardHash[N_CARDS], cardSent[N_CARDS];
 
 uint32_t fnv(const char *s) { uint32_t h = 2166136261u; while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; } return h; }
@@ -241,6 +252,86 @@ void pushCard(int i, const char *html, uint32_t now) {
   cardHash[i] = h;
   cardSent[i] = now;
   stream("update", CARD_IDS[i], html);
+}
+
+// ---------------------------------------------------------------- wizard card
+const char JOG_HTML[] =
+  "<form action=\"/cmd\" method=\"post\" class=\"jog\">"
+  "<button name=\"a\" value=\"jogr\" onclick=\"this.form.v.value=250\">&laquo; 250</button>"
+  "<button name=\"a\" value=\"jogr\" onclick=\"this.form.v.value=100\">100</button>"
+  "<button name=\"a\" value=\"jogr\" onclick=\"this.form.v.value=50\">50</button>"
+  "<button name=\"a\" value=\"jogr\" onclick=\"this.form.v.value=20\">20 &lsaquo;</button><span class=\"gap\"></span>"
+  "<button name=\"a\" value=\"jogf\" onclick=\"this.form.v.value=20\">&rsaquo; 20</button>"
+  "<button name=\"a\" value=\"jogf\" onclick=\"this.form.v.value=50\">50</button>"
+  "<button name=\"a\" value=\"jogf\" onclick=\"this.form.v.value=100\">100</button>"
+  "<button name=\"a\" value=\"jogf\" onclick=\"this.form.v.value=250\">250 &raquo;</button>"
+  "<input type=\"hidden\" name=\"v\" value=\"50\"></form>";
+
+// one wizard button: a = wizard action number
+String wbtn(int a, const char *label, const char *cls = "") {
+  return String("<button name=\"v\" value=\"") + a + "\" class=\"" + cls + "\">" + label + "</button>";
+}
+// wizard actions: 0 start, 1 quick re-center, 2 next, 3 back, 4 cancel, 5 skip, 6 spin, 7 tour, 8 go near mark
+String wform(const String &buttons) {
+  return "<form action=\"/cmd\" method=\"post\" class=\"wbtns\"><input type=\"hidden\" name=\"a\" value=\"wiz\">" + buttons + "</form>";
+}
+
+void pushWizard(uint32_t now) {
+  String h;
+  h.reserve(2600);
+  const char *pct = "%";
+  if (wizStep == 0) {
+    h = "<h3>Calibration</h3><p>" + String(posKnown ? "" : "<b>Position unknown.</b> ") +
+        "The wizard walks through center, turn length, full right and full left. "
+        "Quick re-center just finds center again, for when the eyes have drifted.</p>" +
+        wform(wbtn(0, "Start calibration wizard", "primary") + wbtn(1, "Quick re-center"));
+  } else {
+    String title, text, buttons;
+    char tmp[200];
+    switch (wizStep) {
+      case 1:
+        title = wizQuick ? "Quick re-center" : "Step 1 of 5 &middot; Center";
+        text = "Jog until the eyes look straight ahead. Big steps to get close, then 20 ms taps.";
+        buttons = wbtn(2, wizQuick ? "Done: this is center" : "Next: this is center", "primary");
+        break;
+      case 2:
+        snprintf(tmp, sizeof tmp, "Spin 10 turns from center: they should come back to center. If they're off, jog them back to "
+                 "dead center, then Next. The whole trip divided by 10 gives the turn length (now %d ms).", turnMs);
+        title = "Step 2 of 5 &middot; Turn length";
+        text = tmp;
+        buttons = wbtn(6, "Spin 10 turns") + wbtn(2, "Next: back at center", wizSpun ? "primary" : "") +
+                  wbtn(5, (String("Skip: keep ") + turnMs + " ms").c_str());
+        break;
+      case 3: case 4: {
+        bool right = wizStep == 3;
+        int mark = right ? rightMs : leftMs;
+        snprintf(tmp, sizeof tmp, "Jog until the eyes are as far %s as they go: past that they start coming back. "
+                 "Forward jogs work best; use reverse to back up if you overshoot.", right ? "right" : "left");
+        title = right ? "Step 3 of 5 &middot; Full right" : "Step 4 of 5 &middot; Full left";
+        text = tmp;
+        if (mark >= 0) buttons += wbtn(8, (String("Start near the old mark (") + pctOf(mark) + pct + ")").c_str());
+        buttons += wbtn(2, right ? "Next: this is full right" : "Next: this is full left", "primary");
+        break;
+      }
+      case 5:
+        snprintf(tmp, sizeof tmp, "The tour goes center, right, left, center, pausing at each. If the eyes stop a little past "
+                 "each spot, raise the aim lead (now %d ms) and run it again.", aimLeadMs);
+        title = "Step 5 of 5 &middot; Check";
+        text = tmp;
+        buttons = wbtn(7, "Run the tour") + wbtn(2, "Finish", "primary");
+        break;
+    }
+    if (wizStep > 1) buttons += wbtn(3, "Back");
+    buttons += wbtn(4, "Cancel");
+    h = "<h3>" + title + "</h3><p>" + text + "</p>";
+    if (wizStep <= 4) h += JOG_HTML;
+    if (wizStep == 5)
+      h += String("<form action=\"/cmd\" method=\"post\"><input type=\"hidden\" name=\"a\" value=\"lead\"><label>Aim lead</label>"
+                  "<input type=\"number\" name=\"v\" min=\"0\" max=\"500\" step=\"5\" value=\"") + aimLeadMs +
+           "\"> ms<button>Set</button></form>";
+    h += wform(buttons);
+  }
+  pushCard(C_WIZ, h.c_str(), now);
 }
 
 void pushCards(uint32_t now) {
@@ -281,6 +372,7 @@ void pushCards(uint32_t now) {
   snprintf(b, sizeof b, "<div class=\"k\">System</div><div class=\"v\">%s</div><div class=\"s\">v%s &middot; heap %luk &middot; reset %d</div>",
            shownRssi ? (String(shownRssi) + " dBm").c_str() : "AP mode", FW_VERSION, ESP.getFreeHeap() / 10240 * 10, resetReason);
   pushCard(C_SYS, b, now);
+  pushWizard(now);
 }
 
 // ---------------------------------------------------------------- settings in flash
@@ -362,7 +454,118 @@ void jobStep() {
         report("spin done");
       }
       break;
+    case J_TOUR: {                                           // center, right, left, center with pauses
+      static const char *NAMES[] = {"center", "right", "left", "center"};
+      if (jStep >= 8) { job = J_NONE; report("tour done"); break; }
+      if (jStep % 2 == 0) {
+        int i = jStep / 2;
+        float target = i == 1 ? rightMs : i == 2 ? leftMs : 0;
+        jStep++;
+        if ((i == 1 && rightMs < 0) || (i == 2 && leftMs < 0) || !posKnown) { jobStep(); break; }
+        Job keep = job;
+        gotoMs(target, NAMES[i]);
+        job = keep;
+        if (mv.type == MV_NONE) jobStep();                   // already there: next stop
+      } else {
+        jStep++;
+        startMove(MV_PAUSE, 1, 0, 1200);
+      }
+      break;
+    }
     default: break;
+  }
+}
+
+// ---------------------------------------------------------------- calibration helpers
+void setCenter() {
+  posMs = 0; odoMs = 0; posKnown = true; posRestored = false; savePos();
+  report("center set here");
+}
+
+bool learnTurn() {
+  char b1[64], b2[128];
+  stopAll(nullptr);
+  if (!posKnown) { report("set center first"); return false; }
+  int turns = (int)lroundf(odoMs / turnMs);
+  if (turns < 1) { report("back at center: less than a turn since center was set. Spin some turns first."); return false; }
+  int old = turnMs;
+  turnMs = constrain((int)lroundf(odoMs / turns), 1000, 20000);
+  snprintf(b1, sizeof b1, "%d ms per turn", turnMs);
+  snprintf(b2, sizeof b2, "%.0f ms over %d turns (was %d ms, %+d)", odoMs, turns, old, turnMs - old);
+  resultRow("learned turn length", b1, b2);
+  posMs = 0; odoMs = 0; posRestored = false;
+  saveSettings(); savePos();
+  return true;
+}
+
+void markHere(bool right) {
+  char b1[48], b2[64], b3[48];
+  int &mark = right ? rightMs : leftMs;
+  mark = (int)lroundf(posMs);
+  saveSettings();
+  snprintf(b1, sizeof b1, "marked %s", right ? "full right" : "full left");
+  snprintf(b2, sizeof b2, "%d ms past center", mark);
+  snprintf(b3, sizeof b3, "%d%% of a turn", pctOf(mark));
+  resultRow(b1, b2, b3);
+}
+
+// a: 0 start, 1 quick re-center, 2 next, 3 back, 4 cancel, 5 skip, 6 spin, 7 tour, 8 go near mark
+void wizard(int a) {
+  char b[160];
+  switch (a) {
+    case 0: case 1:
+      stopAll(nullptr);
+      wizSnapTurn = turnMs; wizSnapRight = rightMs; wizSnapLeft = leftMs;
+      wizQuick = a == 1; wizStep = 1; wizSpun = false;
+      report(wizQuick ? "re-center: jog to dead center" : "calibration wizard started");
+      break;
+    case 2:                                                  // next: commit this step
+      stopAll(nullptr);
+      if (wizStep == 1) {
+        setCenter();
+        if (wizQuick) { wizStep = 0; report("re-centered"); break; }
+        wizStep = 2; wizSpun = false;
+      } else if (wizStep == 2) {
+        if (!wizSpun) { report("spin the 10 turns first (or Skip)"); break; }
+        if (learnTurn()) wizStep = 3;
+      } else if (wizStep == 3 || wizStep == 4) {
+        if (!posKnown) { report("position unknown: go back to step 1"); break; }
+        markHere(wizStep == 3);
+        wizStep++;
+        if (wizStep == 5) startJob(J_TOUR);                  // show the result straight away
+      } else if (wizStep == 5) {
+        snprintf(b, sizeof b, "%d ms per turn", turnMs);
+        char n[96]; snprintf(n, sizeof n, "right %d%%, left %d%%, aim lead %d ms", pctOf(rightMs), pctOf(leftMs), aimLeadMs);
+        resultRow("calibration saved", b, n);
+        wizStep = 0;
+      }
+      break;
+    case 3:                                                  // back (learning the turn needs center, so 3 -> 1)
+      stopAll(nullptr);
+      wizStep = wizStep <= 3 ? 1 : wizStep - 1;
+      wizSpun = false;
+      break;
+    case 4:
+      stopAll(nullptr);
+      turnMs = wizSnapTurn; rightMs = wizSnapRight; leftMs = wizSnapLeft; saveSettings();
+      wizStep = 0;
+      report("calibration wizard cancelled: previous turn length and marks kept");
+      break;
+    case 5:                                                  // skip the turn length
+      if (wizStep == 2) { stopAll(nullptr); wizStep = 3; report("kept turn length %d ms", turnMs); }
+      break;
+    case 6:                                                  // spin 10 turns from center
+      if (wizStep != 2) break;
+      odoMs = 0; posMs = 0;                                  // step 1 just set center here
+      wizSpun = true;
+      spinTurns = 10; startJob(J_SPIN);
+      break;
+    case 7: startJob(J_TOUR); break;
+    case 8:
+      stopAll(nullptr);
+      if (wizStep == 3 && rightMs >= 0) gotoMs(rightMs, "old right mark");
+      if (wizStep == 4 && leftMs >= 0) gotoMs(leftMs, "old left mark");
+      break;
   }
 }
 
@@ -386,37 +589,14 @@ void runCmd(char a, int v, int t) {
       if (mv.type == MV_RUN && job == J_NONE) startMove(MV_RUN, mv.dir, speedPct, RUN_LIMIT_MS);
       break;
     case 'j': stopAll(nullptr); startMove(MV_TIMED, t < 0 ? -1 : 1, POS_SPEED, constrain(abs(v), 10, 2000)); break;
-    case 'c':                                                // set center here
-      stopAll(nullptr);
-      posMs = 0; odoMs = 0; posKnown = true; posRestored = false; savePos();
-      report("center set here");
-      break;
-    case 'g': {                                              // back at center: learn the turn length
+    case 'c': stopAll(nullptr); setCenter(); break;          // set center here
+    case 'g': learnTurn(); break;                            // back at center: learn the turn length
+    case 'w': wizard(v); break;
+    case 'k':                                                // mark: v = 1 right, 2 left
       stopAll(nullptr);
       if (!posKnown) { report("set center first"); break; }
-      int turns = (int)lroundf(odoMs / turnMs);
-      if (turns < 1) { report("back at center: less than a turn since center was set. Spin some turns first."); break; }
-      int old = turnMs;
-      turnMs = constrain((int)lroundf(odoMs / turns), 1000, 20000);
-      snprintf(b1, sizeof b1, "%d ms per turn", turnMs);
-      snprintf(b2, sizeof b2, "%.0f ms over %d turns (was %d ms, %+d)", odoMs, turns, old, turnMs - old);
-      resultRow("learned turn length", b1, b2);
-      posMs = 0; odoMs = 0; posRestored = false;
-      saveSettings(); savePos();
+      markHere(v == 1);
       break;
-    }
-    case 'k': {                                              // mark: v = 1 right, 2 left
-      stopAll(nullptr);
-      if (!posKnown) { report("set center first"); break; }
-      int &mark = v == 1 ? rightMs : leftMs;
-      mark = (int)lroundf(posMs);
-      saveSettings();
-      snprintf(b1, sizeof b1, "marked %s", v == 1 ? "full right" : "full left");
-      snprintf(b2, sizeof b2, "%d ms past center", mark);
-      char b3[64]; snprintf(b3, sizeof b3, "%d%% of a turn", pctOf(mark));
-      resultRow(b1, b2, b3);
-      break;
-    }
     case 'G': {                                              // go to: v = 0 center, 1 right, 2 left, 3 = t%
       stopAll(nullptr);
       if (v == 1 && rightMs < 0) { report("mark full right first"); break; }
@@ -467,7 +647,7 @@ void setupWeb() {
       {"stop", 'x'}, {"fwd", 'f'}, {"rev", 'r'}, {"speed", 's'}, {"jogf", 'j'}, {"jogr", 'j'},
       {"center", 'c'}, {"learn", 'g'}, {"mark", 'k'}, {"goto", 'G'}, {"spin", 'N'}, {"turn", 'T'},
       {"lead", 'L'}, {"dart", 'd'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
-      {"clearlog", 'Z'}};
+      {"clearlog", 'Z'}, {"wiz", 'w'}};
     Cmd c = {0, v, t};
     for (auto &m : MAP) if (a == m.name) c.a = m.code;
     if (a == "jogr") c.t = -1;
