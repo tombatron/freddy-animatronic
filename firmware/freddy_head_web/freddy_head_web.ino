@@ -99,6 +99,9 @@ struct Move {
   int n = 0, got = 0;
   uint32_t t[4];                              // switch closure times (MV_SWEEPS)
 } mv;
+// Time since t, never negative: a move started later in this pass has a start time a
+// little after 'now', and plain unsigned subtraction would make it look 49 days old.
+uint32_t since(uint32_t t, uint32_t now) { return (int32_t)(now - t) > 0 ? now - t : 0; }
 bool motorOn() { return mv.type == MV_RUN || mv.type == MV_HOME || mv.type == MV_TIMED || mv.type == MV_SWEEPS; }
 
 // ---------------- jobs: multi-step commands and tests
@@ -246,7 +249,7 @@ void pushCards(uint32_t now) {
     case J_SPEEDS: snprintf(detail, sizeof detail, "%s, %d%% (%d of %d)", jDir > 0 ? "forward" : "reverse", SPEEDS[min(jIdx, N_SPEEDS - 1)], jIdx + 1, N_SPEEDS); break;
     case J_AIM: snprintf(detail, sizeof detail, "trial %d of %d", aimTrial + 1, 2 * AIM_REPS); break;
     case J_SOAK: {
-      uint32_t el = (now - mv.start) / 10000 * 10;           // 10 s steps
+      uint32_t el = since(mv.start, now) / 10000 * 10;           // 10 s steps
       snprintf(detail, sizeof detail, "%lu:%02lu of %d:00 &middot; %lu sweeps%s", el / 60, el % 60, jArg, soakN,
                (soakLong + soakShort) ? " &middot; odd ones!" : "");
       break;
@@ -687,19 +690,20 @@ void loop() {
     else lastPulse = now - lastClose;
   }
 
-  // move timeouts
-  uint32_t in = now - mv.start;
+  // move timeouts. Re-read the clock: the switch handler may have just started a new move.
+  now = millis();
+  uint32_t in = since(mv.start, now);
   switch (mv.type) {
     case MV_TIMED: case MV_PAUSE: if (in >= mv.ms) endMove(true, nullptr); break;
     case MV_RUN:
       if (in >= mv.ms) endMove(true, job == J_SOAK ? nullptr : "30 s limit: stopped");
       else if (job == J_SOAK) {
-        uint32_t since = now - max(lastClose, mv.start), lim = soakN >= 3 ? soakSum / soakN * 3 : 15000;
-        if (since > lim) endMove(false, "stalled: no switch closure");
+        uint32_t quiet = since(max(lastClose, mv.start), now), lim = soakN >= 3 ? soakSum / soakN * 3 : 15000;
+        if (quiet > lim) endMove(false, "stalled: no switch closure");
       }
       break;
     case MV_HOME: if (in > mv.timeout) endMove(false, "home switch never closed: check cable 1, or the speed is too low to turn the cam"); break;
-    case MV_SWEEPS: { uint32_t ref = mv.got ? mv.t[mv.got - 1] : mv.start; if (now - ref > mv.timeout) endMove(false, "stalled: no switch closure"); } break;
+    case MV_SWEEPS: { uint32_t ref = mv.got ? mv.t[mv.got - 1] : mv.start; if (since(ref, now) > mv.timeout) endMove(false, "stalled: no switch closure"); } break;
     case MV_NONE: break;
   }
 
