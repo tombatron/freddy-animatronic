@@ -43,7 +43,7 @@ Flash [`firmware/freddy_head_web`](../firmware/freddy_head_web/) (needs the "ESP
 **The eye home switch is broken.** Its two leaf contacts came out of their holder during testing (probably while running the cam in reverse, which the stock board never does), and they can't be reached without taking the eye mechanism apart. Since v1.2.0 the sketch positions the eyes by time alone, with center set by eye:
 
 1. **Find center:** jog with 20–250 ms pulses until the eyes look dead ahead, then **Set center here**.
-2. **Learn the turn length:** **Spin 10 turns**, jog back to dead center if they're off, then **Back at center: learn turn**. It divides the whole trip by the number of turns, so jog error barely counts. (Starts at 4072 ms, measured with the switch before it broke.)
+2. **Learn the turn length:** **Spin 10 turns**, jog back to dead center if they're off, then **Back at center: learn turn**. It divides the whole trip by the number of turns, so jog error barely counts. (Defaults: 4224 ms per turn, full right at 33% and full left at 70% of a turn, measured on the bench head. A board with nothing saved assumes the eyes start centered.)
 3. **Mark full right / full left:** jog to each extreme and mark it. **Go to** center, right, left or any % of a turn is then a timed forward move.
 4. If go-to moves land a little past the target, raise the **aim lead**.
 

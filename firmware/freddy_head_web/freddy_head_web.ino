@@ -52,7 +52,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "1.2.1"
+#define FW_VERSION "1.2.2"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -78,8 +78,10 @@ const uint32_t RUN_LIMIT_MS = 30000;       // free running stops by itself after
 
 // ---------------- settings (saved in flash)
 int speedPct = 100;                        // free-run speed
-int turnMs = 4072;                         // one full turn at full speed (measured with the old switch)
-int rightMs = -1, leftMs = -1;             // marked positions, ms past center; -1 = not marked
+// Defaults measured on the bench head (Nov 2026); anything saved in flash wins.
+const int DEF_TURN_MS = 4224, DEF_RIGHT_MS = 1394, DEF_LEFT_MS = 2957;   // right 33%, left 70% of a turn
+int turnMs = DEF_TURN_MS;                  // one full turn at full speed
+int rightMs = DEF_RIGHT_MS, leftMs = DEF_LEFT_MS;   // marked positions, ms past center; -1 = not marked
 int aimLeadMs = 0;                         // stop this much early on go-to moves (coast after braking)
 int ledPct = 60, ledPeriod = 3000;
 enum LedMode { L_OFF, L_ON, L_BREATHE, L_FLICKER, L_BLINK };
@@ -521,11 +523,11 @@ void setup() {
   resetReason = (int)esp_reset_reason();
 
   prefs.begin("headtest2", false);
-  turnMs = prefs.getInt("turn", 4072);
-  rightMs = prefs.getInt("right", -1);
-  leftMs = prefs.getInt("left", -1);
+  turnMs = prefs.getInt("turn", DEF_TURN_MS);
+  rightMs = prefs.getInt("right", DEF_RIGHT_MS);
+  leftMs = prefs.getInt("left", DEF_LEFT_MS);
   aimLeadMs = prefs.getInt("lead", 0);
-  posKnown = prefs.getBool("posk", false);
+  posKnown = prefs.getBool("posk", true);   // nothing saved yet: assume the eyes are centered
   posMs = prefs.getFloat("pos", 0);
   odoMs = prefs.getFloat("odo", 0);
   posRestored = posKnown;

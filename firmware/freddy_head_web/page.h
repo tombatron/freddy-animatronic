@@ -121,7 +121,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   </div>
   <div class="row">
     <form action="/cmd" method="post"><input type="hidden" name="a" value="turn"><label>Turn</label>
-      <span id="f_turn"><input type="number" name="v" min="1000" max="20000" value="4072"></span> ms<button>Set</button></form>
+      <span id="f_turn"><input type="number" name="v" min="1000" max="20000" value="4224"></span> ms<button>Set</button></form>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="lead"><label>Aim lead</label>
       <span id="f_lead"><input type="number" name="v" min="0" max="500" step="5" value="0"></span> ms<button>Set</button></form>
   </div>
