@@ -45,6 +45,9 @@
 #ifndef AP_PASS
 #define AP_PASS "fazbear1987"
 #endif
+// Bump FW_VERSION with each change; the build time tells two builds of one version apart.
+#define FW_VERSION "1.1.0"
+const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
 
@@ -171,25 +174,66 @@ void stream(const char *action, const char *target, const char *html) {
   ws.textAll(s);
 }
 
+// The log and results live here too (newest last), so a page that connects or reloads
+// gets the whole history, and a reboot starts clean.
+const int LOG_KEEP = 40, RES_KEEP = 30;
+char logRing[LOG_KEEP][240], resRing[RES_KEEP][360];
+int logCount = 0, resCount = 0;
+
+void ringAdd(char (*ring)[240], int keep, int &count, const char *html) {
+  if (count == keep) { memmove(ring[0], ring[1], (keep - 1) * sizeof ring[0]); count--; }
+  strlcpy(ring[count++], html, sizeof ring[0]);
+}
+
+// Send a whole list (newest first), replacing what the page has.
+void sendRing(const char *target, int count, int stride, const char *base) {
+  String s;
+  s.reserve(count * 120 + 96);
+  for (int i = count - 1; i >= 0; i--) s += base + i * stride;
+  stream("update", target, s.c_str());
+}
+
 // A log line: serial monitor + prepended to the page's log. Events always go out.
 void report(const char *fmt, ...) {
-  char msg[220], b[260];
+  char msg[200], b[240];
   va_list ap;
   va_start(ap, fmt);
   vsnprintf(msg, sizeof msg, fmt, ap);
   va_end(ap);
   Serial.printf("# %s\n", msg);
-  if (!canPush()) return;
-  snprintf(b, sizeof b, "<li>%7.1fs %s</li>", millis() / 1000.0f, msg);
-  stream("prepend", "log", b);
+  uint32_t t = millis() / 100;                              // tenths of a second since boot
+  snprintf(b, sizeof b, "<li><span>%lu:%02lu.%lu</span> %s</li>", t / 600, t / 10 % 60, t % 10, msg);
+  ringAdd(logRing, LOG_KEEP, logCount, b);
+  if (canPush()) stream("prepend", "log", b);
 }
 
 void resultRow(const char *test, const char *setting, const char *result, const char *note) {
   Serial.printf("# RESULT %s | %s | %s | %s\n", test, setting, result, note);
-  if (!canPush()) return;
-  char b[400];
+  char b[360];
   snprintf(b, sizeof b, "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>", test, setting, result, note);
-  stream("prepend", "results", b);
+  if (resCount == RES_KEEP) { memmove(resRing[0], resRing[1], (RES_KEEP - 1) * sizeof resRing[0]); resCount--; }
+  strlcpy(resRing[resCount++], b, sizeof resRing[0]);
+  if (canPush()) stream("prepend", "results", b);
+}
+
+// What a freshly connected page needs: version, history, and the controls set to the
+// values Freddy is actually using.
+void sendPageState() {
+  char b[700];
+  snprintf(b, sizeof b, "v%s &middot; %s", FW_VERSION, FW_BUILD);
+  stream("update", "fw", b);
+  sendRing("log", logCount, sizeof logRing[0], logRing[0]);
+  sendRing("results", resCount, sizeof resRing[0], resRing[0]);
+  snprintf(b, sizeof b, "<input type=\"range\" name=\"v\" min=\"5\" max=\"100\" step=\"5\" value=\"%d\" "
+           "oninput=\"this.nextElementSibling.value=this.value+'%%'\" onchange=\"this.form.requestSubmit()\"><output>%d%%</output>", speedPct, speedPct);
+  stream("update", "f_speed", b);
+  snprintf(b, sizeof b, "<input type=\"range\" name=\"v\" min=\"0\" max=\"100\" value=\"%d\" "
+           "oninput=\"this.nextElementSibling.value=this.value+'%%'\" onchange=\"this.form.requestSubmit()\"><output>%d%%</output>", ledPct, ledPct);
+  stream("update", "f_bright", b);
+  snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"200\" max=\"10000\" step=\"100\" value=\"%d\">", ledPeriod);
+  stream("update", "f_period", b);
+  snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"0\" max=\"500\" step=\"5\" value=\"%d\">", aimLeadMs);
+  stream("update", "f_lead", b);
 }
 
 // Live values: each card is sent only when its HTML changes, and at most every
@@ -264,8 +308,8 @@ void pushCards(uint32_t now) {
   static int shownRssi = 0;                                  // RSSI wobbles: only move it 6 dB at a time
   int rssi = WiFi.status() == WL_CONNECTED ? WiFi.RSSI() : 0;
   if (abs(rssi - shownRssi) >= 6) shownRssi = rssi;
-  snprintf(b, sizeof b, "<div class=\"k\">System</div><div class=\"v\">%s</div><div class=\"s\">heap %luk &middot; reset %d</div>",
-           shownRssi ? (String(shownRssi) + " dBm").c_str() : "AP mode", ESP.getFreeHeap() / 10240 * 10, resetReason);
+  snprintf(b, sizeof b, "<div class=\"k\">System</div><div class=\"v\">%s</div><div class=\"s\">v%s &middot; heap %luk &middot; reset %d</div>",
+           shownRssi ? (String(shownRssi) + " dBm").c_str() : "AP mode", FW_VERSION, ESP.getFreeHeap() / 10240 * 10, resetReason);
   pushCard(C_SYS, b, now);
 
   // calibration table
@@ -567,7 +611,8 @@ void runCmd(char a, int v, int t) {
       memset(cal, 0, sizeof cal); memset(calSpin, 0, sizeof calSpin); saveCal(); posKnown = false;
       report("calibration cleared");
       break;
-    case 'W': memset(cardHash, 0, sizeof cardHash); status(); break;   // new page: resend every card
+    case 'W': memset(cardHash, 0, sizeof cardHash); sendPageState(); break;   // new page: resend everything
+    case 'Z': logCount = resCount = 0; if (canPush()) { stream("update", "log", ""); stream("update", "results", ""); } break;
     case '?': status(); break;
   }
 }
@@ -585,7 +630,7 @@ void setupWeb() {
       {"stop", 'x'}, {"fwd", 'f'}, {"rev", 'r'}, {"speed", 's'}, {"home", 'h'}, {"look", 'l'},
       {"nudgef", 'n'}, {"nudger", 'n'}, {"dart", 'd'}, {"lead", 'L'}, {"measure", 'm'}, {"speeds", 'S'},
       {"aim", 'A'}, {"soak", 'K'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
-      {"clearcal", 'C'}};
+      {"clearcal", 'C'}, {"clearlog", 'Z'}};
     Cmd c = {0, v, t};
     for (auto &m : MAP) if (a == m.name) c.a = m.code;
     if (a == "nudger") c.t = -1;
@@ -646,7 +691,7 @@ void setup() {
   aimLeadMs = prefs.getInt("lead", 0);
 
   delay(1500);
-  Serial.printf("\n# freddy_head_web | reset reason %d | pins: %s\n", resetReason, USE_PCB_PINS ? "PCB" : "breadboard");
+  Serial.printf("\n# freddy_head_web v%s (%s) | reset reason %d | pins: %s\n", FW_VERSION, FW_BUILD, resetReason, USE_PCB_PINS ? "PCB" : "breadboard");
   swClosed = digitalRead(PIN_SW) == LOW;
   setupWifi();
   setupWeb();
@@ -654,7 +699,7 @@ void setup() {
   esp_task_wdt_config_t wdt = {.timeout_ms = 2000, .idle_core_mask = 0, .trigger_panic = true};
   if (esp_task_wdt_reconfigure(&wdt) != ESP_OK) esp_task_wdt_init(&wdt);
   esp_task_wdt_add(NULL);
-  report("booted (reset reason %d). Press Home to start.", resetReason);
+  report("booted v%s, built %s (reset reason %d). Press Home to start.", FW_VERSION, FW_BUILD, resetReason);
 }
 
 void loop() {

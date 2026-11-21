@@ -52,6 +52,10 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
           border:1px solid var(--line); border-radius:10px; overflow:hidden; }
   th, td { text-align:left; padding:6px 10px; border-bottom:1px solid var(--line); font-size:13px; }
   th { color:var(--mute); font-weight:600; }
+  .right { display:flex; gap:6px; align-items:center; }
+  .loghead { display:flex; align-items:center; justify-content:space-between; }
+  button.small { font-size:12px; padding:4px 10px; margin-top:14px; }
+  #log span { color:var(--mute); }
   #log { list-style:none; margin:0; font:12px/1.5 ui-monospace, monospace; max-height:260px; overflow:auto;
          background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
 </style>
@@ -60,7 +64,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
 <header>
   <h1>Freddy &middot; head</h1>
   <form action="/cmd" method="post"><input type="hidden" name="a" value="stop"><button class="stop">STOP</button></form>
-  <span id="conn" class="pill">connecting&hellip;</span>
+  <span class="right"><span id="fw" class="pill">&hellip;</span> <span id="conn" class="pill">connecting&hellip;</span></span>
 </header>
 <main>
   <section class="cards">
@@ -76,8 +80,8 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
       <button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
     <form action="/cmd" method="post">
       <input type="hidden" name="a" value="speed"><label>Speed</label>
-      <input type="range" name="v" min="5" max="100" step="5" value="100"
-             oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output>
+      <span id="f_speed"><input type="range" name="v" min="5" max="100" step="5" value="100"
+             oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output></span>
     </form>
   </div>
   <div class="row">
@@ -93,7 +97,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
       <button name="a" value="nudgef">&rarr;</button><button name="a" value="nudger">&larr;</button>
       <button name="a" value="dart">Dart</button></form>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="lead"><label>Aim lead</label>
-      <input type="number" name="v" min="0" max="500" step="5" value="0"> ms<button>Set</button></form>
+      <span id="f_lead"><input type="number" name="v" min="0" max="500" step="5" value="0"></span> ms<button>Set</button></form>
   </div>
   <p class="hint">Positions are a fraction of one sweep from center (0%). Aiming needs the current speed measured;
     it homes first if the position is unknown. Dart uses the pulse length.</p>
@@ -106,10 +110,10 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   </div>
   <div class="row">
     <form action="/cmd" method="post"><input type="hidden" name="a" value="bright"><label>Brightness</label>
-      <input type="range" name="v" min="0" max="100" value="60"
-             oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>60%</output></form>
+      <span id="f_bright"><input type="range" name="v" min="0" max="100" value="60"
+             oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>60%</output></span></form>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="period"><label>Period</label>
-      <input type="number" name="v" min="200" max="10000" step="100" value="3000"> ms<button>Set</button></form>
+      <span id="f_period"><input type="number" name="v" min="200" max="10000" step="100" value="3000"></span> ms<button>Set</button></form>
   </div>
 
   <h2>Tests</h2>
@@ -135,7 +139,8 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   <h2>Results</h2>
   <table><thead><tr><th>Test</th><th>Setting</th><th>Result</th><th>Notes</th></tr></thead><tbody id="results"></tbody></table>
 
-  <h2>Log</h2>
+  <div class="loghead"><h2>Log</h2>
+    <form action="/cmd" method="post"><button name="a" value="clearlog" class="small">Clear log &amp; results</button></form></div>
   <ol id="log"></ol>
 </main>
 <script>
