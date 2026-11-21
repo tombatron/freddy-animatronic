@@ -36,7 +36,25 @@ The stock board uses the head in exactly one way: eye motor forward at full powe
 
 These are breadboard pins. The controller PCB drives the eyes from GPIO11/12 (motor) and GPIO15/16 (LEDs) instead (see [`firmware/freddy_pcb_pins.h`](../firmware/freddy_pcb_pins.h)), so change the four pin numbers at the top of the sketch when moving to the board.
 
-## Run it
+## Web dashboard (recommended)
+
+Flash [`firmware/freddy_head_web`](../firmware/freddy_head_web/) (needs the "ESP Async WebServer" and "Async TCP" libraries by ESP32Async; copy `secrets.h.example` to `secrets.h` for your WiFi) and open **http://freddy.local**. Without `secrets.h` it starts an access point "Freddy" (password `fazbear1987`) at http://192.168.4.1.
+
+- **Eyes:** home, run either way, speed slider, look at a position (0% = center, as a fraction of one sweep), timed pulses either way, dart, and an aim lead (stop this many ms early to make up for overshoot).
+- **Lights:** off / on / breathe / flicker / blink, brightness (perceptual: 10% looks like a tenth) and period.
+- **Live cards:** motion, estimated eye position, home switch (closures and how long it stays closed per pass), last full sweep, LEDs, the running test, WiFi.
+- **Tests:**
+  - **Measure:** times 3 sweeps at the current speed and saves it. Aiming and the position estimate need the speed measured.
+  - **Speed sweep (either direction):** 100% down in steps until the cam stalls, saving every speed. Answers questions 1 and 2 in one go.
+  - **Aim check:** looks at 25% and 75% three times each, then times the run back to center to work out how far past the target the eyes stopped. Reports the spread (repeatability) and a suggested aim lead.
+  - **Soak:** runs for N minutes and flags sweeps that are too long (missed switch, stall) or too short (switch bounce).
+  - **LED steps:** 100, 50, 25, 12, 6, 3, 2, 1%, 2.5 s each, to find where the LEDs disappear.
+
+Calibration is saved in flash, so it survives a reboot (**Clear calibration** starts over). The page sends a value only when it changes, and at most 10 times a second. The position estimate assumes a steady speed from the last switch closure, so treat it as a guide: Aim check shows how close it really gets. Stop: the STOP button, or `x` / space on the serial monitor.
+
+Experiments with the dashboard: Speed sweep forward, then reverse (1–3). Set a speed in the middle of the range, then Aim check, set the suggested lead and run it again (4). Try Look 25/75, pulses and Dart (5). LED steps and the light modes (6). A 10-minute Soak at the speed you'd use for real.
+
+## Run it (serial only)
 
 Flash [`firmware/freddy_head_test`](../firmware/freddy_head_test/), then:
 

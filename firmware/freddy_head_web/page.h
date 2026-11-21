@@ -1,0 +1,181 @@
+// The head test page. Live values arrive as Turbo Stream messages over the
+// WebSocket at /ws; the controls are plain forms that POST to /cmd.
+// Turbo comes from a CDN; without internet (Freddy's access point) the small
+// script at the bottom does the same two jobs: apply streams and submit forms.
+#pragma once
+
+const char PAGE_HTML[] = R"rawliteral(<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Freddy head</title>
+<script async src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-umd.js"></script>
+<style>
+  :root { --bg:#f6f4ef; --card:#fff; --ink:#1d1d1f; --mute:#6b6b70; --line:#e2ded5;
+          --ok:#1f8a4c; --bad:#c62828; --accent:#3a5bd9; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141416; --card:#1f1f23; --ink:#ececf0; --mute:#9a9aa3; --line:#33333a;
+            --ok:#4cc27e; --bad:#ff6b6b; --accent:#7b96ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.4 system-ui, -apple-system, sans-serif; background:var(--bg); color:var(--ink); }
+  header { position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:12px; justify-content:space-between;
+           padding:10px 16px; border-bottom:1px solid var(--line); background:var(--bg); }
+  h1 { font-size:18px; margin:0; }
+  h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); margin:22px 0 8px; }
+  main { max-width:920px; margin:0 auto; padding:0 16px 40px; }
+  .pill { font-size:12px; padding:3px 10px; border-radius:99px; border:1px solid var(--line); color:var(--mute); }
+  .pill.on { color:var(--ok); border-color:var(--ok); }
+  .pill.off { color:var(--bad); border-color:var(--bad); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; margin-top:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; min-height:78px; }
+  .k { font-size:12px; color:var(--mute); }
+  .v { font-size:22px; font-weight:650; font-variant-numeric:tabular-nums; }
+  .s { font-size:12px; color:var(--mute); font-variant-numeric:tabular-nums; }
+  .bar { position:relative; height:10px; margin-top:6px; border-radius:5px; background:var(--line); }
+  .bar b { position:absolute; top:0; bottom:0; width:1px; background:var(--mute); }
+  .bar i { position:absolute; top:-3px; width:16px; height:16px; margin-left:-8px; border-radius:50%; background:var(--accent); }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+  form { margin:0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  button { font:inherit; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid var(--line);
+           background:var(--card); color:var(--ink); cursor:pointer; }
+  button:hover { border-color:var(--accent); }
+  button.stop { background:var(--bad); color:#fff; border-color:var(--bad); padding:8px 24px; }
+  input[type=number] { width:78px; font:inherit; padding:6px; border-radius:6px; border:1px solid var(--line);
+                       background:var(--card); color:var(--ink); }
+  input[type=range] { width:160px; }
+  output { min-width:42px; font-variant-numeric:tabular-nums; }
+  .hint { font-size:12px; color:var(--mute); margin:4px 0 0; }
+  #msg { min-height:18px; font-size:13px; color:var(--bad); }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; background:var(--card);
+          border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:6px 10px; border-bottom:1px solid var(--line); font-size:13px; }
+  th { color:var(--mute); font-weight:600; }
+  #log { list-style:none; margin:0; font:12px/1.5 ui-monospace, monospace; max-height:260px; overflow:auto;
+         background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Freddy &middot; head</h1>
+  <form action="/cmd" method="post"><input type="hidden" name="a" value="stop"><button class="stop">STOP</button></form>
+  <span id="conn" class="pill">connecting&hellip;</span>
+</header>
+<main>
+  <section class="cards">
+    <div class="card" id="c_eyes"></div><div class="card" id="c_pos"></div><div class="card" id="c_sw"></div>
+    <div class="card" id="c_sweep"></div><div class="card" id="c_led"></div><div class="card" id="c_job"></div>
+    <div class="card" id="c_sys"></div>
+  </section>
+  <div id="msg"></div>
+
+  <h2>Eyes</h2>
+  <div class="row">
+    <form action="/cmd" method="post"><button name="a" value="home">Home (center)</button>
+      <button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
+    <form action="/cmd" method="post">
+      <input type="hidden" name="a" value="speed"><label>Speed</label>
+      <input type="range" name="v" min="5" max="100" step="5" value="100"
+             oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output>
+    </form>
+  </div>
+  <div class="row">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="look"><label>Look</label>
+      <button name="v" value="0">center</button><button name="v" value="25">25%</button>
+      <button name="v" value="50">50%</button><button name="v" value="75">75%</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="look">
+      <input type="number" name="v" min="0" max="99" value="40">%<button>Look</button></form>
+  </div>
+  <div class="row">
+    <form action="/cmd" method="post"><label>Pulse</label>
+      <input type="number" name="v" min="20" max="2000" step="10" value="150"> ms
+      <button name="a" value="nudgef">&rarr;</button><button name="a" value="nudger">&larr;</button>
+      <button name="a" value="dart">Dart</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="lead"><label>Aim lead</label>
+      <input type="number" name="v" min="0" max="500" step="5" value="0"> ms<button>Set</button></form>
+  </div>
+  <p class="hint">Positions are a fraction of one sweep from center (0%). Aiming needs the current speed measured;
+    it homes first if the position is unknown. Dart uses the pulse length.</p>
+
+  <h2>Lights</h2>
+  <div class="row">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="ledmode">
+      <button name="v" value="0">Off</button><button name="v" value="1">On</button><button name="v" value="2">Breathe</button>
+      <button name="v" value="3">Flicker</button><button name="v" value="4">Blink</button></form>
+  </div>
+  <div class="row">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="bright"><label>Brightness</label>
+      <input type="range" name="v" min="0" max="100" value="60"
+             oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>60%</output></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="period"><label>Period</label>
+      <input type="number" name="v" min="200" max="10000" step="100" value="3000"> ms<button>Set</button></form>
+  </div>
+
+  <h2>Tests</h2>
+  <div class="row">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="measure">
+      <button name="v" value="0">Measure &rarr;</button><button name="v" value="1">Measure &larr;</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="speeds">
+      <button name="v" value="0">Speed sweep &rarr;</button><button name="v" value="1">Speed sweep &larr;</button></form>
+    <form action="/cmd" method="post"><button name="a" value="aim">Aim check</button></form>
+  </div>
+  <div class="row">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="soak"><label>Soak</label>
+      <input type="number" name="v" min="1" max="60" value="5"> min<button>Start</button></form>
+    <form action="/cmd" method="post"><button name="a" value="ledsteps">LED steps</button></form>
+    <form action="/cmd" method="post"><button name="a" value="clearcal">Clear calibration</button></form>
+  </div>
+  <p class="hint">Measure and Speed sweep run at whatever speed is set (sweep: 100% down to a stall) and save the
+    sweep times, which aiming and the position estimate use. Aim check needs the current speed measured.</p>
+
+  <h2>Calibration</h2>
+  <table id="cal"></table>
+
+  <h2>Results</h2>
+  <table><thead><tr><th>Test</th><th>Setting</th><th>Result</th><th>Notes</th></tr></thead><tbody id="results"></tbody></table>
+
+  <h2>Log</h2>
+  <ol id="log"></ol>
+</main>
+<script>
+  // Every WebSocket message is a Turbo Stream. Turbo applies them if it loaded from the CDN;
+  // otherwise this does (update/prepend only, which is all the sketch sends).
+  function applyStreams(html) {
+    if (window.Turbo) return Turbo.renderStreamMessage(html);
+    const t = document.createElement("template");
+    t.innerHTML = html;
+    for (const s of t.content.querySelectorAll("turbo-stream")) {
+      const el = document.getElementById(s.getAttribute("target"));
+      const c = s.querySelector("template");
+      if (!el || !c) continue;
+      if (s.getAttribute("action") === "prepend") el.prepend(c.content.cloneNode(true));
+      else el.replaceChildren(c.content.cloneNode(true));
+    }
+  }
+  // Without Turbo, forms would navigate away: post them in the background instead.
+  document.addEventListener("submit", (e) => {
+    if (window.Turbo) return;
+    e.preventDefault();
+    const fd = new FormData(e.target, e.submitter);
+    fetch(e.target.action, { method: "POST", body: new URLSearchParams(fd) }).then((r) => r.text()).then(applyStreams);
+  });
+  // Keep the log and results from growing forever.
+  function trim() {
+    for (const [id, n] of [["log", 200], ["results", 100]]) {
+      const el = document.getElementById(id);
+      while (el.children.length > n) el.lastElementChild.remove();
+    }
+  }
+  const conn = document.getElementById("conn");
+  function connect() {
+    const ws = new WebSocket(`ws://${location.host}/ws`);
+    ws.onopen = () => { conn.textContent = "connected"; conn.className = "pill on"; };
+    ws.onmessage = (e) => { applyStreams(e.data); setTimeout(trim, 100); };
+    ws.onclose = () => { conn.textContent = "disconnected"; conn.className = "pill off"; setTimeout(connect, 2000); };
+  }
+  connect();
+</script>
+</body>
+</html>
+)rawliteral";
