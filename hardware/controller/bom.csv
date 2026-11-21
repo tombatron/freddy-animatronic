@@ -39,7 +39,7 @@ R24 R25,2,DNP,,Resistor_SMD:R_0805_2012Metric,DNP
 U1,1,Pololu S7V7F5,Pololu #2119 (in hand),Freddy:Pololu_S7V7F5_Upright,hand-solder
 U2,1,MP1584 5V,MP1584EN fixed 5V module (in hand),Freddy:MP1584_Module,hand-solder
 U3 U4,2,Pololu DRV8874 carrier,Pololu #4035 (in hand),Freddy:Pololu_DRV8874_Carrier_Socket,hand-solder
-U5,1,TB6612FNG breakout,SparkFun-layout TB6612FNG (in hand),Freddy:TB6612FNG_SparkFun_Socket,hand-solder
+U5,1,TB6612FNG breakout,"red TB6612FNG clone, labels on bottom, chip up (in hand)",Freddy:TB6612FNG_Clone_ChipUp_Socket,hand-solder
 U6,1,MAX98357A breakout,Adafruit-style MAX98357A (in hand),Freddy:MAX98357A_Breakout_Socket,hand-solder
 sockets,2,1x22 female header 2.54mm,A1 ESP32 (rows 25.4mm apart),,hand-solder
 sockets,4,1x7 female header 2.54mm,"U3/U4 DRV8874, round-pin preferred (~3A pins)",,hand-solder

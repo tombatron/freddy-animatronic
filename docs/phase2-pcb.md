@@ -1,8 +1,10 @@
-# Phase 2: controller PCB (rev A)
+# Phase 2: controller PCB (rev B in progress)
 
 A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and driver parts are off-the-shelf modules on headers, so rev A is easy to hand-solder, debug and rework. A later revision can put the parts directly on the board once the design has proven itself.
 
-**Status:** KiCad project done: schematic, 100×100 mm two-layer layout, fully routed, DRC clean, with fab files for JLCPCB and a 3D-printable enclosure. Not ordered yet. Everything is generated from one file, [`tools/kicad/design.py`](../tools/kicad/design.py) (parts, nets, placement), so a change there flows into the schematic, the board and the enclosure. See [KiCad project](#kicad-project) below for how to open, regenerate and order it.
+**Status:** **Rev A is ordered** (JLCPCB with assembly, Nov 2026). Its fab files are frozen in [`hardware/controller/revA/`](../hardware/controller/revA/) and its full design is commit `fc6a893` (`git tag controller-revA fc6a893` to mark it locally). **Rev B is in progress** in the main files: it fixes the TB6612 footprint and puts every module pin name on the silkscreen (see [Rev A assembly notes](#rev-a-assembly-notes)). Don't order rev B yet; it should collect whatever bring-up of rev A turns up.
+
+The KiCad project has the schematic, a 100×100 mm two-layer layout (fully routed, DRC clean), fab files for JLCPCB and a 3D-printable enclosure. Everything is generated from one file, [`tools/kicad/design.py`](../tools/kicad/design.py) (parts, nets, placement), so a change there flows into the schematic, the board and the enclosure. See [KiCad project](#kicad-project) below for how to open, regenerate and order it.
 
 ![PCB, 3D](../hardware/controller/renders/pcb_3d.png)
 
@@ -11,7 +13,8 @@ A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and
 | KiCad project (open this) | [hardware/controller/kicad/freddy-controller.kicad_pro](../hardware/controller/kicad/) |
 | Schematic | [controller_schematic.pdf](../schematics/controller_schematic.pdf) · [svg](../schematics/controller_schematic.svg) |
 | 3D renders | [top](../hardware/controller/renders/pcb_top.png) · [bottom](../hardware/controller/renders/pcb_bottom.png) · [3D](../hardware/controller/renders/pcb_3d.png) · [STEP](../hardware/controller/renders/freddy-controller.step) |
-| JLCPCB files | [gerbers zip](../hardware/controller/fab/freddy-controller-revA-gerbers.zip) · [BOM](../hardware/controller/fab/jlc_bom.csv) · [CPL](../hardware/controller/fab/jlc_cpl.csv) |
+| JLCPCB files | [rev B gerbers zip](../hardware/controller/fab/freddy-controller-revB-gerbers.zip) · [BOM](../hardware/controller/fab/jlc_bom.csv) · [CPL](../hardware/controller/fab/jlc_cpl.csv) |
+| Rev A as ordered | [gerbers zip](../hardware/controller/revA/freddy-controller-revA-gerbers.zip) · [BOM](../hardware/controller/revA/jlc_bom.csv) · [CPL](../hardware/controller/revA/jlc_cpl.csv) · [full BOM](../hardware/controller/revA/bom.csv) · [top view](../hardware/controller/revA/pcb_top.png) |
 | Full BOM | [bom.csv](../hardware/controller/bom.csv) |
 | Net list | [netlist.csv](../hardware/controller/netlist.csv) |
 | Enclosure | [freddy_enclosure.scad](../hardware/controller/enclosure/freddy_enclosure.scad) · [base STL](../hardware/controller/enclosure/freddy_enclosure_base.stl) · [lid STL](../hardware/controller/enclosure/freddy_enclosure_lid.stl) |
@@ -19,8 +22,8 @@ A carrier board that replaces the stock SD03-122. The ESP32-S3 and the power and
 ### Modules (all measured or from the maker's drawing)
 
 - **ESP32-S3-N16R8 dev board** (dual USB-C, YD-ESP32-S3 style, DevKitC-1 pinout): 2×22 pins, rows 1.0" (25.4 mm) apart, 63.6 × 28.1 mm including the antenna overhang. RGB LED on GPIO48.
-- **Pololu DRV8874 carrier (#4035)** ×2: 0.6 × 0.7", 2×7 pins, rows 0.5" (Pololu dimension drawing). Top view: VIN, GND, OUT1, OUT2, IMODE, FLT, CS in one column; VM, GND, IN1, IN2, PMODE, SLP, VREF in the other. Power goes into **VIN** (reverse-protected onboard); VM stays unconnected. Onboard 2.49k on CS → 450µA/A × 2.49k = **1.12 V/A**; VREF is pulled up to SLP through 10k, so with SLP at 3.3V the limit is **≈2.9A** with no mods. The VIN/OUT column faces each arm's connectors. (The bench DRV8876 is a different red board; see the [power test](phase2-power-test.md).)
-- **TB6612 breakout** (SparkFun layout): 2×8, rows 0.6". Logic column PWMA, AIN2, AIN1, STBY, BIN1, BIN2, PWMB, GND; power column VM, VCC, GND, AO1, AO2, BO2, BO1, GND.
+- **Pololu DRV8874 carrier (#4035)** ×2: 0.6 × 0.7", 2×7 pins, rows 0.5" (Pololu dimension drawing). Seen from the parts side: VIN, GND, OUT1, OUT2, IMODE, FLT, CS in one column; VM, GND, IN1, IN2, PMODE, SLP, VREF in the other. Its pin labels are printed on the **bottom**, so it mounts **chip-up** (headers soldered so the pins come out of the labeled side, the usual way). Power goes into **VIN** (reverse-protected onboard); VM stays unconnected. Onboard 2.49k on CS → 450µA/A × 2.49k = **1.12 V/A**; VREF is pulled up to SLP through 10k, so with SLP at 3.3V the limit is **≈2.9A** with no mods. The VIN/OUT column faces each arm's connectors. (The bench DRV8876 is a different red board; see the [power test](phase2-power-test.md).)
+- **TB6612 breakout** (red clone, pin labels printed on the **bottom**): 2×8, rows 0.6". Logic column PWMA, AIN2, AIN1, STBY, BIN1, BIN2, PWMB, GND; power column VM, VCC, GND, AO1, AO2, BO2, BO1, GND. Rev B mounts it chip-up like the Pololus. Rev A's footprint is mirrored from that (see below).
 - **MAX98357A breakout** (Adafruit-style): 1×7 (LRC, BCLK, DIN, GAIN, SD, GND, VIN), plus pins in the two speaker holes (3.5 mm apart, 13 mm from the row, centred on GAIN) that plug into single-pin sockets, so the PCB carries the speaker output to J15. SD open = (L+R)/2 mono.
 - **MP1584 module**, fixed 5V: four corner pads on an 8.3 × 13.2 mm grid (not on the 0.1" grid): four single-pin sockets, or solder it flat.
 - **Pololu S7V7F5** (3-pin reg09a): 1×3 (VIN, GND, VOUT), 12.4 × 8.9 mm, stands upright.
@@ -133,8 +136,16 @@ The stock board lifts both arms at once on the same 4A adapter because its gentl
 - Each arm's DRV8874 sits next to its arm's pads with its VIN/OUT column facing them; the TB6612 sits under the head pads; the amp and MP1584 sit top-right.
 - The ESP32 runs vertically down the middle, antenna up, USB-C at the bottom edge. A 24×14 mm keep-out (no copper on either layer) sits under the antenna. Most input resistors and filter caps sit **under the ESP32**, between its header rows, next to the pins they serve (JLC solders them; the ESP32 plugs in on top). Their designators are listed on the back silkscreen.
 - Routed with Freerouting, then the power tracks were widened wherever there was room: VMOT, the input and the shoulder outputs at 1.0–2.0 mm, the 5V/3V3/GND tracks at 0.5–0.8 mm. GND pours on both layers, stitched with vias, plus small VMOT/input pours around the fuse and Q1. If the arms ever look power-starved, order 2 oz copper: same files, about $10 more.
-- Silkscreen: each pad group is labeled with the cable name and Freddy's wire colors; module outlines show which way each module plugs in (pin 1 squares, "VIN", "VM", "PWMA" marks).
+- Silkscreen: each pad group is labeled with the cable name and Freddy's wire colors; rev B prints every module pin name next to its pad and "CHIP UP" on the dual-row driver modules, so a mirrored module is obvious before power-up. (Rev A only had pin 1 squares and "VIN", "VM", "PWMA" marks.)
 - DRC is clean (0 errors, 0 unconnected) and the board matches the schematic (0 parity issues). The remaining warnings are cosmetic silkscreen overlaps.
+
+## Rev A assembly notes
+
+Rev A's TB6612 footprint was drawn from the labeled side, assuming a board with its labels on top (SparkFun). The red clone in hand has its labels on the **bottom**, so on rev A:
+
+- **TB6612: mount it labels-up, chip facing the PCB.** Solder the male headers on a spare module so the pins come out of the **chip** side, then match VM and PWMA to the silkscreen marks. A module with headers the normal way (pins out of the labeled side) plugs in mirrored and puts VM on GND. Chip-down is fine thermally: the eye motor and LEDs draw ~0.1A of its 1.2A rating.
+- **DRV8874s: chip-up, the normal way** (pins out of the labeled side). VIN goes in the square pad marked VIN.
+- **Dry-fit everything before soldering sockets:** put the female headers on each module, press it into the bare board and compare the module's labels with the silkscreen. Also check the ESP32's row spacing (25.4 mm), the amp's speaker holes against the two single-pin sockets (run wires if they don't line up), and the MP1584's corner labels.
 
 ## Open questions
 
@@ -161,7 +172,7 @@ python3 gen_enclosure.py       # OpenSCAD enclosure + STLs
 
 ### Ordering from JLCPCB
 
-1. Upload `fab/freddy-controller-revA-gerbers.zip`. Defaults are fine: 2 layers, 1.6 mm, HASL, any colour. 5 boards.
+1. Upload the gerbers zip (`revA/` for the board as ordered, `fab/freddy-controller-revB-gerbers.zip` once rev B is ready). Defaults are fine: 2 layers, 1.6 mm, HASL, any colour. 5 boards.
 2. Turn on **PCB Assembly** (top side, Economic). Upload `fab/jlc_bom.csv` and `fab/jlc_cpl.csv`. The BOM has values and part numbers but no LCSC numbers, so JLC's matcher will ask you to confirm each line: pick the basic-part 0805 resistors and capacitors it suggests, and search the MPN for the rest (SS34, SMBJ8.5A, AO4407A, BAT54S, ESD5Z3V3, PJ-320D, SM04B-SRSS-TB). Check the rotation preview, especially Q1, D1–D4 and J14.
 3. Everything through-hole is yours to solder: the module sockets, J1, F1, the electrolytics, JP1, J16, and the pigtails.
 
@@ -179,7 +190,5 @@ A two-part printed box, split just above the PCB: a shallow base (floor, standof
 ## Next steps
 
 1. When the DRV8874s arrive: CS to GND ≈ 2.49k on each.
-2. Open the project in KiCad and look it over (View → 3D Viewer). Anything you want moved goes into `design.py`.
-3. Order 5 boards with assembly (JLCPCB), plus the hand-solder parts in the BOM.
-4. Print the enclosure at home and check the fit against the bare PCB.
-5. Bring-up order: power only (no modules) → regulators → ESP32 → one subsystem at a time, with a PCB pin-map version of the Phase 1 test sketches.
+2. When rev A arrives: dry-fit every module (see [Rev A assembly notes](#rev-a-assembly-notes)), print the enclosure and check the fit against the bare PCB.
+3. Bring-up order: power only (no modules) → regulators → ESP32 → one subsystem at a time, with a PCB pin-map version of the Phase 1 test sketches. Anything bring-up finds goes into rev B.

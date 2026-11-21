@@ -1,0 +1,52 @@
+Refs,Qty,Value,Part / MPN,Footprint,Fitting
+A1,1,ESP32-S3-DevKitC-1 N16R8,YD-ESP32-S3 / DevKitC-1 (in hand),Freddy:ESP32-S3-DevKitC-1_Socket,hand-solder
+C1,1,1000µF 16V,"1000µF 16V low-ESR, 10mm",Capacitor_THT:CP_Radial_D10.0mm_P5.00mm,hand-solder
+C2,1,470µF 10V,"470µF 10V, 6.3mm",Capacitor_THT:CP_Radial_D6.3mm_P2.50mm,hand-solder
+C3 C4,2,470µF 16V,"470µF 16V, 8mm",Capacitor_THT:CP_Radial_D8.0mm_P3.50mm,hand-solder
+C5,1,100µF 10V,"100µF 10V, 5mm",Capacitor_THT:CP_Radial_D5.0mm_P2.00mm,hand-solder
+C6 C7 C8 C9 C10 C11 C12 C13 C14,9,100nF,,Capacitor_SMD:C_0805_2012Metric,JLC assembly (SMD)
+D1,1,SMBJ8.5A,SMBJ8.5A (unidirectional TVS),Diode_SMD:D_SMB,JLC assembly (SMD)
+D2,1,SS34,SS34,Diode_SMD:D_SMA,JLC assembly (SMD)
+D3,1,ESD5Z3V3,ESD5Z3V3,Diode_SMD:D_SOD-523,JLC assembly (SMD)
+D4,1,BAT54S,BAT54S,Package_TO_SOT_SMD:SOT-23,JLC assembly (SMD)
+F1,1,5A mini blade,Keystone 3568 + 5A mini blade fuse,Fuse:Fuseholder_Blade_Mini_Keystone_3568,hand-solder
+J1,1,Barrel 5.5x2.1,"5.5x2.1mm PCB barrel jack, 5A+, CUI PJ-002A-style pinout (check against the footprint)",Connector_BarrelJack:BarrelJack_Horizontal,hand-solder
+J3,1,R SHOULDER,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J4,1,R ELBOW,JST SM 3-pin pigtail (in hand),Freddy:Pigtail_1x3_P2.54mm_ZipTie,hand-solder
+J5,1,R SWITCH,JST SM 4-pin pigtail (in hand),Freddy:Pigtail_1x4_P2.54mm_ZipTie,hand-solder
+J6,1,L SHOULDER,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J7,1,L ELBOW,JST SM 3-pin pigtail (in hand),Freddy:Pigtail_1x3_P2.54mm_ZipTie,hand-solder
+J8,1,L SWITCH,JST SM 4-pin pigtail (in hand),Freddy:Pigtail_1x4_P2.54mm_ZipTie,hand-solder
+J9,1,EYE SW,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J10,1,EYE LED,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J11,1,EYE MTR,JST SM 2-pin pigtail (in hand),Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J12,1,TRIGGER,PJ-320D 3.5mm jack,Connector_Audio:Jack_3.5mm_KoreanHropartsElec_PJ-320D-4A_Horizontal,JLC assembly (SMD)
+J13,1,PIR,JST SM 3-pin pigtail (in hand),Freddy:Pigtail_1x3_P2.54mm_ZipTie,hand-solder
+J14,1,Qwiic,JST SM04B-SRSS-TB,Connector_JST:JST_SH_SM04B-SRSS-TB_1x04-1MP_P1.00mm_Horizontal,JLC assembly (SMD)
+J15,1,SPEAKER,solder pads: speaker wires straight in,Freddy:Pigtail_1x2_P2.54mm_ZipTie,hand-solder
+J16,1,MIC,"1x6 female header (INMP441, later)",Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Vertical,hand-solder
+JP1,1,GAIN,1x3 pin header + jumper,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,hand-solder
+Q1,1,AO4407A,AO4407A,Package_SO:SOIC-8_3.9x4.9mm_P1.27mm,JLC assembly (SMD)
+R1,1,47k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R2,1,22k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R3,1,220,,Resistor_SMD:R_1206_3216Metric,JLC assembly (SMD)
+R4 R5 R6 R7 R8 R9 R10 R11 R12,9,1k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R13 R14 R21,3,100k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R15 R16 R19 R20 R26,5,10k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R17 R18,2,4.7k,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R22 R23,2,220,,Resistor_SMD:R_0805_2012Metric,JLC assembly (SMD)
+R24 R25,2,DNP,,Resistor_SMD:R_0805_2012Metric,DNP
+U1,1,Pololu S7V7F5,Pololu #2119 (in hand),Freddy:Pololu_S7V7F5_Upright,hand-solder
+U2,1,MP1584 5V,MP1584EN fixed 5V module (in hand),Freddy:MP1584_Module,hand-solder
+U3 U4,2,Pololu DRV8874 carrier,Pololu #4035 (in hand),Freddy:Pololu_DRV8874_Carrier_Socket,hand-solder
+U5,1,TB6612FNG breakout,SparkFun-layout TB6612FNG (in hand),Freddy:TB6612FNG_SparkFun_Socket,hand-solder
+U6,1,MAX98357A breakout,Adafruit-style MAX98357A (in hand),Freddy:MAX98357A_Breakout_Socket,hand-solder
+sockets,2,1x22 female header 2.54mm,A1 ESP32 (rows 25.4mm apart),,hand-solder
+sockets,4,1x7 female header 2.54mm,"U3/U4 DRV8874, round-pin preferred (~3A pins)",,hand-solder
+sockets,2,1x8 female header 2.54mm,U5 TB6612,,hand-solder
+sockets,1,1x7 female header 2.54mm,U6 amp,,hand-solder
+sockets,1,1x3 female header 2.54mm,U1 S7V7F5 (upright),,hand-solder
+sockets,6,single-pin machined socket,U2 MP1584 corners (4) or solder flat; U6 speaker holes (2),,hand-solder
+-,1,male header pins,for each module (Pololu boards ship with loose headers),,hand-solder
+-,1,jumper cap 2.54mm,JP1 (optional: open = 9dB),,hand-solder
+enclosure,4,"M3x20 screw (self-tapping, or with heat-set inserts)",base -> PCB -> lid posts,,assembly

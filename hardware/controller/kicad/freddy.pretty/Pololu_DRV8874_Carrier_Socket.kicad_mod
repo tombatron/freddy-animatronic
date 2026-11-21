@@ -2,7 +2,7 @@
 	(version 20241229)
 	(generator "freddy")
 	(layer "F.Cu")
-	(descr "Pololu #4035 DRV8874 carrier on female headers. Top view: VIN column (1-7) right, VM column (8-14) left. 0.6x0.7in, rows 0.5in")
+	(descr "Pololu #4035 DRV8874 carrier on female headers, mounted parts-up (its labels are on the bottom). Parts-side view: VIN column (1-7) right, VM column (8-14) left. 0.6x0.7in, rows 0.5in")
 	(property "Reference" "REF**"
 		(at 0 -11.6 0)
 		(layer "F.SilkS")
@@ -34,7 +34,7 @@
 			)
 		)
 	)
-	(property "Description" "Pololu #4035 DRV8874 carrier on female headers. Top view: VIN column (1-7) right, VM column (8-14) left. 0.6x0.7in, rows 0.5in"
+	(property "Description" "Pololu #4035 DRV8874 carrier on female headers, mounted parts-up (its labels are on the bottom). Parts-side view: VIN column (1-7) right, VM column (8-14) left. 0.6x0.7in, rows 0.5in"
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
@@ -145,142 +145,142 @@
 		(remove_unused_layers no)
 	)
 	(fp_text user "VIN"
-		(at 3.6 -7.62 0)
-		(layer "F.Fab")
+		(at 4 -7.62 0)
+		(layer "F.SilkS")
 		(effects
 			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
-			)
-		)
-	)
-	(fp_text user "VM"
-		(at -3.6 -7.62 0)
-		(layer "F.Fab")
-		(effects
-			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
+				(size 0.8 0.8)
+				(thickness 0.15)
 			)
 		)
 	)
 	(fp_text user "GND"
-		(at 3.6 -5.08 0)
-		(layer "F.Fab")
+		(at 4 -5.08 0)
+		(layer "F.SilkS")
 		(effects
 			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
-			)
-		)
-	)
-	(fp_text user "GND"
-		(at -3.6 -5.08 0)
-		(layer "F.Fab")
-		(effects
-			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
+				(size 0.8 0.8)
+				(thickness 0.15)
 			)
 		)
 	)
 	(fp_text user "OUT1"
 		(at 3.6 -2.54 0)
-		(layer "F.Fab")
+		(layer "F.SilkS")
 		(effects
 			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
-			)
-		)
-	)
-	(fp_text user "IN1"
-		(at -3.6 -2.54 0)
-		(layer "F.Fab")
-		(effects
-			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
+				(size 0.8 0.8)
+				(thickness 0.15)
 			)
 		)
 	)
 	(fp_text user "OUT2"
 		(at 3.6 0 0)
-		(layer "F.Fab")
+		(layer "F.SilkS")
 		(effects
 			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
-			)
-		)
-	)
-	(fp_text user "IN2"
-		(at -3.6 0 0)
-		(layer "F.Fab")
-		(effects
-			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
+				(size 0.8 0.8)
+				(thickness 0.15)
 			)
 		)
 	)
 	(fp_text user "IMODE"
-		(at 3.6 2.54 0)
-		(layer "F.Fab")
+		(at 3.2 2.54 0)
+		(layer "F.SilkS")
 		(effects
 			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
-			)
-		)
-	)
-	(fp_text user "PMODE"
-		(at -3.6 2.54 0)
-		(layer "F.Fab")
-		(effects
-			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
+				(size 0.8 0.8)
+				(thickness 0.15)
 			)
 		)
 	)
 	(fp_text user "FLT"
-		(at 3.6 5.08 0)
-		(layer "F.Fab")
+		(at 4 5.08 0)
+		(layer "F.SilkS")
 		(effects
 			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
-			)
-		)
-	)
-	(fp_text user "SLP"
-		(at -3.6 5.08 0)
-		(layer "F.Fab")
-		(effects
-			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
+				(size 0.8 0.8)
+				(thickness 0.15)
 			)
 		)
 	)
 	(fp_text user "CS"
-		(at 3.6 7.62 0)
-		(layer "F.Fab")
+		(at 4.4 7.62 0)
+		(layer "F.SilkS")
 		(effects
 			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "VM"
+		(at -4.4 -7.62 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "GND"
+		(at -4 -5.08 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "IN1"
+		(at -4 -2.54 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "IN2"
+		(at -4 0 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "PMODE"
+		(at -3.2 2.54 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "SLP"
+		(at -4 5.08 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
 			)
 		)
 	)
 	(fp_text user "VREF"
 		(at -3.6 7.62 0)
-		(layer "F.Fab")
+		(layer "F.SilkS")
 		(effects
 			(font
-				(size 0.6 0.6)
-				(thickness 0.09)
+				(size 0.8 0.8)
+				(thickness 0.15)
 			)
 		)
 	)
@@ -334,13 +334,13 @@
 		(fill no)
 		(layer "F.Fab")
 	)
-	(fp_text user "VIN"
-		(at 6.35 -10.2 0)
+	(fp_text user "DRV8874 CHIP UP"
+		(at 0 10.2 0)
 		(layer "F.SilkS")
 		(effects
 			(font
 				(size 0.8 0.8)
-				(thickness 0.12)
+				(thickness 0.15)
 			)
 		)
 	)

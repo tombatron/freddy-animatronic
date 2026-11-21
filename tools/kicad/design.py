@@ -1,4 +1,4 @@
-"""Freddy controller rev A: the single source of truth for parts, nets and placement.
+"""Freddy controller (see REV): the single source of truth for parts, nets and placement.
 
 Everything else (footprint library, symbols, schematic, PCB, enclosure) is generated
 from this file. Coordinates are board millimetres, origin at the board's top-left
@@ -6,6 +6,7 @@ corner, viewed from the component side with the head end up. Rotations are KiCad
 degrees (counter-clockwise).
 """
 
+REV = "B"                      # rev A (as ordered, Nov 2026) is git tag controller-revA
 BOARD_W = BOARD_H = 100.0
 OFFSET = (50.0, 50.0)          # where the board's top-left sits on the KiCad page
 
@@ -25,7 +26,8 @@ ESP_NETS = {
 }
 # Pololu DRV8874 carrier, top view: pads 1-7 = VIN column, 8-14 = VM column
 DRV_PINS = ["VIN", "GND", "OUT1", "OUT2", "IMODE", "FLT", "CS", "VM", "GND", "IN1", "IN2", "PMODE", "SLP", "VREF"]
-# SparkFun-layout TB6612 breakout, top view: 1-8 left column, 9-16 right column
+# TB6612 breakout pin numbering (1-8 logic column, 9-16 VM/output column). Rev B footprint is for the
+# common red clone with its labels on the BOTTOM, mounted chip-up; rev A assumed labels-up.
 TB_PINS = ["PWMA", "AIN2", "AIN1", "STBY", "BIN1", "BIN2", "PWMB", "GND",
            "VM", "VCC", "GND", "AO1", "AO2", "BO2", "BO1", "GND"]
 AMP_PINS = ["LRC", "BCLK", "DIN", "GAIN", "SD", "GND", "VIN", "SPK+", "SPK-"]
@@ -99,13 +101,13 @@ def drv(ref, side, x, y, rot):
 drv("U3", "R", 75.15, 63.62, 0)      # VIN/OUT column faces the right arm
 drv("U4", "L", 24.85, 48.62, 180)    # rotated: VIN/OUT column faces the left arm
 
-# --- eye driver (TB6612, socketed). Rotated so VM and the outputs face the left.
+# --- eye driver (TB6612, socketed). VM and the outputs face the left.
 tb_nets = {"PWMA": "+3V3", "AIN2": "EYE_M2", "AIN1": "EYE_M1", "STBY": "+3V3", "BIN1": "EYE_L1",
            "BIN2": "EYE_L2", "PWMB": "+3V3", "GND": "GND", "VM": "VMOT", "VCC": "+3V3",
            "AO1": "EYE_MOT_A", "AO2": "EYE_MOT_B", "BO2": "EYE_LED_B", "BO1": "EYE_LED_RAW"}
-part("U5", "TB6612FNG breakout", "Freddy:TB6612FNG_SparkFun_Socket", "Freddy:TB6612FNG_Breakout",
-     [(str(i + 1), n, tb_nets[n]) for i, n in enumerate(TB_PINS)], 22.02, 23.29, 180,
-     mpn="SparkFun-layout TB6612FNG (in hand)", socketed=True)
+part("U5", "TB6612FNG breakout", "Freddy:TB6612FNG_Clone_ChipUp_Socket", "Freddy:TB6612FNG_Breakout",
+     [(str(i + 1), n, tb_nets[n]) for i, n in enumerate(TB_PINS)], 22.02, 23.29, 0,
+     mpn="red TB6612FNG clone, labels on bottom, chip up (in hand)", socketed=True)
 
 # --- audio
 amp_nets = {"LRC": "I2S_WS", "BCLK": "I2S_BCLK", "DIN": "I2S_DOUT", "GAIN": "AMP_GAIN", "SD": None,

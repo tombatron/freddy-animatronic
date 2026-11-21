@@ -29,8 +29,18 @@ def line(x0, y0, x1, y1, layer, w=0.12):
             [S("stroke"), [S("width"), w], [S("type"), S("solid")]], [S("layer"), layer]]
 
 
-def text(t, x, y, layer, sz=0.8):
-    return [S("fp_text"), S("user"), t, [S("at"), x, y, 0], [S("layer"), layer], font(sz, sz * 0.15)]
+def text(t, x, y, layer, sz=0.8, justify=None):
+    eff = font(sz, max(0.15, sz * 0.15))
+    if justify:
+        eff.append([S("justify"), S(justify)])
+    return [S("fp_text"), S("user"), t, [S("at"), x, y, 0], [S("layer"), layer], eff]
+
+
+def pin_labels(names, x, y0, side, sz=0.8):
+    """Silkscreen pin names for a column of pads at x, written on the inside (side=+1: labels to the right)."""
+    # centred (not justified) so the text stays put when KiCad flips it upright on a 180-degree part;
+    # the stroke font advances about one text-height per character
+    return [text(n, x + side * (1.15 + 0.5 * sz * len(n)), y0 + i * P, "F.SilkS", sz) for i, n in enumerate(names)]
 
 
 def tht(num, x, y, dia=1.7, drill=1.0, square=False):
@@ -103,36 +113,39 @@ def drv8874():
         it.append(tht(i + 8, -6.35, -7.62 + i * P, square=(i == 0)))    # VM column
     labels = ["VIN", "GND", "OUT1", "OUT2", "IMODE", "FLT", "CS"]
     labels2 = ["VM", "GND", "IN1", "IN2", "PMODE", "SLP", "VREF"]
-    for i in range(7):
-        it.append(text(labels[i], 3.6, -7.62 + i * P, "F.Fab", 0.6))
-        it.append(text(labels2[i], -3.6, -7.62 + i * P, "F.Fab", 0.6))
+    it += pin_labels(labels, 6.35, -7.62, -1) + pin_labels(labels2, -6.35, -7.62, +1)
     it += [strip(6.35, -7.62, 7), strip(-6.35, -7.62, 7),
            strip(6.35, -7.62, 7, "F.CrtYd", 1.52), strip(-6.35, -7.62, 7, "F.CrtYd", 1.52),
            rect(-7.62, -8.89, 7.62, 8.89, "F.Fab", 0.1),
-           text("VIN", 6.35, -10.2, "F.SilkS", 0.8),
+           text("DRV8874 CHIP UP", 0, 10.2, "F.SilkS", 0.8),
            text("${REFERENCE}", 0, 0, "F.Fab", 1.0),
            model(f"{M3D}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x07_P2.54mm_Vertical.step", 6.35, -7.62),
            model(f"{M3D}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x07_P2.54mm_Vertical.step", -6.35, -7.62)]
     write(footprint("Pololu_DRV8874_Carrier_Socket",
-                    "Pololu #4035 DRV8874 carrier on female headers. Top view: VIN column (1-7) right, VM column (8-14) left. 0.6x0.7in, rows 0.5in",
+                    "Pololu #4035 DRV8874 carrier on female headers, mounted parts-up (its labels are on the bottom). Parts-side view: VIN column (1-7) right, VM column (8-14) left. 0.6x0.7in, rows 0.5in",
                     it, ref_xy=(0, -10.2 - 1.4)))
 
 
 def tb6612():
+    """Red TB6612 clone (labels printed on the bottom) mounted chip-up: seen from above, the logic
+    column (1-8) is on the right and VM/outputs (9-16) on the left. Rev A had these mirrored."""
     it = []
     y0 = -8.89
+    logic = ["PWMA", "AIN2", "AIN1", "STBY", "BIN1", "BIN2", "PWMB", "GND"]
+    power = ["VM", "VCC", "GND", "AO1", "AO2", "BO2", "BO1", "GND"]
     for i in range(8):
-        it.append(tht(i + 1, -7.62, y0 + i * P, square=(i == 0)))
-        it.append(tht(i + 9, 7.62, y0 + i * P, square=(i == 0)))
+        it.append(tht(i + 1, 7.62, y0 + i * P, square=(i == 0)))
+        it.append(tht(i + 9, -7.62, y0 + i * P, square=(i == 0)))
+    it += pin_labels(logic, 7.62, y0, -1) + pin_labels(power, -7.62, y0, +1)
     it += [strip(-7.62, y0, 8), strip(7.62, y0, 8),
            strip(-7.62, y0, 8, "F.CrtYd", 1.52), strip(7.62, y0, 8, "F.CrtYd", 1.52),
            rect(-10.15, -10.4, 10.15, 10.4, "F.Fab", 0.1),
-           text("VM", 7.62, -10.9, "F.SilkS", 0.8), text("PWMA", -7.62, -10.9, "F.SilkS", 0.8),
+           text("TB6612 CHIP UP", 0, -11.0, "F.SilkS", 0.8),
            text("${REFERENCE}", 0, 0, "F.Fab", 1.0),
            model(f"{M3D}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x08_P2.54mm_Vertical.step", -7.62, y0),
            model(f"{M3D}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x08_P2.54mm_Vertical.step", 7.62, y0)]
-    write(footprint("TB6612FNG_SparkFun_Socket",
-                    "SparkFun-layout TB6612FNG breakout (2x8, rows 0.6in) on female headers. Top view: logic column left, VM/outputs right",
+    write(footprint("TB6612FNG_Clone_ChipUp_Socket",
+                    "Red TB6612FNG clone (2x8, rows 0.6in, labels on the bottom) mounted chip-up on female headers",
                     it, ref_xy=(0, -12.3)))
 
 
@@ -143,7 +156,8 @@ def amp():
            rect(-3.4, -14.6, 3.4, -11.4, "F.CrtYd", 0.05),
            rect(-8.9, -17.0, 8.9, 2.3, "F.Fab", 0.1),
            text("SPK+", -1.75, -15.3, "F.SilkS", 0.7), text("SPK-", 1.75, -10.8, "F.SilkS", 0.7),
-           text("LRC", -7.62, 2.4, "F.SilkS", 0.7), text("VIN", 7.62, 2.4, "F.SilkS", 0.7),
+           *[text(n, -7.62 + i * P, -2.2 if i % 2 == 0 else -3.3, "F.SilkS", 0.8)
+             for i, n in enumerate(["LRC", "BCLK", "DIN", "GAIN", "SD", "GND", "VIN"])],
            text("${REFERENCE}", 0, -6, "F.Fab", 1.0),
            model(f"{M3D}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x07_P2.54mm_Vertical.step", -7.62, 0, rz=-90),
            model(f"{M3D}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x01_P2.54mm_Vertical.step", -1.75, -13.0),
@@ -170,7 +184,7 @@ def mp1584():
 def s7v7f5():
     it = [tht(i + 1, -2.54 + i * P, 0, square=(i == 0)) for i in range(3)]
     it += [rect(-4.45, -1.6, 4.45, 1.6, "F.SilkS"), rect(-4.7, -1.85, 4.7, 1.85, "F.CrtYd", 0.05),
-           text("VIN", -2.54, 2.4, "F.SilkS", 0.6), text("VOUT", 2.54, 2.4, "F.SilkS", 0.6),
+           text("VIN", -2.54, 2.4, "F.SilkS", 0.8), text("GND", 0, 3.5, "F.SilkS", 0.8), text("VOUT", 2.54, 2.4, "F.SilkS", 0.8),
            model(f"{M3D}/Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x03_P2.54mm_Vertical.step", -2.54, 0, rz=-90)]
     write(footprint("Pololu_S7V7F5_Upright",
                     "Pololu S7V7F5 (reg09a, 3-pin) standing upright on a 1x3 female header",

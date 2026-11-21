@@ -13245,7 +13245,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Freddy:TB6612FNG_SparkFun_Socket"
+		(property "Footprint" "Freddy:TB6612FNG_Clone_ChipUp_Socket"
 			(at 274.32 50.8 0)
 			(effects
 				(font
@@ -13272,7 +13272,7 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "SparkFun-layout TB6612FNG (in hand)"
+		(property "MPN" "red TB6612FNG clone, labels on bottom, chip up (in hand)"
 			(at 274.32 50.8 0)
 			(effects
 				(font

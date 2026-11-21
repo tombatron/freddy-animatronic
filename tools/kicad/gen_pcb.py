@@ -268,10 +268,10 @@ def silk(board):
     text(board, "LEFT ARM", 1.6, 27, 1.2, rot=90, bold=True)
     text(board, "RIGHT ARM", 98.4, 27, 1.2, rot=270, bold=True)
     text(board, "HEAD", 64.5, 2.2, 1.2, bold=True)
-    text(board, "FREDDY CONTROLLER rev A", 50, 22.2, 1.3, bold=True)
+    text(board, f"FREDDY CONTROLLER rev {design.REV}", 50, 22.2, 1.3, bold=True)
     t = text(board, "github.com/tombatron/freddy-animatronic", 50, 60.0, 1.2, layer=pcbnew.B_SilkS)
     t.SetMirrored(True)
-    t = text(board, "Freddy controller rev A", 50, 56.0, 2.0, layer=pcbnew.B_SilkS, bold=True)
+    t = text(board, f"Freddy controller rev {design.REV}", 50, 56.0, 2.0, layer=pcbnew.B_SilkS, bold=True)
     t.SetMirrored(True)
     under = sorted([p["ref"] for p in design.PARTS if p["ref"][0] in "RCD" and 39 < p["x"] < 61 and 41 < p["y"] < 95],
                    key=lambda r: (r[0], int(r[1:])))
@@ -280,7 +280,7 @@ def silk(board):
     text(board, "7.2V IN", 6.0, 86.0, 1.0, rot=90, bold=True)
     text(board, "5A MINI FUSE", 23.2, 92.0, 0.9, rot=90, bold=True)
     text(board, "TRIG", 69.6, 84.4, 0.9, bold=True)
-    for lbl, x, y in [("U5 TB6612", 22.0, 23.6), ("U4 DRV8874", 24.85, 46.8), ("U3 DRV8874", 75.15, 64.6),
+    for lbl, x, y in [("U5", 22.0, 23.29), ("U4", 24.85, 47.35), ("U3", 75.15, 64.89),
                       ("U6 AMP", 76.0, 24.4), ("U2 5V AUDIO", 74.0, 44.6), ("U1 5V LOGIC", 27.0, 59.4)]:
         text(board, lbl, x, y, 0.9, bold=True)
     for i, lbl in enumerate(["VMOT", "5V", "3V3", "GND"]):

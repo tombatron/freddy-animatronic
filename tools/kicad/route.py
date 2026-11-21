@@ -196,19 +196,47 @@ def widen(board):
     print("widened tracks:", changed)
 
 
-def remove_dangling(board):
-    """Drop track stubs with a free end (Freerouting occasionally leaves one). One pass:
-    the SWIG wrapper misbehaves if tracks are listed again after the connectivity query."""
+def dangling_ids():
+    """Ids of track stubs with a free end on the saved board. Run in a child process: the KiCad
+    SWIG wrapper crashes if a board is used again after its connectivity query."""
+    board = pcbnew.LoadBoard(PCB)
     tracks = [t for t in board.GetTracks() if t.GetClass() == "PCB_TRACK"]
     board.BuildConnectivity()
     conn = board.GetConnectivity()
-    dead = [t for t in tracks if conn.TestTrackEndpointDangling(t, False)]
-    for t in dead:
-        board.Remove(t)
+    for t in tracks:
+        if conn.TestTrackEndpointDangling(t, False):
+            print("DEAD", t.m_Uuid.AsString())
+    sys.stdout.flush()
+    os._exit(0)
+
+
+def remove_dangling(board):
+    """Drop track stubs with a free end (Freerouting occasionally leaves one). Returns a fresh board."""
+    board.Save(PCB)
+    out = subprocess.run([sys.executable, os.path.abspath(__file__), "--dangling"], capture_output=True,
+                         text=True, check=True).stdout
+    dead = {l.split()[1] for l in out.splitlines() if l.startswith("DEAD ")}
+    fresh = pcbnew.LoadBoard(PCB)
+    doomed = [t for t in fresh.GetTracks() if t.m_Uuid.AsString() in dead]
+    for t in doomed:
+        fresh.Delete(t)
+    del doomed
     print("removed dangling stubs:", len(dead))
+    # removing a stub can leave the track that fed it dangling: repeat until none are left
+    return remove_dangling(fresh) if dead else fresh
 
 
 def main():
+    if sys.argv[1] == "--dangling":
+        return dangling_ids()
+    if sys.argv[1] == "--ses":       # reuse an earlier Freerouting result: route.py --ses board.ses
+        board = load_ses(sys.argv[2])
+        board.BuildConnectivity()
+        left = board.GetConnectivity().GetUnconnectedCount(False)
+        if left:
+            sys.exit(f"{left} unconnected with that SES")
+        board.Save(PCB)
+        return finish(pcbnew.LoadBoard(PCB))
     jar = sys.argv[1]
     passes = sys.argv[2] if len(sys.argv) > 2 else "25"
     work = os.path.join(os.path.dirname(jar), "route")
@@ -237,23 +265,34 @@ def main():
         if not os.path.exists(ses):
             print(f"attempt {attempt}: no SES")
             continue
-        trial = pcbnew.LoadBoard(PCB)
-        for z in list(trial.Zones()):
-            if not z.GetIsRuleArea():
-                trial.Remove(z)
-        for t in list(trial.GetTracks()):
-            trial.Remove(t)
-        pcbnew.ImportSpecctraSES(trial, ses)
-        fix_endpoints(trial)
+        trial = load_ses(ses)
         trial.BuildConnectivity()
         left = trial.GetConnectivity().GetUnconnectedCount(False)
         print(f"attempt {attempt}: {left} unconnected")
         if left == 0:
-            board = trial
+            trial.Save(PCB)
             break
     else:
         sys.exit("could not get a fully connected route")
-    remove_dangling(board)
+    finish(pcbnew.LoadBoard(PCB))
+
+
+def load_ses(ses):
+    """The placed board with its pours and tracks stripped and a Freerouting session imported."""
+    trial = pcbnew.LoadBoard(PCB)
+    for z in list(trial.Zones()):
+        if not z.GetIsRuleArea():
+            trial.Remove(z)
+    for t in list(trial.GetTracks()):
+        trial.Remove(t)
+    pcbnew.ImportSpecctraSES(trial, ses)
+    fix_endpoints(trial)
+    return trial
+
+
+def finish(board):
+    """Dangling stubs, track widths, pours, stitching vias; saves the board."""
+    board = remove_dangling(board)
     widen(board)
     import gen_pcb
     for z in list(board.Zones()):

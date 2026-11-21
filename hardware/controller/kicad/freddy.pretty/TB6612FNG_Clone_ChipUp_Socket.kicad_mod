@@ -1,8 +1,8 @@
-(footprint "TB6612FNG_SparkFun_Socket"
+(footprint "TB6612FNG_Clone_ChipUp_Socket"
 	(version 20241229)
 	(generator "freddy")
 	(layer "F.Cu")
-	(descr "SparkFun-layout TB6612FNG breakout (2x8, rows 0.6in) on female headers. Top view: logic column left, VM/outputs right")
+	(descr "Red TB6612FNG clone (2x8, rows 0.6in, labels on the bottom) mounted chip-up on female headers")
 	(property "Reference" "REF**"
 		(at 0 -12.3 0)
 		(layer "F.SilkS")
@@ -13,7 +13,7 @@
 			)
 		)
 	)
-	(property "Value" "TB6612FNG_SparkFun_Socket"
+	(property "Value" "TB6612FNG_Clone_ChipUp_Socket"
 		(at 0 3 0)
 		(layer "F.Fab")
 		(effects
@@ -34,7 +34,7 @@
 			)
 		)
 	)
-	(property "Description" "SparkFun-layout TB6612FNG breakout (2x8, rows 0.6in) on female headers. Top view: logic column left, VM/outputs right"
+	(property "Description" "Red TB6612FNG clone (2x8, rows 0.6in, labels on the bottom) mounted chip-up on female headers"
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
@@ -47,116 +47,276 @@
 	)
 	(attr through_hole)
 	(pad "1" thru_hole rect
-		(at -7.62 -8.89)
-		(size 1.7 1.7)
-		(drill 1)
-		(layers "*.Cu" "*.Mask")
-		(remove_unused_layers no)
-	)
-	(pad "9" thru_hole rect
 		(at 7.62 -8.89)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "2" thru_hole circle
-		(at -7.62 -6.35)
+	(pad "9" thru_hole rect
+		(at -7.62 -8.89)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "10" thru_hole circle
+	(pad "2" thru_hole circle
 		(at 7.62 -6.35)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "3" thru_hole circle
-		(at -7.62 -3.81)
+	(pad "10" thru_hole circle
+		(at -7.62 -6.35)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "11" thru_hole circle
+	(pad "3" thru_hole circle
 		(at 7.62 -3.81)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "4" thru_hole circle
-		(at -7.62 -1.27)
+	(pad "11" thru_hole circle
+		(at -7.62 -3.81)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "12" thru_hole circle
+	(pad "4" thru_hole circle
 		(at 7.62 -1.27)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "5" thru_hole circle
-		(at -7.62 1.27)
+	(pad "12" thru_hole circle
+		(at -7.62 -1.27)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "13" thru_hole circle
+	(pad "5" thru_hole circle
 		(at 7.62 1.27)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "6" thru_hole circle
-		(at -7.62 3.81)
+	(pad "13" thru_hole circle
+		(at -7.62 1.27)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "14" thru_hole circle
+	(pad "6" thru_hole circle
 		(at 7.62 3.81)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "7" thru_hole circle
-		(at -7.62 6.35)
+	(pad "14" thru_hole circle
+		(at -7.62 3.81)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
-	(pad "15" thru_hole circle
+	(pad "7" thru_hole circle
 		(at 7.62 6.35)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
+	(pad "15" thru_hole circle
+		(at -7.62 6.35)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+	)
 	(pad "8" thru_hole circle
-		(at -7.62 8.89)
+		(at 7.62 8.89)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 	)
 	(pad "16" thru_hole circle
-		(at 7.62 8.89)
+		(at -7.62 8.89)
 		(size 1.7 1.7)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
+	)
+	(fp_text user "PWMA"
+		(at 4.87 -8.89 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "AIN2"
+		(at 4.87 -6.35 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "AIN1"
+		(at 4.87 -3.81 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "STBY"
+		(at 4.87 -1.27 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "BIN1"
+		(at 4.87 1.27 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "BIN2"
+		(at 4.87 3.81 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "PWMB"
+		(at 4.87 6.35 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "GND"
+		(at 5.27 8.89 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "VM"
+		(at -5.67 -8.89 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "VCC"
+		(at -5.27 -6.35 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "GND"
+		(at -5.27 -3.81 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "AO1"
+		(at -5.27 -1.27 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "AO2"
+		(at -5.27 1.27 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "BO2"
+		(at -5.27 3.81 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "BO1"
+		(at -5.27 6.35 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(fp_text user "GND"
+		(at -5.27 8.89 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
 	)
 	(fp_rect
 		(start -8.89 -10.16)
@@ -208,23 +368,13 @@
 		(fill no)
 		(layer "F.Fab")
 	)
-	(fp_text user "VM"
-		(at 7.62 -10.9 0)
+	(fp_text user "TB6612 CHIP UP"
+		(at 0 -11 0)
 		(layer "F.SilkS")
 		(effects
 			(font
 				(size 0.8 0.8)
-				(thickness 0.12)
-			)
-		)
-	)
-	(fp_text user "PWMA"
-		(at -7.62 -10.9 0)
-		(layer "F.SilkS")
-		(effects
-			(font
-				(size 0.8 0.8)
-				(thickness 0.12)
+				(thickness 0.15)
 			)
 		)
 	)
