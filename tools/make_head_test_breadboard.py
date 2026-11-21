@@ -152,32 +152,34 @@ x1, ye = xy(20, "e")
 x2, yf = xy(27, "f")
 add(f'<rect x="{x1 - 16}" y="{ye - 18}" width="{x2 - x1 + 32}" height="{yf - ye + 36}" rx="4" fill="#c0392b" stroke="#000"/>')
 text((x1 + x2) / 2, (ye + yf) / 2 + 5, "TB6612FNG", 14, color="white", weight="bold")
-for i, n in enumerate(["VM", "VCC", "GND", "AO1", "AO2", "BO2", "BO1", "GND"]):
+# This module has its pin labels on the BOTTOM, so seen chip-side up (as it sits in the
+# breadboard) both rows run mirrored compared with the labels: VM is at the right end.
+for i, n in enumerate(["GND", "BO1", "BO2", "AO2", "AO1", "GND", "VCC", "VM"]):
     pin(20 + i, "e", n, below=True)
-for i, n in enumerate(["PWMA", "AIN2", "AIN1", "STBY", "BIN1", "BIN2", "PWMB", "GND"]):
+for i, n in enumerate(["GND", "PWMB", "BIN2", "BIN1", "STBY", "AIN1", "AIN2", "PWMA"]):
     pin(20 + i, "f", n, below=False)
 
 # top side
-wire((20, "a"), (20, "T+"), RED)                                        # VM
-wire((22, "a"), (22, "T-"), BLUE, via=[(xy(22, "a")[0] - 9, ROWS["T+"] + 6)])
-wire((27, "a"), (27, "T-"), BLUE, via=[(xy(27, "a")[0] - 9, ROWS["T+"] + 6)])
-tag(23, "b", "head 3 yellow", GOLD, True, 6.0)                          # AO1: eye motor (long one first)
-tag(24, "b", "head 3 orange", ORANGE, True, 3.4)                        # AO2
-wire((25, "d"), (34, "d"), GRAY)                                        # BO2: LED - out to column 34
-tag(34, "a", "head 2 white", GRAY, True, 7.0)
-resistor((26, "c"), (30, "c"), "220Ω")                                  # BO1 -> 220R -> LED +
-tag(30, "a", "head 2 yellow", GOLD, True, 3.4)
-# VCC (top col 21) to the 3V3 rail: around the left of the module
-wire((21, "c"), (17, "Bx"), ORANGE, via=[(xy(17, "c")[0], ROWS["c"])])
+wire((27, "a"), (27, "T+"), RED)                                        # VM
+wire((25, "a"), (25, "T-"), BLUE, via=[(xy(25, "a")[0] - 9, ROWS["T+"] + 6)])
+wire((20, "a"), (20, "T-"), BLUE, via=[(xy(20, "a")[0] - 9, ROWS["T+"] + 6)])
+tag(23, "b", "head 3 orange", ORANGE, True, 6.0)                        # AO2 (long one first)
+tag(24, "b", "head 3 yellow", GOLD, True, 3.4)                          # AO1: eye motor
+resistor((21, "c"), (17, "c"), "220Ω")                                  # BO1 -> 220R -> LED +
+tag(17, "a", "head 2 yellow", GOLD, True, 3.4)
+wire((22, "d"), (13, "d"), GRAY)                                        # BO2: LED - out to column 13
+tag(13, "a", "head 2 white", GRAY, True, 7.0)
+# VCC (top col 26) to the 3V3 rail: around the right of the module
+wire((26, "c"), (31, "Bx"), ORANGE, via=[(xy(31, "c")[0], ROWS["c"])])
 
 # bottom side
-for c in (20, 23, 26):                                                  # PWMA, STBY, PWMB -> 3V3
+for c in (21, 24, 27):                                                  # PWMB, STBY, PWMA -> 3V3
     wire((c, "j"), (c, "Bx"), ORANGE, via=[(xy(c, "j")[0] - 9, ROWS["B-"] + 6)])
-wire((27, "j"), (27, "B-"), BLUE)                                       # GND
-tag(21, "i", "GPIO39", PURPLE, False, 7.2)                              # AIN2 (long ones first)
-tag(22, "i", "GPIO38", PURPLE, False, 5.0)                              # AIN1
-tag(24, "i", "GPIO41", GREEN, False, 7.2)                               # BIN1
-tag(25, "i", "GPIO42", GREEN, False, 5.0)                               # BIN2
+wire((20, "j"), (20, "B-"), BLUE)                                       # GND
+tag(22, "i", "GPIO42", GREEN, False, 7.2)                               # BIN2 (long ones first)
+tag(23, "i", "GPIO41", GREEN, False, 5.0)                               # BIN1
+tag(25, "i", "GPIO38", PURPLE, False, 7.2)                              # AIN1
+tag(26, "i", "GPIO39", PURPLE, False, 5.0)                              # AIN2
 
 # ------------------------------------------------------------------ eye home switch
 tag(38, "a", "head 1 yellow", GOLD, True, 4.4)
@@ -195,11 +197,12 @@ tag(49, "Bx", "ESP32 3V3", ORANGE, False, 4.2)
 # ------------------------------------------------------------------ notes
 ny = ROWS["Bx"] + 260
 notes = [
+    "TB6612: this module's pin labels are printed on the BOTTOM. Seen chip-side up, as it sits here, VM is at the right end of the top row and PWMA at the right end of the bottom row.",
     "The ESP32 runs on USB for this test. The head runs on the adapter (VMOT) through the TB6612. No Pololu needed. Stock board disconnected from the head.",
     "Bottom outer rail = 3V3 from the ESP32: it feeds the TB6612 logic (VCC), STBY, PWMA, PWMB and the 10k pull-up on the eye switch.",
     "Eye motor: head cable 3 yellow → AO1, orange → AO2 (forward = stock direction). LEDs: head cable 2 yellow → 220Ω → BO1, white → BO2.",
     "Eye switch: head cable 1 yellow → 1k → column 41 → GPIO7, 10k from column 41 to 3V3. Cable 1 white → GND.",
-    "Pin order matches the common red TB6612 boards (SparkFun layout). Check the labels on yours and wire by name if they differ.",
+    "Pin order matches the red TB6612 clone with its labels on the back. A board with labels on top (genuine SparkFun) runs the other way: wire by name.",
 ]
 for i, n in enumerate(notes):
     text(24, ny + i * 21, "• " + n, 13, "start")
