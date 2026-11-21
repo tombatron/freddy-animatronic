@@ -18,7 +18,8 @@
   Also: free running at any speed (position becomes unknown below 100%), dart,
   LED modes (off, on, breathe, flicker, blink), LED steps.
 
-    http://freddy.local   (or the IP printed on the serial monitor)
+    http://freddy.local   (redirects to Freddy's IP, so later requests skip the
+                           sometimes-slow .local lookup; or use the IP from the serial monitor)
 
   The page uses Hotwired Turbo from a CDN, with a few lines of its own JS as a fallback
   when there's no internet (Freddy's access point). Live values go out over a
@@ -51,7 +52,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "1.2.0"
+#define FW_VERSION "1.2.1"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -446,6 +447,14 @@ void runCmd(char a, int v, int t) {
 // ---------------------------------------------------------------- web + WiFi
 void setupWeb() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *r) {
+    // Reached by name (freddy.local)? Send the browser to the IP: .local lookups can stall
+    // for ~5 s at random, and after this one the page and its requests skip them.
+    String ip = WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
+    String host = r->host();
+    if (host.length() && host != ip && !host.startsWith(ip + ":")) {
+      r->redirect(("http://" + ip + "/").c_str());
+      return;
+    }
     r->send(200, "text/html", (const uint8_t *)PAGE_HTML, strlen(PAGE_HTML));
   });
   server.on("/cmd", HTTP_POST, [](AsyncWebServerRequest *r) {
