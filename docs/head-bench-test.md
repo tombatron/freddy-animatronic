@@ -38,21 +38,20 @@ These are breadboard pins. The controller PCB drives the eyes from GPIO11/12 (mo
 
 ## Web dashboard (recommended)
 
-Flash [`firmware/freddy_head_web`](../firmware/freddy_head_web/) (needs the "ESP Async WebServer" and "Async TCP" libraries by ESP32Async; copy `secrets.h.example` to `secrets.h` for your WiFi) and open **http://freddy.local**. Without `secrets.h` it starts an access point "Freddy" (password `fazbear1987`) at http://192.168.4.1.
+Flash [`firmware/freddy_head_web`](../firmware/freddy_head_web/) (needs the "ESP Async WebServer" and "Async TCP" libraries by ESP32Async; copy `secrets.h.example` to `secrets.h` for your WiFi) and open **http://freddy.local**. Without `secrets.h` it starts an access point "Freddy" (password `fazbear1987`) at http://192.168.4.1. The header shows the firmware version.
 
-- **Eyes:** home, run either way, speed slider, look at a position (0% = center, as a fraction of one sweep), timed pulses either way, dart, and an aim lead (stop this many ms early to make up for overshoot).
-- **Lights:** off / on / breathe / flicker / blink, brightness (perceptual: 10% looks like a tenth) and period.
-- **Live cards:** motion, estimated eye position, home switch (closures and how long it stays closed per pass), last full sweep, LEDs, the running test, WiFi.
-- **Tests:**
-  - **Measure:** times 3 sweeps at the current speed and saves it. Aiming and the position estimate need the speed measured.
-  - **Speed sweep (either direction):** 100% down in steps until the cam stalls, saving every speed. Answers questions 1 and 2 in one go.
-  - **Aim check:** looks at 25% and 75% three times each, then times the run back to center to work out how far past the target the eyes stopped. Reports the spread (repeatability) and a suggested aim lead.
-  - **Soak:** runs for N minutes and flags sweeps that are too long (missed switch, stall) or too short (switch bounce).
-  - **LED steps:** 100, 50, 25, 12, 6, 3, 2, 1%, 2.5 s each, to find where the LEDs disappear.
+**The eye home switch is broken.** Its two leaf contacts came out of their holder during testing (probably while running the cam in reverse, which the stock board never does), and they can't be reached without taking the eye mechanism apart. Since v1.2.0 the sketch positions the eyes by time alone, with center set by eye:
 
-Calibration is saved in flash, so it survives a reboot (**Clear calibration** starts over). The page sends a value only when it changes, and at most 10 times a second. The position estimate assumes a steady speed from the last switch closure, so treat it as a guide: Aim check shows how close it really gets. Stop: the STOP button, or `x` / space on the serial monitor.
+1. **Find center:** jog with 20–250 ms pulses until the eyes look dead ahead, then **Set center here**.
+2. **Learn the turn length:** **Spin 10 turns**, jog back to dead center if they're off, then **Back at center: learn turn**. It divides the whole trip by the number of turns, so jog error barely counts. (Starts at 4072 ms, measured with the switch before it broke.)
+3. **Mark full right / full left:** jog to each extreme and mark it. **Go to** center, right, left or any % of a turn is then a timed forward move.
+4. If go-to moves land a little past the target, raise the **aim lead**.
 
-Experiments with the dashboard: Speed sweep forward, then reverse (1–3). Set a speed in the middle of the range, then Aim check, set the suggested lead and run it again (4). Try Look 25/75, pulses and Dart (5). LED steps and the light modes (6). A 10-minute Soak at the speed you'd use for real.
+Position is the time travelled forward at full speed since center. It's saved in flash when the eyes stop, so it survives a reboot (the gearbox shouldn't move with the power off). Every start and stop adds a few ms of error, so re-center by eye now and then. Free running below 100% stops position tracking.
+
+Also on the page: dart, LED modes (off / on / breathe / flicker / blink, perceptual brightness, period), LED steps, a results table and the log (both kept on the ESP32, so a reload keeps them).
+
+For the controller and rev B: a Hall sensor and a magnet on the cam would replace the leaf switch with nothing to bend, wired to the same eye-switch input.
 
 ## Run it (serial only)
 

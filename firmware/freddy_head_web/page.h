@@ -35,6 +35,12 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .s { font-size:12px; color:var(--mute); font-variant-numeric:tabular-nums; }
   .bar { position:relative; height:10px; margin-top:6px; border-radius:5px; background:var(--line); }
   .bar b { position:absolute; top:0; bottom:0; width:1px; background:var(--mute); }
+  .bar b.c { background:var(--ok); width:2px; }
+  .bar b.r, .bar b.l { background:var(--accent); width:2px; }
+  .card.wide { grid-column:span 2; }
+  .jog button { min-width:56px; }
+  .gap { width:14px; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
   .bar i { position:absolute; top:-3px; width:16px; height:16px; margin-left:-8px; border-radius:50%; background:var(--accent); }
   .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
   form { margin:0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
@@ -68,45 +74,78 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
 </header>
 <main>
   <section class="cards">
-    <div class="card" id="c_eyes"></div><div class="card" id="c_pos"></div><div class="card" id="c_sw"></div>
-    <div class="card" id="c_sweep"></div><div class="card" id="c_led"></div><div class="card" id="c_job"></div>
-    <div class="card" id="c_sys"></div>
+    <div class="card" id="c_eyes"></div><div class="card wide" id="c_pos"></div><div class="card" id="c_cal"></div>
+    <div class="card" id="c_led"></div><div class="card" id="c_sys"></div>
   </section>
   <div id="msg"></div>
 
-  <h2>Eyes</h2>
+  <h2>Find center</h2>
   <div class="row">
-    <form action="/cmd" method="post"><button name="a" value="home">Home (center)</button>
-      <button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
+    <form action="/cmd" method="post" class="jog">
+      <button name="a" value="jogr" onclick="this.form.v.value=250">&laquo; 250</button>
+      <button name="a" value="jogr" onclick="this.form.v.value=100">100</button>
+      <button name="a" value="jogr" onclick="this.form.v.value=50">50</button>
+      <button name="a" value="jogr" onclick="this.form.v.value=20">20 &lsaquo;</button>
+      <span class="gap"></span>
+      <button name="a" value="jogf" onclick="this.form.v.value=20">&rsaquo; 20</button>
+      <button name="a" value="jogf" onclick="this.form.v.value=50">50</button>
+      <button name="a" value="jogf" onclick="this.form.v.value=100">100</button>
+      <button name="a" value="jogf" onclick="this.form.v.value=250">250 &raquo;</button>
+      <input type="hidden" name="v" value="50">
+    </form>
+  </div>
+  <div class="row">
+    <form action="/cmd" method="post"><button name="a" value="center" class="primary">Set center here</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="mark">
+      <button name="v" value="1">Mark full right</button><button name="v" value="2">Mark full left</button></form>
+  </div>
+  <p class="hint">Jog pulses are in ms at full speed (&rsaquo; forward, &lsaquo; reverse). Jog until the eyes look dead
+    ahead and press Set center here. Then jog to the far right and mark it, and the same for the left.</p>
+
+  <h2>Go to</h2>
+  <div class="row">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto">
+      <button name="v" value="0">Center</button><button name="v" value="1">Right</button><button name="v" value="2">Left</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto"><input type="hidden" name="v" value="3">
+      <input type="number" name="t" min="0" max="99" value="25">% of a turn<button>Go</button></form>
+    <form action="/cmd" method="post"><label>Dart</label>
+      <input type="number" name="v" min="40" max="800" step="10" value="180"> ms<button name="a" value="dart">Dart</button></form>
+  </div>
+  <p class="hint">Go-to moves run forward only, so the eyes may sweep past other positions on the way.</p>
+
+  <h2>Turn length</h2>
+  <div class="row">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="spin"><label>Spin</label>
+      <input type="number" name="v" min="1" max="50" value="10"> turns<button>Spin</button></form>
+    <form action="/cmd" method="post"><button name="a" value="learn" class="primary">Back at center: learn turn</button></form>
+  </div>
+  <div class="row">
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="turn"><label>Turn</label>
+      <span id="f_turn"><input type="number" name="v" min="1000" max="20000" value="4072"></span> ms<button>Set</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="lead"><label>Aim lead</label>
+      <span id="f_lead"><input type="number" name="v" min="0" max="500" step="5" value="0"></span> ms<button>Set</button></form>
+  </div>
+  <p class="hint">From center, spin 10 turns. The eyes should end centered; jog them back to dead center if not, then
+    press Back at center. It divides the whole trip by the number of turns, so a few ms of jog error barely counts.
+    If go-to moves keep landing a little past the target, raise the aim lead.</p>
+
+  <h2>Free run</h2>
+  <div class="row">
+    <form action="/cmd" method="post"><button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
     <form action="/cmd" method="post">
       <input type="hidden" name="a" value="speed"><label>Speed</label>
       <span id="f_speed"><input type="range" name="v" min="5" max="100" step="5" value="100"
              oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output></span>
     </form>
   </div>
-  <div class="row">
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="look"><label>Look</label>
-      <button name="v" value="0">center</button><button name="v" value="25">25%</button>
-      <button name="v" value="50">50%</button><button name="v" value="75">75%</button></form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="look">
-      <input type="number" name="v" min="0" max="99" value="40">%<button>Look</button></form>
-  </div>
-  <div class="row">
-    <form action="/cmd" method="post"><label>Pulse</label>
-      <input type="number" name="v" min="20" max="2000" step="10" value="150"> ms
-      <button name="a" value="nudgef">&rarr;</button><button name="a" value="nudger">&larr;</button>
-      <button name="a" value="dart">Dart</button></form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="lead"><label>Aim lead</label>
-      <span id="f_lead"><input type="number" name="v" min="0" max="500" step="5" value="0"></span> ms<button>Set</button></form>
-  </div>
-  <p class="hint">Positions are a fraction of one sweep from center (0%). Aiming needs the current speed measured;
-    it homes first if the position is unknown. Dart uses the pulse length.</p>
+  <p class="hint">Below 100% the position isn't tracked: set center again afterwards.</p>
 
   <h2>Lights</h2>
   <div class="row">
     <form action="/cmd" method="post"><input type="hidden" name="a" value="ledmode">
       <button name="v" value="0">Off</button><button name="v" value="1">On</button><button name="v" value="2">Breathe</button>
       <button name="v" value="3">Flicker</button><button name="v" value="4">Blink</button></form>
+    <form action="/cmd" method="post"><button name="a" value="ledsteps">LED steps</button></form>
   </div>
   <div class="row">
     <form action="/cmd" method="post"><input type="hidden" name="a" value="bright"><label>Brightness</label>
@@ -116,28 +155,8 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
       <span id="f_period"><input type="number" name="v" min="200" max="10000" step="100" value="3000"></span> ms<button>Set</button></form>
   </div>
 
-  <h2>Tests</h2>
-  <div class="row">
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="measure">
-      <button name="v" value="0">Measure &rarr;</button><button name="v" value="1">Measure &larr;</button></form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="speeds">
-      <button name="v" value="0">Speed sweep &rarr;</button><button name="v" value="1">Speed sweep &larr;</button></form>
-    <form action="/cmd" method="post"><button name="a" value="aim">Aim check</button></form>
-  </div>
-  <div class="row">
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="soak"><label>Soak</label>
-      <input type="number" name="v" min="1" max="60" value="5"> min<button>Start</button></form>
-    <form action="/cmd" method="post"><button name="a" value="ledsteps">LED steps</button></form>
-    <form action="/cmd" method="post"><button name="a" value="clearcal">Clear calibration</button></form>
-  </div>
-  <p class="hint">Measure and Speed sweep run at whatever speed is set (sweep: 100% down to a stall) and save the
-    sweep times, which aiming and the position estimate use. Aim check needs the current speed measured.</p>
-
-  <h2>Calibration</h2>
-  <table id="cal"></table>
-
   <h2>Results</h2>
-  <table><thead><tr><th>Test</th><th>Setting</th><th>Result</th><th>Notes</th></tr></thead><tbody id="results"></tbody></table>
+  <table><thead><tr><th>What</th><th>Result</th><th>Notes</th></tr></thead><tbody id="results"></tbody></table>
 
   <div class="loghead"><h2>Log</h2>
     <form action="/cmd" method="post"><button name="a" value="clearlog" class="small">Clear log &amp; results</button></form></div>
