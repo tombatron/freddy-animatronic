@@ -18,6 +18,8 @@ Ideas worth doing later, with enough detail to pick them up cold.
 - Board chip-down, centered over the peg, chip 0.5–3 mm (aim for ~1.5 mm) above the magnet.
 - Printed bracket anchored to the two existing screw bosses just above the eye ring (no new holes), with one slotted hole for fine adjustment.
 - Optional printed alignment cap: fits over the peg's flats with a nub that locates the board's center; remove it before gluing the magnet.
+- **No-printer version:** a perfboard strip or aluminium mending plate across the same two bosses (one hole filed into a slot for adjustment), M2 nylon standoffs down from it, board chip-down on the standoffs; washers set the height. Lock with a dab of glue once aligned. Nylon (or brass) only near the chip: steel bends the field. If the board's holes are 3 mm, M2 still fits with washers.
+- Tolerance: a few degrees of tilt or a fraction of a mm off-center only makes the reading slightly non-linear, and it's repeatable, so calibration takes it out. What matters is the gap and that nothing flexes.
 
 **Board quirks to sort first:**
 - Tie DIR to GND (often left floating on these boards, which makes readings jump).
