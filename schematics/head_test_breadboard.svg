@@ -861,34 +861,62 @@
 <circle cx="790.0" cy="561.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
 <rect x="759.2" y="691.6" width="61.6" height="26" rx="7" fill="white" stroke="#7b2cbf" stroke-width="2.5"/>
 <text x="790.0" y="709.6" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO39</text>
-<line x1="1102" y1="327.6" x2="1102" y2="213.20000000000002" stroke="#c9a227" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="1102.0" cy="327.6" r="4.5" fill="#c9a227" stroke="#000" stroke-width="1"/>
-<rect x="1044.6" y="187.2" width="114.8" height="26" rx="7" fill="white" stroke="#c9a227" stroke-width="2.5"/>
-<text x="1102.0" y="205.2" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">head 1 yellow</text>
-<polyline points="1102.0,431.6 1102.0,483.6" fill="none" stroke="#c9a227" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="1102.0" cy="431.6" r="4.5" fill="#c9a227" stroke="#000" stroke-width="1"/>
-<circle cx="1102.0" cy="483.6" r="4.5" fill="#c9a227" stroke="#000" stroke-width="1"/>
-<line x1="1102" y1="509.6" x2="1180" y2="509.6" stroke="#666" stroke-width="2.5"/>
-<g transform="translate(1141.0,509.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
-<circle cx="1102" cy="509.6" r="3" fill="#666"/>
+<line x1="998" y1="327.6" x2="998" y2="239.20000000000005" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="998.0" cy="327.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<rect x="952.0" y="213.2" width="92.0" height="26" rx="7" fill="white" stroke="#7b2cbf" stroke-width="2.5"/>
+<text x="998.0" y="231.2" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">AS5600 SDA</text>
+<polyline points="998.0,431.6 998.0,483.6" fill="none" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="998.0" cy="431.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<circle cx="998.0" cy="483.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<line x1="998" y1="509.6" x2="1050" y2="509.6" stroke="#666" stroke-width="2.5"/>
+<g transform="translate(1024.0,509.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
+<circle cx="998" cy="509.6" r="3" fill="#666"/>
+<circle cx="1050" cy="509.6" r="3" fill="#666"/>
+<text x="1024.0" y="497.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">4.7k</text>
+<polyline points="1050.0,587.6 1041.0,635.2 1050.0,655.2" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1050.0" cy="587.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<circle cx="1050.0" cy="655.2" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<line x1="998" y1="587.5999999999999" x2="998" y2="675.9999999999999" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="998.0" cy="587.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<rect x="971.0" y="676.0" width="54.0" height="26" rx="7" fill="white" stroke="#7b2cbf" stroke-width="2.5"/>
+<text x="998.0" y="694.0" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO4</text>
+<line x1="1128" y1="327.6" x2="1128" y2="239.20000000000005" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1128.0" cy="327.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<rect x="1082.0" y="213.2" width="92.0" height="26" rx="7" fill="white" stroke="#7b2cbf" stroke-width="2.5"/>
+<text x="1128.0" y="231.2" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">AS5600 SCL</text>
+<polyline points="1128.0,431.6 1128.0,483.6" fill="none" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1128.0" cy="431.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<circle cx="1128.0" cy="483.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<line x1="1128" y1="509.6" x2="1180" y2="509.6" stroke="#666" stroke-width="2.5"/>
+<g transform="translate(1154.0,509.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
+<circle cx="1128" cy="509.6" r="3" fill="#666"/>
 <circle cx="1180" cy="509.6" r="3" fill="#666"/>
-<text x="1141.0" y="497.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">1k</text>
-<line x1="1180" y1="535.5999999999999" x2="1258" y2="535.5999999999999" stroke="#666" stroke-width="2.5"/>
-<g transform="translate(1219.0,535.6) rotate(0.0)"><rect x="-17" y="-7" width="34" height="14" rx="6" fill="#dcc08f" stroke="#7a5c33" stroke-width="1.5"/></g>
-<circle cx="1180" cy="535.5999999999999" r="3" fill="#666"/>
-<circle cx="1258" cy="535.5999999999999" r="3" fill="#666"/>
-<text x="1219.0" y="523.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">10k</text>
+<text x="1154.0" y="497.6" font-size="12" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">4.7k</text>
+<polyline points="1180.0,587.6 1171.0,635.2 1180.0,655.2" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1180.0" cy="587.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<circle cx="1180.0" cy="655.2" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<line x1="1128" y1="587.5999999999999" x2="1128" y2="675.9999999999999" stroke="#7b2cbf" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1128.0" cy="587.6" r="4.5" fill="#7b2cbf" stroke="#000" stroke-width="1"/>
+<rect x="1101.0" y="676.0" width="54.0" height="26" rx="7" fill="white" stroke="#7b2cbf" stroke-width="2.5"/>
+<text x="1128.0" y="694.0" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO5</text>
 <polyline points="1258.0,587.6 1249.0,635.2 1258.0,655.2" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 <circle cx="1258.0" cy="587.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
 <circle cx="1258.0" cy="655.2" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
-<line x1="1180" y1="587.5999999999999" x2="1180" y2="675.9999999999999" stroke="#2a9d8f" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="1180.0" cy="587.6" r="4.5" fill="#2a9d8f" stroke="#000" stroke-width="1"/>
-<rect x="1153.0" y="676.0" width="54.0" height="26" rx="7" fill="white" stroke="#2a9d8f" stroke-width="2.5"/>
-<text x="1180.0" y="694.0" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">GPIO7</text>
-<line x1="1310" y1="260" x2="1310" y2="202.8" stroke="#999" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
-<circle cx="1310.0" cy="260.0" r="4.5" fill="#999" stroke="#000" stroke-width="1"/>
-<rect x="1256.4" y="176.8" width="107.2" height="26" rx="7" fill="white" stroke="#999" stroke-width="2.5"/>
-<text x="1310.0" y="194.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">head 1 white</text>
+<polyline points="1258.0,483.6 1258.0,431.6" fill="none" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1258.0" cy="483.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<circle cx="1258.0" cy="431.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<line x1="1258" y1="327.6" x2="1258" y2="239.20000000000005" stroke="#f77f00" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1258.0" cy="327.6" r="4.5" fill="#f77f00" stroke="#000" stroke-width="1"/>
+<rect x="1212.0" y="213.2" width="92.0" height="26" rx="7" fill="white" stroke="#f77f00" stroke-width="2.5"/>
+<text x="1258.0" y="231.2" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">AS5600 VCC</text>
+<line x1="1310" y1="260" x2="1310" y2="202.8" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1310.0" cy="260.0" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
+<rect x="1264.0" y="176.8" width="92.0" height="26" rx="7" fill="white" stroke="#1d4ed8" stroke-width="2.5"/>
+<text x="1310.0" y="194.8" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">AS5600 GND</text>
+<line x1="1362" y1="260" x2="1362" y2="145.6" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
+<circle cx="1362.0" cy="260.0" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
+<rect x="1316.0" y="119.6" width="92.0" height="26" rx="7" fill="white" stroke="#1d4ed8" stroke-width="2.5"/>
+<text x="1362.0" y="137.6" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">AS5600 DIR</text>
 <line x1="1336" y1="629.2" x2="1336" y2="686.4000000000001" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-dasharray="none"/>
 <circle cx="1336.0" cy="629.2" r="4.5" fill="#1d4ed8" stroke="#000" stroke-width="1"/>
 <rect x="1293.8" y="686.4" width="84.4" height="26" rx="7" fill="white" stroke="#1d4ed8" stroke-width="2.5"/>
@@ -899,8 +927,9 @@
 <text x="1388.0" y="782.4" font-size="13" text-anchor="middle" fill="#222" font-weight="bold" font-family="DejaVu Sans, Arial, sans-serif">ESP32 3V3</text>
 <text x="24.0" y="915.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• TB6612: this module's pin labels are printed on the BOTTOM. Seen chip-side up, as it sits here, VM is at the right end of the top row and PWMA at the right end of the bottom row.</text>
 <text x="24.0" y="936.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• The ESP32 runs on USB for this test. The head runs on the adapter (VMOT) through the TB6612. No Pololu needed. Stock board disconnected from the head.</text>
-<text x="24.0" y="957.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Bottom outer rail = 3V3 from the ESP32: it feeds the TB6612 logic (VCC), STBY, PWMA, PWMB and the 10k pull-up on the eye switch.</text>
+<text x="24.0" y="957.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Bottom outer rail = 3V3 from the ESP32: it feeds the TB6612 logic (VCC), STBY, PWMA, PWMB, and the AS5600 and its two 4.7k pull-ups.</text>
 <text x="24.0" y="978.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Eye motor: head cable 3 yellow → AO1, orange → AO2 (forward = stock direction). LEDs: head cable 2 yellow → 220Ω → BO1, white → BO2.</text>
-<text x="24.0" y="999.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Eye switch: head cable 1 yellow → 1k → column 41 → GPIO7, 10k from column 41 to 3V3. Cable 1 white → GND.</text>
-<text x="24.0" y="1020.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Pin order matches the red TB6612 clone with its labels on the back. A board with labels on top (genuine SparkFun) runs the other way: wire by name.</text>
+<text x="24.0" y="999.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Eye home switch (head cable 1): broken, left unconnected. AS5600 angle sensor instead (when fitted): VCC → 3V3, GND and DIR → GND, SDA → GPIO4, SCL → GPIO5. OUT and GPO unconnected.</text>
+<text x="24.0" y="1020.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Test the AS5600 on the bench first: magnet ~1.5 mm above the chip, turned by hand.</text>
+<text x="24.0" y="1041.2" font-size="13" text-anchor="start" fill="#222" font-weight="normal" font-family="DejaVu Sans, Arial, sans-serif">• Pin order matches the red TB6612 clone with its labels on the back. A board with labels on top (genuine SparkFun) runs the other way: wire by name.</text>
 </svg>

@@ -181,14 +181,21 @@ tag(23, "i", "GPIO41", GREEN, False, 5.0)                               # BIN1
 tag(25, "i", "GPIO38", PURPLE, False, 7.2)                              # AIN1
 tag(26, "i", "GPIO39", PURPLE, False, 5.0)                              # AIN2
 
-# ------------------------------------------------------------------ eye home switch
-tag(38, "a", "head 1 yellow", GOLD, True, 4.4)
-wire((38, "e"), (38, "f"), GOLD)
-resistor((38, "g"), (41, "g"), "1k")
-resistor((41, "h"), (44, "h"), "10k")
+# ------------------------------------------------------------------ AS5600 eye angle sensor (off-board, in the head)
+# The eye home switch broke, so its circuit is gone. The AS5600 lives in the head on short
+# jumpers; SDA and SCL get 4.7k pull-ups here (harmless if the module has its own).
+for col, sig, gpio, res_to in ((34, "SDA", "GPIO4", 36), (39, "SCL", "GPIO5", 41)):
+    tag(col, "a", "AS5600 " + sig, PURPLE, True, 3.4)
+    wire((col, "e"), (col, "f"), PURPLE)
+    resistor((col, "g"), (res_to, "g"), "4.7k")
+    wire((res_to, "j"), (res_to, "Bx"), ORANGE, via=[(xy(res_to, "j")[0] - 9, ROWS["B-"] + 6)])
+    tag(col, "j", gpio, PURPLE, False, 3.4)
+# 3V3 up to the sensor: rail -> column 44 -> across the gap -> tag
 wire((44, "j"), (44, "Bx"), ORANGE, via=[(xy(44, "j")[0] - 9, ROWS["B-"] + 6)])
-tag(41, "j", "GPIO7", GREEN, False, 3.4)
-tag(46, "T-", "head 1 white", GRAY, True, 2.2)
+wire((44, "f"), (44, "e"), ORANGE)
+tag(44, "a", "AS5600 VCC", ORANGE, True, 3.4)
+tag(46, "T-", "AS5600 GND", BLUE, True, 2.2)
+tag(48, "T-", "AS5600 DIR", BLUE, True, 4.4)
 
 # ------------------------------------------------------------------ ESP32 power
 tag(47, "B-", "ESP32 GND", BLUE, False, 2.2)
@@ -199,9 +206,10 @@ ny = ROWS["Bx"] + 260
 notes = [
     "TB6612: this module's pin labels are printed on the BOTTOM. Seen chip-side up, as it sits here, VM is at the right end of the top row and PWMA at the right end of the bottom row.",
     "The ESP32 runs on USB for this test. The head runs on the adapter (VMOT) through the TB6612. No Pololu needed. Stock board disconnected from the head.",
-    "Bottom outer rail = 3V3 from the ESP32: it feeds the TB6612 logic (VCC), STBY, PWMA, PWMB and the 10k pull-up on the eye switch.",
+    "Bottom outer rail = 3V3 from the ESP32: it feeds the TB6612 logic (VCC), STBY, PWMA, PWMB, and the AS5600 and its two 4.7k pull-ups.",
     "Eye motor: head cable 3 yellow → AO1, orange → AO2 (forward = stock direction). LEDs: head cable 2 yellow → 220Ω → BO1, white → BO2.",
-    "Eye switch: head cable 1 yellow → 1k → column 41 → GPIO7, 10k from column 41 to 3V3. Cable 1 white → GND.",
+    "Eye home switch (head cable 1): broken, left unconnected. AS5600 angle sensor instead (when fitted): VCC → 3V3, GND and DIR → GND, SDA → GPIO4, SCL → GPIO5. OUT and GPO unconnected.",
+    "Test the AS5600 on the bench first: magnet ~1.5 mm above the chip, turned by hand.",
     "Pin order matches the red TB6612 clone with its labels on the back. A board with labels on top (genuine SparkFun) runs the other way: wire by name.",
 ]
 for i, n in enumerate(notes):

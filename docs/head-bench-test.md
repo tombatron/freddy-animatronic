@@ -31,7 +31,8 @@ The stock board uses the head in exactly one way: eye motor forward at full powe
 | TB6612 BIN1 / BIN2 | GPIO41 / GPIO42 |
 | TB6612 AO1 / AO2 | head cable 3 **yellow** / **orange** (eye motor) |
 | TB6612 BO1 → 220Ω → head cable 2 **yellow**; BO2 → cable 2 **white** | eye LEDs |
-| Head cable 1 **yellow** → 1k → GPIO7, plus 10k from GPIO7 to 3V3; cable 1 **white** → GND | eye home switch |
+| ~~Head cable 1 → GPIO7~~ (switch broken, leave cable 1 unconnected) | ~~eye home switch~~ |
+| AS5600 VCC → 3V3, GND and DIR → GND, SDA → GPIO4, SCL → GPIO5, 4.7k pull-ups from SDA and SCL to 3V3 | eye angle sensor (when fitted; see [future improvements](future-improvements.md)) |
 | ESP32 GND | GND rail |
 
 These are breadboard pins. The controller PCB drives the eyes from GPIO11/12 (motor) and GPIO15/16 (LEDs) instead (see [`firmware/freddy_pcb_pins.h`](../firmware/freddy_pcb_pins.h)), so change the four pin numbers at the top of the sketch when moving to the board.
