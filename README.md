@@ -45,6 +45,7 @@ In Phase 2 the stock board is removed and an ESP32-S3 controller plugs into the 
 | [docs/head-bench-test.md](docs/head-bench-test.md) | Head bench test: what else can the eyes do (speed, reverse, aim, glances, LED effects)? |
 | [docs/phase2-power-test.md](docs/phase2-power-test.md) | Breadboard power test: does the 5V rail survive a shoulder lift? |
 | [docs/phase2-pcb.md](docs/phase2-pcb.md) | Controller PCB rev A: KiCad project, GPIO map, connectors, power budget, ordering, enclosure |
+| [docs/future-improvements.md](docs/future-improvements.md) | Later upgrades: eye angle sensor (AS5600 on the eye pivot), stock-compatible eye switch replacement |
 | [hardware/controller/](hardware/controller/) | KiCad project, fab files for JLCPCB, renders, enclosure, BOM, net list |
 | [schematics/](schematics/) | Phase 1 SVG schematics (`tools/make_schematics.py`) and the controller schematic exported from KiCad |
 | [firmware/](firmware/) | ESP32-S3 Arduino sketches (loggers, sniffer, elbow controllers) |
