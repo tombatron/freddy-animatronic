@@ -1,29 +1,30 @@
 /*
   freddy_head_web: head bench test with a web dashboard
 
-  The eye home switch is broken (its contacts fell out and can't be reached), so this
-  version positions the eyes by time alone, with center set by eye:
+  v3: the eyes are positioned from their MEASURED angle. An AS5600 magnetic angle
+  sensor sits over a diametric magnet on the eyeball's top pivot, so the firmware
+  always knows where the eyes point: no homing, no timing, no drift.
 
-    1. Jog with short pulses until the eyes look straight ahead, then "Set center here".
-    2. Learn the turn length: "Spin N turns", jog back to dead center, "Back at center".
-       The firmware divides all the travel by N, so 10 turns makes jog error 10x smaller.
-    3. Jog to full right and "Mark right"; same for left. Go to center/right/left then
-       works as a timed forward move.
+  Calibration wizard (on the page):
+    1. Sensor check     the magnet must read OK
+    2. Find the range   the cam runs a little over a turn; the furthest angles each way
+                        are the eyes' extremes
+    3. Which side       the eyes go to one extreme: you say whether that's left or right
+    4. Center           nudge until they look dead ahead
+    5. Check            a closed-loop tour: left, center, right, center
+  Saved in flash; it survives reboots and never drifts.
 
-  Position is a time: ms of forward travel at full speed past center, 0..turn length.
-  It's tracked while the motor runs at full speed and saved in flash when a move ends,
-  so it survives a reboot (the gearbox shouldn't move with the power off). Timing
-  errors add up with every start and stop, so re-center by eye now and then.
+  Go to: eye position in % from -100 (full left) through 0 (center) to +100 (full
+  right). A control loop drives the cam either way, slows near the target and stops
+  within the tolerance (default 1 degree).
 
-  v2: a calibration wizard on the page walks through all of that (center, turn length,
-  full right, full left, a check tour), plus a one-step Quick re-center for drift.
+  The cam turns continuously and swings the eyes center -> right -> center -> left, so
+  which motor direction moves the eyes which way depends on where the cam is. The
+  control loop doesn't need to know: it watches the angle and reverses when the eyes
+  move away from the target.
 
-  v2.1: AS5600 eye angle sensor readout and alignment helper (live angle, magnet
-  status, field-strength swing for centering, noise). Breadboard: SDA GPIO4, SCL GPIO5;
-  PCB: the Qwiic port (SDA 41, SCL 42). Tie the module's DIR pin to GND.
-
-  Also: free running at any speed (position becomes unknown below 100%), dart,
-  LED modes (off, on, breathe, flicker, blink), LED steps.
+  Also: manual pulses and free run (for debugging), LED modes, LED steps, and the
+  sensor details panel (alignment: magnet status, field swing, noise).
 
     http://freddy.local   (redirects to Freddy's IP, so later requests skip the
                            sometimes-slow .local lookup; or use the IP from the serial monitor)
@@ -39,6 +40,8 @@
 
   STOCK BOARD DISCONNECTED FROM THE HEAD. Wiring: docs/head-bench-test.md
   (breadboard pins below; set USE_PCB_PINS to 1 on the controller board).
+  AS5600: VCC 3V3, GND, DIR to GND, SDA/SCL below. Breadboard: SDA 4, SCL 5 with 4.7k
+  pull-ups. PCB: the Qwiic port J14 (SDA 41, SCL 42, pull-ups on the board).
 
   Serial: x or space = stop, ? = status.
 */
@@ -47,8 +50,8 @@
 #include <ESPmDNS.h>
 #include <ESPAsyncWebServer.h>
 #include <Preferences.h>
-#include "esp_task_wdt.h"
 #include <Wire.h>
+#include "esp_task_wdt.h"
 #include "page.h"
 
 #if __has_include("secrets.h")
@@ -60,7 +63,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "2.1.0"
+#define FW_VERSION "3.0.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -83,76 +86,97 @@ const int PIN_RGB = 48;
 #endif
 
 const int LED_BITS = 10, LED_MAX = (1 << LED_BITS) - 1;   // 10 bits for smooth dimming
-const int POS_SPEED = 100;                 // positioning always runs at full speed
 const uint32_t RUN_LIMIT_MS = 30000;       // free running stops by itself after this
+const int TURN_MS = 4224;                  // one cam turn at full speed (measured on the bench)
+const float EDGE_MARGIN = 1.5f;            // degrees: targets stay this far inside the extremes
 
 // ---------------- settings (saved in flash)
 int speedPct = 100;                        // free-run speed
-// Defaults measured on the bench head (Nov 2026); anything saved in flash wins.
-const int DEF_TURN_MS = 4224, DEF_RIGHT_MS = 1394, DEF_LEFT_MS = 2957;   // right 33%, left 70% of a turn
-int turnMs = DEF_TURN_MS;                  // one full turn at full speed
-int rightMs = DEF_RIGHT_MS, leftMs = DEF_LEFT_MS;   // marked positions, ms past center; -1 = not marked
-int aimLeadMs = 0;                         // stop this much early on go-to moves (coast after braking)
+bool calibrated = false;
+float rightDeg = 0, leftDeg = 0, centerDeg = 0;   // sensor angles (0..360) at full right, full left, center
+float tolDeg = 1.0f;                       // a go-to is done within this many degrees
+int minSpeed = 50;                         // slowest the control loop drives (near the target)
+const float SLOW_ZONE = 15.0f;             // full speed until this close, then ramp down to minSpeed
 int ledPct = 60, ledPeriod = 3000;
 enum LedMode { L_OFF, L_ON, L_BREATHE, L_FLICKER, L_BLINK };
 const char *LED_MODES[] = {"off", "on", "breathe", "flicker", "blink"};
 LedMode ledMode = L_OFF;
 
-// ---------------- position
-float posMs = 0;                           // ms of forward travel past center, kept in 0..turnMs
-float odoMs = 0;                           // net travel since center was last set (for learning the turn)
-bool posKnown = false, posRestored = false;
-bool posDirty = false;                     // changed since it was last saved
-uint32_t lastMoveEnd = 0;
-
 // ---------------- moves
-enum MoveType { MV_NONE, MV_RUN, MV_TIMED, MV_PAUSE };
+enum MoveType { MV_NONE, MV_RUN, MV_TIMED, MV_PAUSE, MV_SEEK };
 struct Move {
   MoveType type = MV_NONE;
   int dir = 1, pct = 100;
   uint32_t start = 0, ms = 0;              // TIMED/PAUSE length, RUN limit
 } mv;
-bool motorOn() { return mv.type == MV_RUN || mv.type == MV_TIMED; }
+bool motorOn() { return mv.type == MV_RUN || mv.type == MV_TIMED || mv.type == MV_SEEK; }
 // Time since t, never negative (a move started later in this pass can be "in the future").
 uint32_t since(uint32_t t, uint32_t now) { return (int32_t)(now - t) > 0 ? now - t : 0; }
 
-// ---------------- jobs
-enum Job { J_NONE, J_DART, J_SPIN, J_TOUR };
-const char *JOB_NAMES[] = {"none", "dart", "spin", "tour"};
+// closed-loop seek state
+struct {
+  float target = 0;                        // sensor angle, 0..360
+  float tol = 1.0f;                        // this move's tolerance, degrees
+  int dir = 1, pct = 100;
+  uint32_t checkAt = 0, settleAt = 0, kickUntil = 0;
+  float angAtCheck = 0;
+  int flips = 0, settles = 0;
+  const char *name = "";
+} sk;
 
-// ---------------- calibration wizard
-// 0 = not running; 1 center, 2 turn length, 3 full right, 4 full left, 5 check.
-// Quick re-center is step 1 alone.
-int wizStep = 0;
-bool wizQuick = false;
-int wizSnapTurn, wizSnapRight, wizSnapLeft;   // restored on Cancel
-bool wizSpun = false;
+// ---------------- jobs
+enum Job { J_NONE, J_SWEEP, J_TOUR, J_DART };
+const char *JOB_NAMES[] = {"none", "finding range", "tour", "dart"};
 Job job = J_NONE;
-int jStep = 0, jArg = 0;
-int spinTurns = 0;
+int jStep = 0;
 // LED steps (runs alongside anything else)
 const int LED_STEPS[] = {100, 50, 25, 12, 6, 3, 2, 1, 0};
 int ledStep = -1; uint32_t ledStepAt = 0;
 
+// ---------------- calibration wizard
+// 0 = not running; 1 sensor, 2 range, 3 which side, 4 center, 5 check
+int wizStep = 0;
+bool wizSwept = false;
+float wizExtA = 0, wizExtB = 0;            // the two extremes found by the sweep (sensor angles)
+float sweepStartDeg = 0;
+float wizNudge = 0;                        // center fine-tuning target, sensor angle
+bool snapCal; float snapR, snapL, snapC;   // restored on Cancel
+
 Preferences prefs;
 int resetReason = 0;
 
-// ---------------- AS5600 eye angle sensor
+// ---------------- web
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
+struct Cmd { char a; int v; int t; };
+QueueHandle_t cmdQueue;                    // web callbacks run in another task: hand commands to loop()
+
+void jobStep(bool ok);
+void startJob(Job j);
+void report(const char *fmt, ...);
+
+// ---------------------------------------------------------------- angles
+float norm360(float a) { a = fmodf(a, 360.0f); return a < 0 ? a + 360.0f : a; }
+float wrap180(float a) { a = fmodf(a + 180.0f, 360.0f); if (a < 0) a += 360.0f; return a - 180.0f; }
+
+// ---------------------------------------------------------------- AS5600 eye angle sensor
 const uint8_t AS5600_ADDR = 0x36;
+const int ENC_WIN = 200;                   // 1 s of readings at 200 Hz, for the noise figure
 struct {
   bool found = false;                      // answered on I2C
   uint8_t status = 0;                      // bit 5 MD magnet detected, 4 ML too weak, 3 MH too strong
   uint16_t raw = 0;                        // 0..4095 = one full turn
   uint8_t agc = 0;                         // gain the chip is using: mid-range is best
   uint16_t mag = 0;                        // field strength (CORDIC magnitude)
-  // statistics since the last reset: turn the magnet a full circle to fill them in
-  uint16_t magMin = 0xFFFF, magMax = 0;
-  float unwrapped = 0, turnMin = 0, turnMax = 0;   // degrees turned, for "did you cover a full circle"
+  uint16_t magMin = 0xFFFF, magMax = 0;    // statistics since the last reset
+  float unwrapped = 0, turnMin = 0, turnMax = 0;
   uint16_t lastRaw = 0; bool haveLast = false;
-  // noise: spread of the last ~1 s of readings
-  float win[50]; int winN = 0, winI = 0;
+  float win[ENC_WIN]; int winN = 0, winI = 0;
   uint32_t lastPoll = 0, lastProbe = 0;
 } enc;
+
+bool magnetOk() { return enc.found && (enc.status & 0x20); }
+float angNow() { return enc.raw * 360.0f / 4096; }
 
 bool asRead(uint8_t reg, uint8_t *buf, int n) {
   Wire.beginTransmission(AS5600_ADDR);
@@ -169,14 +193,14 @@ void encResetStats() {
   enc.haveLast = false; enc.winN = enc.winI = 0;
 }
 
-// Poll at 50 Hz while it answers; look for it once a second while it doesn't.
+// Poll at 200 Hz while it answers; look for it once a second while it doesn't.
 void encPoll(uint32_t now) {
-  if (now - enc.lastPoll < 20) return;
+  if (now - enc.lastPoll < 5) return;
   enc.lastPoll = now;
   if (!enc.found && now - enc.lastProbe < 1000) return;
   enc.lastProbe = now;
-  uint8_t a[5], b[3];
-  bool ok = asRead(0x0B, a, 5) && asRead(0x1A, b, 3);   // STATUS, RAW ANGLE (2), ANGLE (2) / AGC, MAGNITUDE (2)
+  uint8_t a[3], b[3];
+  bool ok = asRead(0x0B, a, 3) && asRead(0x1A, b, 3);   // STATUS, RAW ANGLE / AGC, MAGNITUDE
   if (!ok) { if (enc.found) report("AS5600: lost on I2C"); enc.found = false; return; }
   if (!enc.found) { report("AS5600: found on I2C"); encResetStats(); }
   enc.found = true;
@@ -184,7 +208,7 @@ void encPoll(uint32_t now) {
   enc.raw = ((a[1] & 0x0F) << 8) | a[2];
   enc.agc = b[0];
   enc.mag = ((b[1] & 0x0F) << 8) | b[2];
-  if (!(enc.status & 0x20)) return;                     // no magnet: nothing meaningful to track
+  if (!(enc.status & 0x20)) return;
   enc.magMin = min(enc.magMin, enc.mag);
   enc.magMax = max(enc.magMax, enc.mag);
   if (enc.haveLast) {
@@ -197,26 +221,30 @@ void encPoll(uint32_t now) {
   }
   enc.lastRaw = enc.raw; enc.haveLast = true;
   enc.win[enc.winI] = enc.unwrapped;
-  enc.winI = (enc.winI + 1) % 50;
-  if (enc.winN < 50) enc.winN++;
+  enc.winI = (enc.winI + 1) % ENC_WIN;
+  if (enc.winN < ENC_WIN) enc.winN++;
 }
 
-// Peak-to-peak jitter of the last second, in degrees (meaningful only when nothing moves).
-float encNoise() {
-  if (enc.winN < 10) return 0;
+float encNoise() {                         // peak-to-peak over the last second, degrees
+  if (enc.winN < 20) return 0;
   float lo = 1e9f, hi = -1e9f;
   for (int i = 0; i < enc.winN; i++) { lo = min(lo, enc.win[i]); hi = max(hi, enc.win[i]); }
   return hi - lo;
 }
 
-// ---------------- web
-AsyncWebServer server(80);
-AsyncWebSocket ws("/ws");
-struct Cmd { char a; int v; int t; };
-QueueHandle_t cmdQueue;                    // web callbacks run in another task: hand commands to loop()
-
-void jobStep();
-void startJob(Job j);
+// ---------------------------------------------------------------- eye coordinates
+// rel = degrees from center, + toward the right. pct = -100 (full left) .. +100 (full right).
+float rightSign() { return wrap180(rightDeg - leftDeg) >= 0 ? 1.0f : -1.0f; }
+float relOf(float sensorDeg) { return wrap180(sensorDeg - centerDeg) * rightSign(); }
+float rangeR() { return relOf(rightDeg); }           // > 0
+float rangeL() { return -relOf(leftDeg); }           // > 0
+float pctOfRel(float rel) { return rel >= 0 ? 100.0f * rel / max(1.0f, rangeR()) : 100.0f * rel / max(1.0f, rangeL()); }
+float sensorOfPct(float pct) {
+  pct = constrain(pct, -100.0f, 100.0f);
+  float rel = pct >= 0 ? pct / 100.0f * rangeR() : pct / 100.0f * rangeL();
+  rel = constrain(rel, -rangeL() + EDGE_MARGIN, rangeR() - EDGE_MARGIN);
+  return norm360(centerDeg + rel * rightSign());
+}
 
 // ---------------------------------------------------------------- hardware
 // Slow-decay PWM: hold one input high, pulse the other between low (drive) and high
@@ -291,8 +319,6 @@ void resultRow(const char *what, const char *result, const char *note) {
   if (canPush()) stream("prepend", "results", b);
 }
 
-int pctOf(float ms) { return (int)lroundf(100.0f * ms / turnMs) % 100; }
-
 // What a freshly connected page needs: version, history, and the inputs set to the
 // values Freddy is actually using.
 void sendPageState() {
@@ -309,16 +335,16 @@ void sendPageState() {
   stream("update", "f_bright", b);
   snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"200\" max=\"10000\" step=\"100\" value=\"%d\">", ledPeriod);
   stream("update", "f_period", b);
-  snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"0\" max=\"500\" step=\"5\" value=\"%d\">", aimLeadMs);
-  stream("update", "f_lead", b);
-  snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"1000\" max=\"20000\" step=\"1\" value=\"%d\">", turnMs);
-  stream("update", "f_turn", b);
+  snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"0.3\" max=\"5\" step=\"0.1\" value=\"%.1f\">", tolDeg);
+  stream("update", "f_tol", b);
+  snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"20\" max=\"100\" step=\"5\" value=\"%d\">", minSpeed);
+  stream("update", "f_minspd", b);
 }
 
 // Live values: each card is sent only when its HTML changes, and at most every
 // 100 ms (sys every 2 s). Values are rounded first so noise doesn't count as change.
-enum { C_EYES, C_POS, C_CAL, C_LED, C_SYS, C_WIZ, C_ENC, N_CARDS };
-const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_cal", "c_led", "c_sys", "wiz", "enc"};
+enum { C_EYES, C_POS, C_SENS, C_LED, C_SYS, C_WIZ, C_ENC, N_CARDS };
+const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_sens", "c_led", "c_sys", "wiz", "enc"};
 uint32_t cardHash[N_CARDS], cardSent[N_CARDS];
 
 uint32_t fnv(const char *s) { uint32_t h = 2166136261u; while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; } return h; }
@@ -333,87 +359,85 @@ void pushCard(int i, const char *html, uint32_t now) {
   stream("update", CARD_IDS[i], html);
 }
 
-// ---------------------------------------------------------------- wizard card
-const char JOG_HTML[] =
-  "<form action=\"/cmd\" method=\"post\" class=\"jog\">"
-  "<button name=\"a\" value=\"jogr\" onclick=\"this.form.v.value=250\">&laquo; 250</button>"
-  "<button name=\"a\" value=\"jogr\" onclick=\"this.form.v.value=100\">100</button>"
-  "<button name=\"a\" value=\"jogr\" onclick=\"this.form.v.value=50\">50</button>"
-  "<button name=\"a\" value=\"jogr\" onclick=\"this.form.v.value=20\">20 &lsaquo;</button><span class=\"gap\"></span>"
-  "<button name=\"a\" value=\"jogf\" onclick=\"this.form.v.value=20\">&rsaquo; 20</button>"
-  "<button name=\"a\" value=\"jogf\" onclick=\"this.form.v.value=50\">50</button>"
-  "<button name=\"a\" value=\"jogf\" onclick=\"this.form.v.value=100\">100</button>"
-  "<button name=\"a\" value=\"jogf\" onclick=\"this.form.v.value=250\">250 &raquo;</button>"
-  "<input type=\"hidden\" name=\"v\" value=\"50\"></form>";
+const char *magnetVerdict(const char **cls) {
+  bool md = enc.status & 0x20, ml = enc.status & 0x10, mh = enc.status & 0x08;
+  *cls = "ok";
+  if (!enc.found) { *cls = "bad"; return "Sensor not found"; }
+  if (!md && ml) { *cls = "bad"; return "Magnet too far / not seen"; }
+  if (!md) { *cls = "bad"; return "No magnet"; }
+  if (mh) { *cls = "warn"; return "Magnet too close"; }
+  if (ml) { *cls = "warn"; return "Magnet a bit far"; }
+  return "Magnet OK";
+}
 
-// one wizard button: a = wizard action number
+// ---------------------------------------------------------------- wizard card
+// actions: 0 start, 2 next, 3 back, 4 cancel, 6 sweep, 7 tour, 8 side is right, 9 side is left,
+//          10..13 nudge (left 2, left 0.5, right 0.5, right 2 degrees)
 String wbtn(int a, const char *label, const char *cls = "") {
   return String("<button name=\"v\" value=\"") + a + "\" class=\"" + cls + "\">" + label + "</button>";
 }
-// wizard actions: 0 start, 1 quick re-center, 2 next, 3 back, 4 cancel, 5 skip, 6 spin, 7 tour, 8 go near mark
 String wform(const String &buttons) {
   return "<form action=\"/cmd\" method=\"post\" class=\"wbtns\"><input type=\"hidden\" name=\"a\" value=\"wiz\">" + buttons + "</form>";
 }
 
 void pushWizard(uint32_t now) {
   String h;
-  h.reserve(2600);
-  const char *pct = "%";
+  h.reserve(2200);
+  char tmp[260];
   if (wizStep == 0) {
-    h = "<h3>Calibration</h3><p>" + String(posKnown ? "" : "<b>Position unknown.</b> ") +
-        "The wizard walks through center, turn length, full right and full left. "
-        "Quick re-center just finds center again, for when the eyes have drifted.</p>" +
-        wform(wbtn(0, "Start calibration wizard", "primary") + wbtn(1, "Quick re-center"));
+    snprintf(tmp, sizeof tmp, "%s", calibrated
+             ? "Calibrated. Run the wizard again if the sensor or magnet has moved."
+             : "<b>Not calibrated yet.</b> The wizard finds the eyes' range from the sensor, asks which side is right, then sets center.");
+    h = String("<h3>Calibration</h3><p>") + tmp + "</p>" + wform(wbtn(0, "Start calibration wizard", "primary"));
   } else {
     String title, text, buttons;
-    char tmp[200];
     switch (wizStep) {
-      case 1:
-        title = wizQuick ? "Quick re-center" : "Step 1 of 5 &middot; Center";
-        text = "Jog until the eyes look straight ahead. Big steps to get close, then 20 ms taps.";
-        buttons = wbtn(2, wizQuick ? "Done: this is center" : "Next: this is center", "primary");
-        break;
-      case 2:
-        snprintf(tmp, sizeof tmp, "Spin 10 turns from center: they should come back to center. If they're off, jog them back to "
-                 "dead center, then Next. The whole trip divided by 10 gives the turn length (now %d ms).", turnMs);
-        title = "Step 2 of 5 &middot; Turn length";
+      case 1: {
+        const char *cls; const char *v = magnetVerdict(&cls);
+        title = "Step 1 of 5 &middot; Sensor";
+        snprintf(tmp, sizeof tmp, "The sensor reads: <b class=\"%s\">%s</b>%s", cls, v,
+                 magnetOk() ? " &middot; " : ". Check the wiring or the magnet gap (Sensor details below).");
         text = tmp;
-        buttons = wbtn(6, "Spin 10 turns") + wbtn(2, "Next: back at center", wizSpun ? "primary" : "") +
-                  wbtn(5, (String("Skip: keep ") + turnMs + " ms").c_str());
-        break;
-      case 3: case 4: {
-        bool right = wizStep == 3;
-        int mark = right ? rightMs : leftMs;
-        snprintf(tmp, sizeof tmp, "Jog until the eyes are as far %s as they go: past that they start coming back. "
-                 "Forward jogs work best; use reverse to back up if you overshoot.", right ? "right" : "left");
-        title = right ? "Step 3 of 5 &middot; Full right" : "Step 4 of 5 &middot; Full left";
-        text = tmp;
-        if (mark >= 0) buttons += wbtn(8, (String("Start near the old mark (") + pctOf(mark) + pct + ")").c_str());
-        buttons += wbtn(2, right ? "Next: this is full right" : "Next: this is full left", "primary");
+        if (magnetOk()) text += String(angNow(), 1) + "&deg;";
+        buttons = wbtn(2, "Next", magnetOk() ? "primary" : "");
         break;
       }
+      case 2:
+        title = "Step 2 of 5 &middot; Find the range";
+        if (job == J_SWEEP) text = "Running the cam a little over one turn and watching the angle&hellip;";
+        else if (wizSwept) {
+          snprintf(tmp, sizeof tmp, "Found a range of <b>%.0f&deg;</b> between %.1f&deg; and %.1f&deg; on the sensor. "
+                   "Sweep again if the eyes were blocked, otherwise Next.", fabsf(wrap180(wizExtA - wizExtB)), wizExtA, wizExtB);
+          text = tmp;
+        } else text = "Press Sweep: the cam runs a little over one full turn and the furthest angle each way becomes full left and full right.";
+        buttons = wbtn(6, wizSwept ? "Sweep again" : "Sweep", wizSwept ? "" : "primary");
+        if (wizSwept) buttons += wbtn(2, "Next", "primary");
+        break;
+      case 3:
+        title = "Step 3 of 5 &middot; Which side";
+        text = "The eyes are moving to one extreme. When they stop: which way are they looking (Freddy's own left/right)?";
+        buttons = wbtn(8, "They're looking right", "primary") + wbtn(9, "They're looking left", "primary");
+        break;
+      case 4:
+        title = "Step 4 of 5 &middot; Center";
+        text = "Starting from the middle of the range. Nudge until the eyes look dead ahead, then press This is center.";
+        buttons = wbtn(10, "&laquo; 2&deg;") + wbtn(11, "&lsaquo; 0.5&deg;") + wbtn(12, "0.5&deg; &rsaquo;") + wbtn(13, "2&deg; &raquo;") +
+                  wbtn(2, "This is center", "primary");
+        break;
       case 5:
-        snprintf(tmp, sizeof tmp, "The tour goes center, right, left, center, pausing at each. If the eyes stop a little past "
-                 "each spot, raise the aim lead (now %d ms) and run it again.", aimLeadMs);
         title = "Step 5 of 5 &middot; Check";
-        text = tmp;
-        buttons = wbtn(7, "Run the tour") + wbtn(2, "Finish", "primary");
+        text = "The tour goes left, center, right, center. Each stop logs how close it landed. Finish saves the calibration.";
+        buttons = wbtn(7, "Run the tour again") + wbtn(2, "Finish", "primary");
         break;
     }
     if (wizStep > 1) buttons += wbtn(3, "Back");
     buttons += wbtn(4, "Cancel");
-    h = "<h3>" + title + "</h3><p>" + text + "</p>";
-    if (wizStep <= 4) h += JOG_HTML;
-    if (wizStep == 5)
-      h += String("<form action=\"/cmd\" method=\"post\"><input type=\"hidden\" name=\"a\" value=\"lead\"><label>Aim lead</label>"
-                  "<input type=\"number\" name=\"v\" min=\"0\" max=\"500\" step=\"5\" value=\"") + aimLeadMs +
-           "\"> ms<button>Set</button></form>";
-    h += wform(buttons);
+    h = "<h3>" + title + "</h3><p>" + text + "</p>" + wform(buttons);
   }
   pushCard(C_WIZ, h.c_str(), now);
 }
 
-// ---------------------------------------------------------------- AS5600 panel
+// ---------------------------------------------------------------- sensor details panel
 void pushEncoder(uint32_t now) {
   char b[1800];
   if (!enc.found) {
@@ -422,65 +446,58 @@ void pushEncoder(uint32_t now) {
     pushCard(C_ENC, b, now);
     return;
   }
-  bool md = enc.status & 0x20, ml = enc.status & 0x10, mh = enc.status & 0x08;
-  const char *cls = "ok", *verdict = "Magnet OK";
-  const char *hint = "Now turn the magnet slowly through a full circle and watch the field swing.";
-  if (!md && ml) { cls = "bad"; verdict = "Magnet too far / not seen"; hint = "Bring the magnet closer: 0.5-3 mm above the chip, centered."; }
-  else if (!md) { cls = "bad"; verdict = "No magnet"; hint = "Place the magnet over the chip, about 1.5 mm away."; }
-  else if (mh) { cls = "warn"; verdict = "Magnet too close"; hint = "Back it off a little: the field is too strong."; }
-  else if (ml) { cls = "warn"; verdict = "Magnet a bit far"; hint = "Works, but closer would be better."; }
-
-  float deg = enc.raw * 360.0f / 4096;
-  int degQ = (int)lroundf(deg * 2);                          // half-degree steps: plenty for watching
+  const char *cls; const char *verdict = magnetVerdict(&cls);
+  float deg = angNow();
+  int degQ = (int)lroundf(deg * 2);
   float turned = enc.turnMax - enc.turnMin;
   char swing[200];
   if (enc.magMax >= enc.magMin && enc.magMax > 0) {
     float pct = 100.0f * (enc.magMax - enc.magMin) / max(1, (int)enc.magMax);
-    const char *q = turned < 330 ? "keep turning: needs a full circle" : pct < 5 ? "well centered" : pct < 15 ? "OK, could be better" : "off-center: slide the sensor";
-    snprintf(swing, sizeof swing, "%d&ndash;%d (%.0f%% swing) &middot; <b>%s</b>", enc.magMin, enc.magMax, pct, q);
+    snprintf(swing, sizeof swing, "%d&ndash;%d (%.0f%% swing over %.0f&deg; turned)", enc.magMin, enc.magMax, pct, turned);
   } else snprintf(swing, sizeof swing, "&ndash;");
-  float noise = encNoise();
   float nx = 50 + 40 * sinf(deg * PI / 180), ny = 50 - 40 * cosf(deg * PI / 180);
-
   snprintf(b, sizeof b,
            "<div class=\"enc\"><svg viewBox=\"0 0 100 100\" class=\"dial\"><circle cx=\"50\" cy=\"50\" r=\"46\"/>"
            "<line x1=\"50\" y1=\"50\" x2=\"%.1f\" y2=\"%.1f\"/></svg><div>"
-           "<div class=\"verdict %s\">%s</div><p>%s</p>"
+           "<div class=\"verdict %s\">%s</div>"
            "<table><tr><th>Angle</th><td>%.1f&deg; (raw %d)</td></tr>"
            "<tr><th>Field strength</th><td>%d &middot; gain %d</td></tr>"
            "<tr><th>Field swing</th><td>%s</td></tr>"
-           "<tr><th>Turned</th><td>%.0f&deg; since reset</td></tr>"
-           "<tr><th>Noise</th><td>%.2f&deg; peak-to-peak over 1 s (hold still)</td></tr></table></div></div>",
-           nx, ny, cls, verdict, hint, degQ / 2.0f, enc.raw / 8 * 8, enc.mag / 16 * 16, enc.agc, swing, turned, noise);
+           "<tr><th>Noise</th><td>%.2f&deg; peak-to-peak over 1 s</td></tr></table></div></div>",
+           nx, ny, cls, verdict, degQ / 2.0f, enc.raw / 8 * 8, enc.mag / 16 * 16, enc.agc, swing, encNoise());
   pushCard(C_ENC, b, now);
 }
 
 void pushCards(uint32_t now) {
-  char b[900], m[160];
-  const char *mvName[] = {"stopped", "running", "moving", "pausing"};
+  char b[900];
+  const char *mvName[] = {"stopped", "running", "pulse", "pausing", "moving"};
 
-  snprintf(b, sizeof b, "<div class=\"k\">Eyes</div><div class=\"v\">%s%s</div><div class=\"s\">%s%s</div>",
-           job != J_NONE ? JOB_NAMES[job] : mvName[mv.type], motorOn() ? (mv.dir > 0 ? " &rarr;" : " &larr;") : "",
-           motorOn() ? "" : "free-run speed ", motorOn() ? (String(mv.pct) + "%").c_str() : (String(speedPct) + "%").c_str());
+  if (mv.type == MV_SEEK) snprintf(b, sizeof b, "<div class=\"k\">Eyes</div><div class=\"v\">%s</div><div class=\"s\">%s &middot; %d%% %s</div>",
+                                   job != J_NONE ? JOB_NAMES[job] : "moving", sk.name, sk.pct, sk.dir > 0 ? "&rarr;" : "&larr;");
+  else snprintf(b, sizeof b, "<div class=\"k\">Eyes</div><div class=\"v\">%s%s</div><div class=\"s\">tolerance %.1f&deg; &middot; min speed %d%%</div>",
+                job != J_NONE ? JOB_NAMES[job] : mvName[mv.type], motorOn() ? (mv.dir > 0 ? " &rarr;" : " &larr;") : "", tolDeg, minSpeed);
   pushCard(C_EYES, b, now);
 
-  if (posKnown) {
-    int p = pctOf(posMs);
-    int n = snprintf(m, sizeof m, "%s", "");
-    if (rightMs >= 0) n += snprintf(m + n, sizeof m - n, "<b class=\"r\" style=\"left:%d%%\"></b>", pctOf(rightMs));
-    if (leftMs >= 0) n += snprintf(m + n, sizeof m - n, "<b class=\"l\" style=\"left:%d%%\"></b>", pctOf(leftMs));
-    snprintf(b, sizeof b, "<div class=\"k\">Position%s</div><div class=\"v\">%d%%</div><div class=\"s\">%d ms past center</div>"
-             "<div class=\"bar\"><b class=\"c\" style=\"left:0%%\"></b>%s<i style=\"left:%d%%\"></i></div>",
-             posRestored ? " (restored)" : "", p, (int)(posMs / 10) * 10, m, p);
+  if (calibrated && magnetOk()) {
+    float rel = relOf(angNow());
+    int p = (int)lroundf(pctOfRel(rel));
+    int bar = constrain(50 + p / 2, 0, 100);
+    snprintf(b, sizeof b, "<div class=\"k\">Eye position</div><div class=\"v\">%s%d%%</div><div class=\"s\">%+.1f&deg; from center (L %.0f&deg; / R %.0f&deg;)</div>"
+             "<div class=\"bar\"><b class=\"l\" style=\"left:0%%\"></b><b class=\"c\" style=\"left:50%%\"></b><b class=\"r\" style=\"left:100%%\"></b>"
+             "<i style=\"left:%d%%\"></i></div>",
+             p > 0 ? "R " : p < 0 ? "L " : "", abs(p), rel, rangeL(), rangeR(), bar);
+  } else if (!magnetOk()) {
+    snprintf(b, sizeof b, "<div class=\"k\">Eye position</div><div class=\"v\">?</div><div class=\"s\">no angle reading: see Sensor details</div>");
   } else {
-    snprintf(b, sizeof b, "<div class=\"k\">Position</div><div class=\"v\">?</div><div class=\"s\">jog to center, then Set center here</div>");
+    snprintf(b, sizeof b, "<div class=\"k\">Eye position</div><div class=\"v\">%.1f&deg;</div><div class=\"s\">sensor angle &middot; not calibrated</div>",
+             (int)lroundf(angNow() * 2) / 2.0f);
   }
   pushCard(C_POS, b, now);
 
-  snprintf(b, sizeof b, "<div class=\"k\">Calibration</div><div class=\"v\">%d ms</div><div class=\"s\">per turn &middot; R %s &middot; L %s &middot; lead %d ms</div>",
-           turnMs, rightMs >= 0 ? (String(pctOf(rightMs)) + "%").c_str() : "&ndash;",
-           leftMs >= 0 ? (String(pctOf(leftMs)) + "%").c_str() : "&ndash;", aimLeadMs);
-  pushCard(C_CAL, b, now);
+  const char *cls; const char *v = magnetVerdict(&cls);
+  snprintf(b, sizeof b, "<div class=\"k\">Angle sensor</div><div class=\"v %s\">%s</div><div class=\"s\">%s</div>", cls,
+           magnetOk() ? (String(angNow(), 1) + "&deg;").c_str() : "&ndash;", v);
+  pushCard(C_SENS, b, now);
 
   if (ledStep >= 0) snprintf(b, sizeof b, "<div class=\"k\">LEDs</div><div class=\"v\">steps</div><div class=\"s\">now %d%%</div>", LED_STEPS[ledStep]);
   else snprintf(b, sizeof b, "<div class=\"k\">LEDs</div><div class=\"v\">%s</div><div class=\"s\">%d%%%s</div>", LED_MODES[ledMode], ledPct,
@@ -493,212 +510,234 @@ void pushCards(uint32_t now) {
   snprintf(b, sizeof b, "<div class=\"k\">System</div><div class=\"v\">%s</div><div class=\"s\">v%s &middot; heap %luk &middot; reset %d</div>",
            shownRssi ? (String(shownRssi) + " dBm").c_str() : "AP mode", FW_VERSION, ESP.getFreeHeap() / 10240 * 10, resetReason);
   pushCard(C_SYS, b, now);
+
   pushWizard(now);
   pushEncoder(now);
 }
 
 // ---------------------------------------------------------------- settings in flash
-void saveSettings() {
-  prefs.putInt("turn", turnMs);
-  prefs.putInt("right", rightMs);
-  prefs.putInt("left", leftMs);
-  prefs.putInt("lead", aimLeadMs);
+void saveCal() {
+  prefs.putBool("cal", calibrated);
+  prefs.putFloat("r", rightDeg);
+  prefs.putFloat("l", leftDeg);
+  prefs.putFloat("c", centerDeg);
 }
-void savePos() {
-  prefs.putFloat("pos", posMs);
-  prefs.putFloat("odo", odoMs);
-  prefs.putBool("posk", posKnown);
-  posDirty = false;
-}
+void saveTuning() { prefs.putFloat("tol", tolDeg); prefs.putInt("minspd", minSpeed); }
 
 // ---------------------------------------------------------------- moves
 void startMove(MoveType t, int dir, int pct, uint32_t ms) {
   mv.type = t; mv.dir = dir; mv.pct = pct; mv.ms = ms; mv.start = millis();
   if (t == MV_PAUSE) { motorBrake(); return; }
-  if (pct != POS_SPEED && posKnown) { posKnown = false; posDirty = true; report("running below full speed: position no longer tracked"); }
   motorDrive(dir, pct);
 }
 
-void endMove() {
-  bool wasMotor = motorOn();
+void endMove(bool ok, const char *why) {
   mv.type = MV_NONE;
   motorBrake();
-  if (wasMotor) lastMoveEnd = millis();
-  if (job != J_NONE) jobStep();
+  if (job != J_NONE) jobStep(ok);
+  else if (why) report("%s", why);
 }
 
 void stopAll(const char *why) {
   bool busy = mv.type != MV_NONE || job != J_NONE;
-  if (motorOn()) lastMoveEnd = millis();
   job = J_NONE;
   mv.type = MV_NONE;
   motorBrake();
   if (busy && why) report("STOP (%s)", why);
 }
 
-// A forward timed move to a position (ms past center), stopping aimLeadMs early.
-void gotoMs(float target, const char *name) {
-  if (!posKnown) { report("go to %s: position unknown, set center first", name); return; }
-  float d = target - posMs;
-  while (d < 0) d += turnMs;
-  while (d >= turnMs) d -= turnMs;
-  float t = d - aimLeadMs;
-  if (t < 15) { report("go to %s: already there", name); return; }
-  report("go to %s: forward %lu ms", name, (uint32_t)t);
-  startMove(MV_TIMED, 1, POS_SPEED, (uint32_t)t);
+// ---------------------------------------------------------------- closed-loop seek
+// Drive the cam until the sensor reads target (degrees, 0..360). Direction is found by
+// watching the angle: if the eyes move away from the target, reverse.
+void seekTo(float target, const char *name, float tol = -1) {
+  if (!magnetOk()) { report("go to %s: no angle reading", name); if (job != J_NONE) { job = J_NONE; } return; }
+  sk.target = norm360(target);
+  sk.name = name;
+  sk.tol = tol > 0 ? tol : tolDeg;
+  float err = wrap180(sk.target - angNow());
+  if (fabsf(err) <= sk.tol) { report("go to %s: already there (%+.1f&deg;)", name, err); if (job != J_NONE) jobStep(true); return; }
+  sk.dir = 1; sk.flips = 0; sk.settles = 0; sk.settleAt = 0; sk.kickUntil = 0;
+  sk.checkAt = millis(); sk.angAtCheck = angNow();
+  sk.pct = 100;
+  startMove(MV_SEEK, sk.dir, 100, 4000);
+}
+
+void seekStep(uint32_t now) {
+  if (!magnetOk()) { endMove(false, "go to: lost the angle reading"); return; }
+  float ang = angNow();
+  float err = wrap180(sk.target - ang);
+  if (sk.settleAt) {                                         // braked: wait for the coast to finish, then check
+    if (since(sk.settleAt, now) < 150) return;
+    sk.settleAt = 0;
+    if (fabsf(err) <= sk.tol) {
+      mv.type = MV_NONE;
+      if (job == J_NONE) report("go to %s: done, %+.1f&deg; off", sk.name, err);
+      else { report("%s: %+.1f&deg; off", sk.name, err); jobStep(true); }
+      return;
+    }
+    if (++sk.settles > 4) { endMove(false, "go to: overshoots and won't settle. Raise the tolerance or lower min speed."); return; }
+    sk.checkAt = now; sk.angAtCheck = ang;                   // coasted past: correct
+  }
+  if (fabsf(err) <= sk.tol) { motorBrake(); sk.settleAt = now; return; }
+  if (since(mv.start, now) > mv.ms) { endMove(false, "go to: timed out. Is the motor powered?"); return; }
+
+  // every 40 ms: is the angle moving toward the target? If not, reverse. Barely moving: kick.
+  if (since(sk.checkAt, now) >= 40) {
+    float moved = wrap180(ang - sk.angAtCheck);
+    if (fabsf(moved) > 0.15f) {
+      if ((moved > 0) != (err > 0)) { sk.dir = -sk.dir; sk.flips++; }
+    } else if (now > sk.kickUntil) sk.kickUntil = now + 150;  // stalled at low speed: full power briefly
+    sk.checkAt = now; sk.angAtCheck = ang;
+    if (sk.flips > 16) { endMove(false, "go to: keeps reversing. Check the calibration."); return; }
+  }
+  float a = fabsf(err);
+  int pct = a >= SLOW_ZONE ? 100 : minSpeed + (int)((100 - minSpeed) * max(0.0f, a - sk.tol) / (SLOW_ZONE - sk.tol));
+  if (now < sk.kickUntil) pct = 100;
+  sk.pct = constrain(pct, minSpeed, 100);
+  motorDrive(sk.dir, sk.pct);
+}
+
+void gotoPct(float pct, const char *name) {
+  if (!calibrated) { report("go to: calibrate first"); job = J_NONE; return; }
+  seekTo(sensorOfPct(pct), name);
 }
 
 // ---------------------------------------------------------------- jobs
 void startJob(Job j) {
   stopAll(nullptr);
   job = j; jStep = 0;
-  jobStep();
+  jobStep(true);
 }
 
-void jobStep() {
+void jobStep(bool ok) {
+  if (!ok && job != J_SWEEP) { job = J_NONE; return; }
   switch (job) {
-    case J_DART: {                                           // glance one way and back, then the other
-      static const float SEQ[] = {1, -1, -1, 1, 0.66f, -0.66f};
-      if (jStep >= 12) { job = J_NONE; report("dart done"); break; }
-      if (jStep % 2 == 0) { float s = SEQ[jStep / 2]; startMove(MV_TIMED, s > 0 ? 1 : -1, POS_SPEED, (uint32_t)(fabsf(s) * jArg)); }
-      else startMove(MV_PAUSE, 1, 0, 350);
-      jStep++;
-      break;
-    }
-    case J_SPIN:
+    case J_SWEEP:                                            // run a bit over one turn, watching the extremes
       if (jStep == 0) {
+        if (!magnetOk()) { job = J_NONE; report("sweep: no angle reading"); break; }
+        encResetStats();
+        sweepStartDeg = angNow();
         jStep = 1;
-        uint32_t t = (uint32_t)max(15, spinTurns * turnMs - aimLeadMs);
-        report("spin %d turns: %lu ms. Should end where it started; if not, jog to center and press Back at center.", spinTurns, t);
-        startMove(MV_TIMED, 1, POS_SPEED, t);
+        report("sweep: running %d ms", TURN_MS * 13 / 10);
+        startMove(MV_TIMED, 1, 100, TURN_MS * 13 / 10);
       } else {
         job = J_NONE;
-        report("spin done");
+        float range = enc.turnMax - enc.turnMin;
+        if (range < 20 || range > 200) {
+          report("sweep: only %.0f&deg; of travel seen. Did the eyes move? Is the magnet on the pivot?", range);
+          break;
+        }
+        wizExtA = norm360(sweepStartDeg + enc.turnMax);
+        wizExtB = norm360(sweepStartDeg + enc.turnMin);
+        wizSwept = true;
+        char b1[64], b2[96];
+        snprintf(b1, sizeof b1, "%.0f&deg; of eye travel", range);
+        snprintf(b2, sizeof b2, "extremes at %.1f&deg; and %.1f&deg; on the sensor", wizExtA, wizExtB);
+        resultRow("range sweep", b1, b2);
       }
       break;
-    case J_TOUR: {                                           // center, right, left, center with pauses
-      static const char *NAMES[] = {"center", "right", "left", "center"};
+    case J_TOUR: {                                           // left, center, right, center with pauses
+      static const float PCTS[] = {-100, 0, 100, 0};
+      static const char *NAMES[] = {"full left", "center", "full right", "center"};
       if (jStep >= 8) { job = J_NONE; report("tour done"); break; }
-      if (jStep % 2 == 0) {
-        int i = jStep / 2;
-        float target = i == 1 ? rightMs : i == 2 ? leftMs : 0;
-        jStep++;
-        if ((i == 1 && rightMs < 0) || (i == 2 && leftMs < 0) || !posKnown) { jobStep(); break; }
-        Job keep = job;
-        gotoMs(target, NAMES[i]);
-        job = keep;
-        if (mv.type == MV_NONE) jobStep();                   // already there: next stop
-      } else {
-        jStep++;
-        startMove(MV_PAUSE, 1, 0, 1200);
-      }
+      int i = jStep / 2;
+      jStep++;
+      if (jStep % 2 == 1) gotoPct(PCTS[i], NAMES[i]);
+      else startMove(MV_PAUSE, 1, 0, 1000);
+      break;
+    }
+    case J_DART: {                                           // glance left and right, back to center
+      static const float PCTS[] = {-60, 60, 0};
+      static const char *NAMES[] = {"glance left", "glance right", "center"};
+      if (jStep >= 6) { job = J_NONE; break; }
+      int i = jStep / 2;
+      jStep++;
+      if (jStep % 2 == 1) gotoPct(PCTS[i], NAMES[i]);
+      else startMove(MV_PAUSE, 1, 0, 400);
       break;
     }
     default: break;
   }
 }
 
-// ---------------------------------------------------------------- calibration helpers
-void setCenter() {
-  posMs = 0; odoMs = 0; posKnown = true; posRestored = false; savePos();
-  report("center set here");
-}
-
-bool learnTurn() {
-  char b1[64], b2[128];
-  stopAll(nullptr);
-  if (!posKnown) { report("set center first"); return false; }
-  int turns = (int)lroundf(odoMs / turnMs);
-  if (turns < 1) { report("back at center: less than a turn since center was set. Spin some turns first."); return false; }
-  int old = turnMs;
-  turnMs = constrain((int)lroundf(odoMs / turns), 1000, 20000);
-  snprintf(b1, sizeof b1, "%d ms per turn", turnMs);
-  snprintf(b2, sizeof b2, "%.0f ms over %d turns (was %d ms, %+d)", odoMs, turns, old, turnMs - old);
-  resultRow("learned turn length", b1, b2);
-  posMs = 0; odoMs = 0; posRestored = false;
-  saveSettings(); savePos();
-  return true;
-}
-
-void markHere(bool right) {
-  char b1[48], b2[64], b3[48];
-  int &mark = right ? rightMs : leftMs;
-  mark = (int)lroundf(posMs);
-  saveSettings();
-  snprintf(b1, sizeof b1, "marked %s", right ? "full right" : "full left");
-  snprintf(b2, sizeof b2, "%d ms past center", mark);
-  snprintf(b3, sizeof b3, "%d%% of a turn", pctOf(mark));
-  resultRow(b1, b2, b3);
-}
-
-// a: 0 start, 1 quick re-center, 2 next, 3 back, 4 cancel, 5 skip, 6 spin, 7 tour, 8 go near mark
+// ---------------------------------------------------------------- calibration wizard
 void wizard(int a) {
-  char b[160];
   switch (a) {
-    case 0: case 1:
+    case 0:
       stopAll(nullptr);
-      wizSnapTurn = turnMs; wizSnapRight = rightMs; wizSnapLeft = leftMs;
-      wizQuick = a == 1; wizStep = 1; wizSpun = false;
-      report(wizQuick ? "re-center: jog to dead center" : "calibration wizard started");
+      snapCal = calibrated; snapR = rightDeg; snapL = leftDeg; snapC = centerDeg;
+      wizStep = 1; wizSwept = false;
+      report("calibration wizard started");
       break;
-    case 2:                                                  // next: commit this step
-      stopAll(nullptr);
-      if (wizStep == 1) {
-        setCenter();
-        if (wizQuick) { wizStep = 0; report("re-centered"); break; }
-        wizStep = 2; wizSpun = false;
-      } else if (wizStep == 2) {
-        if (!wizSpun) { report("spin the 10 turns first (or Skip)"); break; }
-        if (learnTurn()) wizStep = 3;
-      } else if (wizStep == 3 || wizStep == 4) {
-        if (!posKnown) { report("position unknown: go back to step 1"); break; }
-        markHere(wizStep == 3);
-        wizStep++;
-        if (wizStep == 5) startJob(J_TOUR);                  // show the result straight away
+    case 2:                                                  // next
+      if (wizStep == 1) { if (magnetOk()) wizStep = 2; else report("the sensor needs to read the magnet first"); }
+      else if (wizStep == 2) {
+        if (!wizSwept) { report("press Sweep first"); break; }
+        wizStep = 3;
+        // go to extreme A (a little inside it) and ask which side it is
+        seekTo(norm360(wizExtA - wrap180(wizExtA - wizExtB) / fabsf(wrap180(wizExtA - wizExtB)) * EDGE_MARGIN), "extreme");
+      } else if (wizStep == 4) {
+        stopAll(nullptr);
+        centerDeg = angNow();
+        calibrated = true;
+        char b1[64]; snprintf(b1, sizeof b1, "%.1f&deg; on the sensor", centerDeg);
+        char b2[96]; snprintf(b2, sizeof b2, "range L %.0f&deg; / R %.0f&deg;", rangeL(), rangeR());
+        resultRow("center set", b1, b2);
+        wizStep = 5;
+        startJob(J_TOUR);
       } else if (wizStep == 5) {
-        snprintf(b, sizeof b, "%d ms per turn", turnMs);
-        char n[96]; snprintf(n, sizeof n, "right %d%%, left %d%%, aim lead %d ms", pctOf(rightMs), pctOf(leftMs), aimLeadMs);
-        resultRow("calibration saved", b, n);
+        stopAll(nullptr);
+        saveCal();
+        char b1[64]; snprintf(b1, sizeof b1, "L %.0f&deg; / R %.0f&deg; of travel", rangeL(), rangeR());
+        char b2[96]; snprintf(b2, sizeof b2, "center %.1f&deg;, tolerance %.1f&deg;", centerDeg, tolDeg);
+        resultRow("calibration saved", b1, b2);
         wizStep = 0;
       }
       break;
-    case 3:                                                  // back (learning the turn needs center, so 3 -> 1)
+    case 3:                                                  // back
       stopAll(nullptr);
-      wizStep = wizStep <= 3 ? 1 : wizStep - 1;
-      wizSpun = false;
+      if (wizStep == 5) { calibrated = snapCal; centerDeg = snapC; }
+      if (wizStep > 1) wizStep--;
+      if (wizStep == 3) wizStep = 2;                         // re-asking the side needs the move again
       break;
-    case 4:
+    case 4:                                                  // cancel
       stopAll(nullptr);
-      turnMs = wizSnapTurn; rightMs = wizSnapRight; leftMs = wizSnapLeft; saveSettings();
+      calibrated = snapCal; rightDeg = snapR; leftDeg = snapL; centerDeg = snapC;
       wizStep = 0;
-      report("calibration wizard cancelled: previous turn length and marks kept");
+      report("calibration wizard cancelled: previous calibration kept");
       break;
-    case 5:                                                  // skip the turn length
-      if (wizStep == 2) { stopAll(nullptr); wizStep = 3; report("kept turn length %d ms", turnMs); }
-      break;
-    case 6:                                                  // spin 10 turns from center
-      if (wizStep != 2) break;
-      odoMs = 0; posMs = 0;                                  // step 1 just set center here
-      wizSpun = true;
-      spinTurns = 10; startJob(J_SPIN);
-      break;
-    case 7: startJob(J_TOUR); break;
-    case 8:
+    case 6: if (wizStep == 2) { wizSwept = false; startJob(J_SWEEP); } break;
+    case 7: if (wizStep == 5) startJob(J_TOUR); break;
+    case 8: case 9:                                          // the extreme we went to is right (8) or left (9)
+      if (wizStep != 3) break;
       stopAll(nullptr);
-      if (wizStep == 3 && rightMs >= 0) gotoMs(rightMs, "old right mark");
-      if (wizStep == 4 && leftMs >= 0) gotoMs(leftMs, "old left mark");
+      if (a == 8) { rightDeg = wizExtA; leftDeg = wizExtB; } else { rightDeg = wizExtB; leftDeg = wizExtA; }
+      // start center at the middle of the range
+      centerDeg = norm360(leftDeg + wrap180(rightDeg - leftDeg) / 2);
+      wizNudge = centerDeg;
+      wizStep = 4;
+      seekTo(wizNudge, "middle");
       break;
+    case 10: case 11: case 12: case 13: {                    // nudge in eye terms
+      if (wizStep != 4) break;
+      static const float STEP[] = {-2, -0.5f, 0.5f, 2};
+      float rs = wrap180(rightDeg - leftDeg) >= 0 ? 1.0f : -1.0f;
+      wizNudge = norm360(angNow() + STEP[a - 10] * rs);
+      stopAll(nullptr);
+      seekTo(wizNudge, "nudge", min(tolDeg, 0.3f));           // small steps need a tight tolerance
+      break;
+    }
   }
 }
 
 // ---------------------------------------------------------------- commands
 void status() {
-  report("pos %s %.0f ms (%d%%) | turn %d ms | right %d | left %d | lead %d ms | led %s %d%%",
-         posKnown ? "" : "unknown", posMs, pctOf(posMs), turnMs, rightMs, leftMs, aimLeadMs, LED_MODES[ledMode], ledPct);
+  report("sensor %s %.1f&deg; | %s | L %.1f C %.1f R %.1f | tol %.1f | min speed %d | led %s %d%%",
+         magnetOk() ? "ok" : "no reading", angNow(), calibrated ? "calibrated" : "not calibrated",
+         leftDeg, centerDeg, rightDeg, tolDeg, minSpeed, LED_MODES[ledMode], ledPct);
 }
 
 void runCmd(char a, int v, int t) {
-  char b1[96], b2[160];
   switch (a) {
     case 'x': stopAll("stop pressed"); break;
     case 'f': case 'r':
@@ -710,30 +749,20 @@ void runCmd(char a, int v, int t) {
       speedPct = constrain((v + 2) / 5 * 5, 5, 100);
       if (mv.type == MV_RUN && job == J_NONE) startMove(MV_RUN, mv.dir, speedPct, RUN_LIMIT_MS);
       break;
-    case 'j': stopAll(nullptr); startMove(MV_TIMED, t < 0 ? -1 : 1, POS_SPEED, constrain(abs(v), 10, 2000)); break;
-    case 'c': stopAll(nullptr); setCenter(); break;          // set center here
-    case 'g': learnTurn(); break;                            // back at center: learn the turn length
-    case 'w': wizard(v); break;
-    case 'k':                                                // mark: v = 1 right, 2 left
+    case 'j': stopAll(nullptr); startMove(MV_TIMED, t < 0 ? -1 : 1, 100, constrain(abs(v), 10, 2000)); break;
+    case 'G': {                                              // go to: v = percent, -100..100
       stopAll(nullptr);
-      if (!posKnown) { report("set center first"); break; }
-      markHere(v == 1);
-      break;
-    case 'G': {                                              // go to: v = 0 center, 1 right, 2 left, 3 = t%
-      stopAll(nullptr);
-      if (v == 1 && rightMs < 0) { report("mark full right first"); break; }
-      if (v == 2 && leftMs < 0) { report("mark full left first"); break; }
-      if (v == 3) { snprintf(b1, sizeof b1, "%d%%", constrain(t, 0, 99)); gotoMs(turnMs * constrain(t, 0, 99) / 100.0f, b1); }
-      else gotoMs(v == 1 ? rightMs : v == 2 ? leftMs : 0, v == 1 ? "right" : v == 2 ? "left" : "center");
+      char name[24]; snprintf(name, sizeof name, v == 0 ? "center" : "%s %d%%", v > 0 ? "right" : "left", abs(v));
+      static char nameKeep[24]; strlcpy(nameKeep, name, sizeof nameKeep);
+      gotoPct(v, nameKeep);
       break;
     }
-    case 'N': spinTurns = constrain(v ? v : 1, 1, 50); startJob(J_SPIN); break;
-    case 'T':
-      turnMs = constrain(v, 1000, 20000); saveSettings();
-      report("turn length set to %d ms", turnMs);
-      break;
-    case 'L': aimLeadMs = constrain(v, 0, 500); saveSettings(); report("aim lead %d ms", aimLeadMs); break;
-    case 'd': jArg = constrain(v ? v : 180, 40, 800); startJob(J_DART); break;
+    case 'd': if (calibrated) startJob(J_DART); else report("calibrate first"); break;
+    case 'T': if (calibrated) startJob(J_TOUR); else report("calibrate first"); break;
+    case 'O': tolDeg = constrain(v / 10.0f, 0.3f, 5.0f); saveTuning(); report("tolerance %.1f&deg;", tolDeg); break;
+    case 'S': minSpeed = constrain(v, 20, 100); saveTuning(); report("min speed %d%%", minSpeed); break;
+    case 'w': wizard(v); break;
+    case 'Y': encResetStats(); report("sensor stats reset: turn the magnet (or run the cam) a full circle"); break;
     case 'E':
       ledStep = 0; ledStepAt = millis();
       report("LED steps: 100, 50, 25, 12, 6, 3, 2, 1%%, 2.5 s each. Note where they vanish.");
@@ -745,7 +774,6 @@ void runCmd(char a, int v, int t) {
     case 'W': memset(cardHash, 0, sizeof cardHash); sendPageState(); break;   // new page: resend everything
     case 'Z': logCount = resCount = 0; if (canPush()) { stream("update", "log", ""); stream("update", "results", ""); } break;
     case '?': status(); break;
-    case 'Y': encResetStats(); report("AS5600: stats reset. Turn the magnet a full circle."); break;
   }
 }
 
@@ -764,17 +792,19 @@ void setupWeb() {
   });
   server.on("/cmd", HTTP_POST, [](AsyncWebServerRequest *r) {
     String a = r->hasParam("a", true) ? r->getParam("a", true)->value() : "";
-    int v = r->hasParam("v", true) ? r->getParam("v", true)->value().toInt() : 0;
+    String vs = r->hasParam("v", true) ? r->getParam("v", true)->value() : "0";
+    int v = vs.toInt();
     int t = r->hasParam("t", true) ? r->getParam("t", true)->value().toInt() : 0;
     static const struct { const char *name; char code; } MAP[] = {
       {"stop", 'x'}, {"fwd", 'f'}, {"rev", 'r'}, {"speed", 's'}, {"jogf", 'j'}, {"jogr", 'j'},
-      {"center", 'c'}, {"learn", 'g'}, {"mark", 'k'}, {"goto", 'G'}, {"spin", 'N'}, {"turn", 'T'},
-      {"lead", 'L'}, {"dart", 'd'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
-      {"clearlog", 'Z'}, {"wiz", 'w'}, {"encreset", 'Y'}};
+      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"wiz", 'w'},
+      {"encreset", 'Y'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
+      {"clearlog", 'Z'}};
     Cmd c = {0, v, t};
     for (auto &m : MAP) if (a == m.name) c.a = m.code;
     if (a == "jogr") c.t = -1;
     if (a == "jogf") c.t = 1;
+    if (a == "tol") c.v = (int)lroundf(vs.toFloat() * 10);   // tenths of a degree
     if (c.a) xQueueSend(cmdQueue, &c, 0);
     // Live state comes back over the WebSocket; the reply only clears or sets the message line.
     String body = "<turbo-stream action=\"update\" target=\"msg\"><template>" +
@@ -825,28 +855,26 @@ void setup() {
   cmdQueue = xQueueCreate(8, sizeof(Cmd));
   resetReason = (int)esp_reset_reason();
 
-  prefs.begin("headtest2", false);
-  turnMs = prefs.getInt("turn", DEF_TURN_MS);
-  rightMs = prefs.getInt("right", DEF_RIGHT_MS);
-  leftMs = prefs.getInt("left", DEF_LEFT_MS);
-  aimLeadMs = prefs.getInt("lead", 0);
-  posKnown = prefs.getBool("posk", true);   // nothing saved yet: assume the eyes are centered
-  posMs = prefs.getFloat("pos", 0);
-  odoMs = prefs.getFloat("odo", 0);
-  posRestored = posKnown;
+  prefs.begin("headtest3", false);
+  calibrated = prefs.getBool("cal", false);
+  rightDeg = prefs.getFloat("r", 0);
+  leftDeg = prefs.getFloat("l", 0);
+  centerDeg = prefs.getFloat("c", 0);
+  tolDeg = prefs.getFloat("tol", 1.0f);
+  minSpeed = prefs.getInt("minspd", 50);
+
+  Wire.begin(PIN_SDA, PIN_SCL, 400000);
+  Wire.setTimeOut(5);
 
   delay(1500);
   Serial.printf("\n# freddy_head_web v%s (%s) | reset reason %d | pins: %s\n", FW_VERSION, FW_BUILD, resetReason, USE_PCB_PINS ? "PCB" : "breadboard");
-  Wire.begin(PIN_SDA, PIN_SCL, 400000);
-  Wire.setTimeOut(5);
   setupWifi();
   setupWeb();
   // Watchdog: if loop() hangs, reset. A reset releases the motor pins.
   esp_task_wdt_config_t wdt = {.timeout_ms = 2000, .idle_core_mask = 0, .trigger_panic = true};
   if (esp_task_wdt_reconfigure(&wdt) != ESP_OK) esp_task_wdt_init(&wdt);
   esp_task_wdt_add(NULL);
-  if (posRestored) report("booted v%s. Position restored (%d%% of a turn): check the eyes agree.", FW_VERSION, pctOf(posMs));
-  else report("booted v%s. Jog the eyes to dead center, then press Set center here.", FW_VERSION);
+  report("booted v%s. %s", FW_VERSION, calibrated ? "Calibration loaded." : "Not calibrated: run the calibration wizard.");
 }
 
 void loop() {
@@ -859,32 +887,16 @@ void loop() {
     else if (k == '?') runCmd('?', 0, 0);
   }
   uint32_t now = millis();
-  static uint32_t lastLoop = now;
-  uint32_t dt = since(lastLoop, now);
-  lastLoop = now;
-
   encPoll(now);
 
-  // position: count travel while the motor runs at full speed
-  if (motorOn() && mv.pct == POS_SPEED && posKnown) {
-    float d = mv.dir * (float)dt;
-    posMs += d; odoMs += d;
-    while (posMs < 0) posMs += turnMs;
-    while (posMs >= turnMs) posMs -= turnMs;
-    posDirty = true;
-    posRestored = false;
-  }
-
-  // move timeouts
+  // moves
   uint32_t in = since(mv.start, now);
   switch (mv.type) {
-    case MV_TIMED: case MV_PAUSE: if (in >= mv.ms) endMove(); break;
-    case MV_RUN: if (in >= mv.ms) { endMove(); report("30 s limit: stopped"); } break;
+    case MV_TIMED: case MV_PAUSE: if (in >= mv.ms) endMove(true, nullptr); break;
+    case MV_RUN: if (in >= mv.ms) endMove(true, "30 s limit: stopped"); break;
+    case MV_SEEK: seekStep(now); break;
     case MV_NONE: break;
   }
-
-  // save the position once the eyes have been still for a second (not during moves: flash wear)
-  if (posDirty && !motorOn() && since(lastMoveEnd, now) > 1000) savePos();
 
   // LEDs
   if (ledStep >= 0) {
@@ -910,8 +922,8 @@ void loop() {
     }
   }
 
-  // status LED: blue = moving, green = position known, amber = unknown
-  if (motorOn()) rgb(0, 0, 40); else if (posKnown) rgb(0, 20, 0); else rgb(30, 15, 0);
+  // status LED: blue = moving, green = calibrated with a good reading, amber = otherwise
+  if (motorOn()) rgb(0, 0, 40); else if (calibrated && magnetOk()) rgb(0, 20, 0); else rgb(30, 15, 0);
 
   static uint32_t lastCheck = 0;
   if (now - lastCheck >= 50) { lastCheck = now; pushCards(now); }

@@ -57,6 +57,10 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .dial line { stroke:var(--accent); stroke-width:5; stroke-linecap:round; }
   .verdict { font-size:20px; font-weight:700; }
   .verdict.ok { color:var(--ok); } .verdict.warn { color:#d08a00; } .verdict.bad { color:var(--bad); }
+  input[type=range].wide { width:260px; }
+  .lr { font-weight:700; color:var(--mute); }
+  b.ok { color:var(--ok); } b.warn { color:#d08a00; } b.bad { color:var(--bad); }
+  .v.ok { color:var(--ok); } .v.warn { color:#d08a00; } .v.bad { color:var(--bad); }
   .bar i { position:absolute; top:-3px; width:16px; height:16px; margin-left:-8px; border-radius:50%; background:var(--accent); }
   .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
   form { margin:0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
@@ -90,83 +94,31 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
 </header>
 <main>
   <section class="cards">
-    <div class="card" id="c_eyes"></div><div class="card wide" id="c_pos"></div><div class="card" id="c_cal"></div>
+    <div class="card" id="c_eyes"></div><div class="card wide" id="c_pos"></div><div class="card" id="c_sens"></div>
     <div class="card" id="c_led"></div><div class="card" id="c_sys"></div>
   </section>
   <div id="msg"></div>
 
   <section id="wiz" class="wiz"></section>
 
-  <h2>Eye angle sensor</h2>
-  <div class="card" id="enc"></div>
-  <div class="row"><form action="/cmd" method="post"><button name="a" value="encreset">Reset stats</button></form></div>
-  <p class="hint">Alignment: get "Magnet OK", reset stats, then turn the magnet slowly through a full circle. A centered
-    magnet keeps the field nearly constant all the way round: slide the sensor until the swing is small. Then hold
-    still and check the noise.</p>
-
   <h2>Go to</h2>
   <div class="row">
     <form action="/cmd" method="post"><input type="hidden" name="a" value="goto">
-      <button name="v" value="0">Center</button><button name="v" value="1">Right</button><button name="v" value="2">Left</button></form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto"><input type="hidden" name="v" value="3">
-      <input type="number" name="t" min="0" max="99" value="25">% of a turn<button>Go</button></form>
-    <form action="/cmd" method="post"><label>Dart</label>
-      <input type="number" name="v" min="40" max="800" step="10" value="180"> ms<button name="a" value="dart">Dart</button></form>
-  </div>
-  <p class="hint">Go-to moves run forward only, so the eyes may sweep past other positions on the way.</p>
-
-  <h2>Free run</h2>
-  <div class="row">
-    <form action="/cmd" method="post"><button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
-    <form action="/cmd" method="post">
-      <input type="hidden" name="a" value="speed"><label>Speed</label>
-      <span id="f_speed"><input type="range" name="v" min="5" max="100" step="5" value="100"
-             oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output></span>
-    </form>
-  </div>
-  <p class="hint">Below 100% the position isn't tracked: set center again afterwards.</p>
-
-  <details class="manual"><summary>Manual calibration</summary>
-  <h2>Jog and mark</h2>
-  <div class="row">
-    <form action="/cmd" method="post" class="jog">
-      <button name="a" value="jogr" onclick="this.form.v.value=250">&laquo; 250</button>
-      <button name="a" value="jogr" onclick="this.form.v.value=100">100</button>
-      <button name="a" value="jogr" onclick="this.form.v.value=50">50</button>
-      <button name="a" value="jogr" onclick="this.form.v.value=20">20 &lsaquo;</button>
-      <span class="gap"></span>
-      <button name="a" value="jogf" onclick="this.form.v.value=20">&rsaquo; 20</button>
-      <button name="a" value="jogf" onclick="this.form.v.value=50">50</button>
-      <button name="a" value="jogf" onclick="this.form.v.value=100">100</button>
-      <button name="a" value="jogf" onclick="this.form.v.value=250">250 &raquo;</button>
-      <input type="hidden" name="v" value="50">
-    </form>
+      <button name="v" value="-100">Full left</button><button name="v" value="-50">Left</button>
+      <button name="v" value="0" class="primary">Center</button>
+      <button name="v" value="50">Right</button><button name="v" value="100">Full right</button></form>
   </div>
   <div class="row">
-    <form action="/cmd" method="post"><button name="a" value="center" class="primary">Set center here</button></form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="mark">
-      <button name="v" value="1">Mark full right</button><button name="v" value="2">Mark full left</button></form>
-  </div>
-  <p class="hint">Jog pulses are in ms at full speed (&rsaquo; forward, &lsaquo; reverse). Jog until the eyes look dead
-    ahead and press Set center here. Then jog to the far right and mark it, and the same for the left.</p>
-
-  <h2>Turn length</h2>
-  <div class="row">
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="spin"><label>Spin</label>
-      <input type="number" name="v" min="1" max="50" value="10"> turns<button>Spin</button></form>
-    <form action="/cmd" method="post"><button name="a" value="learn" class="primary">Back at center: learn turn</button></form>
+    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto"><label>Look</label>
+      <span class="lr">L</span><input type="range" name="v" min="-100" max="100" step="5" value="0" class="wide"
+        oninput="this.nextElementSibling.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><span class="lr">R</span>
+      <output>0%</output></form>
   </div>
   <div class="row">
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="turn"><label>Turn</label>
-      <span id="f_turn"><input type="number" name="v" min="1000" max="20000" value="4224"></span> ms<button>Set</button></form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="lead"><label>Aim lead</label>
-      <span id="f_lead"><input type="number" name="v" min="0" max="500" step="5" value="0"></span> ms<button>Set</button></form>
+    <form action="/cmd" method="post"><button name="a" value="dart">Glance left &amp; right</button><button name="a" value="tour">Tour</button></form>
   </div>
-  <p class="hint">From center, spin 10 turns. The eyes should end centered; jog them back to dead center if not, then
-    press Back at center. It divides the whole trip by the number of turns, so a few ms of jog error barely counts.
-    If go-to moves keep landing a little past the target, raise the aim lead.</p>
-
-  </details>
+  <p class="hint">Positions are % of the way from center to full left or full right, measured by the angle sensor.
+    The control loop drives the cam whichever way gets there and stops within the tolerance.</p>
 
   <h2>Lights</h2>
   <div class="row">
@@ -182,6 +134,45 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
     <form action="/cmd" method="post"><input type="hidden" name="a" value="period"><label>Period</label>
       <span id="f_period"><input type="number" name="v" min="200" max="10000" step="100" value="3000"></span> ms<button>Set</button></form>
   </div>
+
+  <details class="manual"><summary>Tuning</summary>
+    <div class="row">
+      <form action="/cmd" method="post"><input type="hidden" name="a" value="tol"><label>Tolerance</label>
+        <span id="f_tol"><input type="number" name="v" min="0.3" max="5" step="0.1" value="1.0"></span>&deg;<button>Set</button></form>
+      <form action="/cmd" method="post"><input type="hidden" name="a" value="minspd"><label>Min speed</label>
+        <span id="f_minspd"><input type="number" name="v" min="20" max="100" step="5" value="50"></span>%<button>Set</button></form>
+    </div>
+    <p class="hint">Tolerance: how close a go-to has to land. Min speed: how slowly it creeps in near the target. If go-tos
+      overshoot back and forth, raise the tolerance or lower min speed; if they stall short of the target, raise min speed.</p>
+  </details>
+
+  <details class="manual"><summary>Sensor details</summary>
+    <div class="card" id="enc"></div>
+    <div class="row"><form action="/cmd" method="post"><button name="a" value="encreset">Reset stats</button></form></div>
+    <p class="hint">Field swing: reset, then turn the cam a full circle (Run &rarr; below). A small swing means the magnet is
+      centered over the chip. Noise: hold still.</p>
+  </details>
+
+  <details class="manual"><summary>Manual motor</summary>
+    <div class="row">
+      <form action="/cmd" method="post" class="jog">
+        <button name="a" value="jogr" onclick="this.form.v.value=250">&laquo; 250</button>
+        <button name="a" value="jogr" onclick="this.form.v.value=50">50 &lsaquo;</button><span class="gap"></span>
+        <button name="a" value="jogf" onclick="this.form.v.value=50">&rsaquo; 50</button>
+        <button name="a" value="jogf" onclick="this.form.v.value=250">250 &raquo;</button>
+        <input type="hidden" name="v" value="50"></form>
+    </div>
+    <div class="row">
+      <form action="/cmd" method="post"><button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
+      <form action="/cmd" method="post">
+        <input type="hidden" name="a" value="speed"><label>Speed</label>
+        <span id="f_speed"><input type="range" name="v" min="5" max="100" step="5" value="100"
+               oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output></span>
+      </form>
+    </div>
+    <p class="hint">Raw motor pulses (ms) and free running, for debugging. The cam direction (&rsaquo;/&lsaquo;) isn't the eye
+      direction: the eyes swing both ways as the cam turns.</p>
+  </details>
 
   <h2>Results</h2>
   <table><thead><tr><th>What</th><th>Result</th><th>Notes</th></tr></thead><tbody id="results"></tbody></table>

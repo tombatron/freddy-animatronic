@@ -41,16 +41,18 @@ These are breadboard pins. The controller PCB drives the eyes from GPIO11/12 (mo
 
 Flash [`firmware/freddy_head_web`](../firmware/freddy_head_web/) (needs the "ESP Async WebServer" and "Async TCP" libraries by ESP32Async; copy `secrets.h.example` to `secrets.h` for your WiFi) and open **http://freddy.local**. Without `secrets.h` it starts an access point "Freddy" (password `fazbear1987`) at http://192.168.4.1. The header shows the firmware version.
 
-**The eye home switch is broken.** Its two leaf contacts came out of their holder during testing (probably while running the cam in reverse, which the stock board never does), and they can't be reached without taking the eye mechanism apart. Since v1.2.0 the sketch positions the eyes by time alone, with center set by eye. **v2.0.0 adds a calibration wizard** at the top of the page that walks through the steps below (center, turn length, full right, full left, then a check tour of center → right → left → center), with Back, Skip and Cancel (Cancel puts the old calibration back). **Quick re-center** is just the first step, for when the eyes have drifted. The manual controls are still there under "Manual calibration". The steps:
+**v3.0: the eyes are positioned from their measured angle.** The eye home switch broke during testing (its leaf contacts came out), so an **AS5600 magnetic angle sensor** now sits over a diametric magnet glued to the eyeball's top pivot (see [future improvements](future-improvements.md) for the mounting). The firmware always knows where the eyes point: no homing, no timing, no drift.
 
-1. **Find center:** jog with 20–250 ms pulses until the eyes look dead ahead, then **Set center here**.
-2. **Learn the turn length:** **Spin 10 turns**, jog back to dead center if they're off, then **Back at center: learn turn**. It divides the whole trip by the number of turns, so jog error barely counts. (Defaults: 4224 ms per turn, full right at 33% and full left at 70% of a turn, measured on the bench head. A board with nothing saved assumes the eyes start centered.)
-3. **Mark full right / full left:** jog to each extreme and mark it. **Go to** center, right, left or any % of a turn is then a timed forward move.
-4. If go-to moves land a little past the target, raise the **aim lead**.
+The **calibration wizard** at the top of the page:
+1. **Sensor:** the magnet has to read OK.
+2. **Find the range:** the cam runs a little over one turn; the furthest angle each way becomes full left and full right.
+3. **Which side:** the eyes go to one extreme and you say whether they're looking left or right.
+4. **Center:** nudge by 0.5° or 2° until they look dead ahead.
+5. **Check:** a closed-loop tour of left, center, right, center, logging how close each stop landed. Finish saves it.
 
-Position is the time travelled forward at full speed since center. It's saved in flash when the eyes stop, so it survives a reboot (the gearbox shouldn't move with the power off). Every start and stop adds a few ms of error, so re-center by eye now and then. Free running below 100% stops position tracking.
+**Go to** works in eye terms: −100% (full left) to +100% (full right), with buttons, a slider, a glance and a tour. A control loop drives the cam whichever way gets the eyes there (the cam swings them both ways each turn, so it watches the angle and reverses if they move away), slows near the target and stops within the tolerance (1° by default). **Tuning** has the tolerance and minimum speed; **Sensor details** has the alignment panel (magnet status, field swing, noise); **Manual motor** has raw pulses and free running for debugging. LED controls are unchanged.
 
-Also on the page: dart, LED modes (off / on / breathe / flicker / blink, perceptual brightness, period), LED steps, a results table and the log (both kept on the ESP32, so a reload keeps them).
+Older versions (v1.x, v2.x) positioned the eyes by timing with center set by eye; they're in the git history.
 
 For the controller and rev B: a Hall sensor and a magnet on the cam would replace the leaf switch with nothing to bend, wired to the same eye-switch input.
 
