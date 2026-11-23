@@ -43,16 +43,16 @@ Flash [`firmware/freddy_head_web`](../firmware/freddy_head_web/) (needs the "ESP
 
 **v3.0: the eyes are positioned from their measured angle.** The eye home switch broke during testing (its leaf contacts came out), so an **AS5600 magnetic angle sensor** now sits over a diametric magnet glued to the eyeball's top pivot (see [future improvements](future-improvements.md) for the mounting). The firmware always knows where the eyes point: no homing, no timing, no drift.
 
-The **calibration wizard** at the top of the page:
-1. **Sensor:** the magnet has to read OK.
-2. **Find the range:** the cam disc runs a little over one turn; the furthest angle each way becomes full left and full right.
-3. **Which side:** the eyes go to one extreme and you say whether they're looking left or right.
-4. **Center:** nudge by 0.5° or 2° until they look dead ahead.
-5. **Check:** a closed-loop tour of left, center, right, center, logging how close each stop landed. Finish saves it.
+**Calibration is manual (v4).** Next to the head diagram (Freddy seen from above, facing up the page: gaze arrows, set points, range):
+1. Move the eyes with the **Eyes** buttons (closed-loop steps of 0.5° or 2°) or raw **Cam disc** pulses (20–250 ms either way).
+2. At each position press **Set here**: full left, center, full right. Each is saved to flash straight away, and any one can be redone later.
+3. The panel shows the saved angles and the resulting travel, and checks that center lies between the two ends.
+
+**Show range** runs the cam disc one turn and draws the furthest angles it reached as dotted lines on the diagram, as a guide (it doesn't set anything). First bench calibration: 68° of travel, L 49° / R 19° from center.
 
 **Go to** works in eye terms: −100% (full left) to +100% (full right), with buttons, a slider, a glance and a tour. A control loop drives the cam disc whichever way gets the eyes there (the cam disc swings them both ways each turn, so it watches the angle and reverses if they move away), slows near the target and stops within the tolerance (1° by default). **Tuning** has the tolerance and minimum speed; **Sensor details** has the alignment panel (magnet status, field swing, noise); **Manual motor** has raw pulses and free running for debugging. LED controls are unchanged.
 
-Older versions (v1.x, v2.x) positioned the eyes by timing with center set by eye; they're in the git history.
+Older versions are in the git history: v1–v2 positioned the eyes by timing with center set by eye, v3 had a calibration wizard.
 
 For the controller and rev B: a Hall sensor and a magnet on the cam disc would replace the leaf switch with nothing to bend, wired to the same eye-switch input.
 

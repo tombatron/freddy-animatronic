@@ -63,6 +63,16 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .v.ok { color:var(--ok); } .v.warn { color:#d08a00; } .v.bad { color:var(--bad); }
   .split { display:grid; grid-template-columns:minmax(240px, 1fr) 2fr; gap:12px; margin-top:16px; align-items:start; }
   .split .wiz { margin-top:0; }
+  .movebox { margin-top:12px; }
+  .movebox form { margin-top:8px; }
+  .movebox label { min-width:70px; display:inline-block; }
+  .movebox .jog button { min-width:0; padding:6px 9px; }
+  .movebox .gap { width:8px; }
+  .caltab { border:none; background:none; width:auto; }
+  .caltab th, .caltab td { border:none; padding:3px 12px 3px 0; font-size:14px; }
+  .caltab form { margin:0; }
+  .mute { color:var(--mute); }
+  .headsvg .hint { stroke:var(--mute); stroke-width:1.5; stroke-dasharray:1 3; }
   @media (max-width: 640px) { .split { grid-template-columns:1fr; } }
   .headsvg { width:100%; max-width:320px; display:block; margin:4px auto 0; }
   .headsvg .ear { fill:#8a5a2b; } .headsvg .skull { fill:#a06a35; } .headsvg .snout { fill:#d8b48a; }
@@ -114,7 +124,30 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
 
   <section class="split">
     <div class="card headcard"><div class="k">Where the software thinks the eyes point (seen from above, Freddy faces up)</div><div id="head"></div></div>
-    <section id="wiz" class="wiz"></section>
+    <div>
+      <section id="cal" class="wiz"></section>
+      <div class="card movebox">
+        <div class="k">Move the eyes</div>
+        <form action="/cmd" method="post" class="jog"><input type="hidden" name="a" value="nudge"><label>Eyes</label>
+          <button name="v" value="-20">&laquo; 2&deg;</button><button name="v" value="-5">&lsaquo; 0.5&deg;</button><span class="gap"></span>
+          <button name="v" value="5">0.5&deg; &rsaquo;</button><button name="v" value="20">2&deg; &raquo;</button></form>
+        <form action="/cmd" method="post" class="jog"><label>Cam disc</label>
+          <button name="a" value="jogr" onclick="this.form.v.value=250">&laquo; 250</button>
+          <button name="a" value="jogr" onclick="this.form.v.value=100">100</button>
+          <button name="a" value="jogr" onclick="this.form.v.value=50">50</button>
+          <button name="a" value="jogr" onclick="this.form.v.value=20">20 &lsaquo;</button><span class="gap"></span>
+          <button name="a" value="jogf" onclick="this.form.v.value=20">&rsaquo; 20</button>
+          <button name="a" value="jogf" onclick="this.form.v.value=50">50</button>
+          <button name="a" value="jogf" onclick="this.form.v.value=100">100</button>
+          <button name="a" value="jogf" onclick="this.form.v.value=250">250 &raquo;</button>
+          <input type="hidden" name="v" value="50"></form>
+        <form action="/cmd" method="post"><button name="a" value="range">Show range (sweep)</button>
+          <button name="a" value="clearcal" class="small">Clear calibration</button></form>
+        <p class="hint">Eyes: closed-loop steps in degrees (&lsaquo; left / right &rsaquo; once both ends are set; sensor &minus;/+
+          before that). Cam disc: raw motor pulses in ms; the eyes go whichever way the disc takes them. Show range runs
+          the disc one turn and draws the furthest angles it reached as dotted lines, as a guide.</p>
+      </div>
+    </div>
   </section>
 
   <h2>Go to</h2>
@@ -178,15 +211,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
       centered over the chip. Noise: hold still.</p>
   </details>
 
-  <details class="manual"><summary>Manual motor</summary>
-    <div class="row">
-      <form action="/cmd" method="post" class="jog">
-        <button name="a" value="jogr" onclick="this.form.v.value=250">&laquo; 250</button>
-        <button name="a" value="jogr" onclick="this.form.v.value=50">50 &lsaquo;</button><span class="gap"></span>
-        <button name="a" value="jogf" onclick="this.form.v.value=50">&rsaquo; 50</button>
-        <button name="a" value="jogf" onclick="this.form.v.value=250">250 &raquo;</button>
-        <input type="hidden" name="v" value="50"></form>
-    </div>
+  <details class="manual"><summary>Free run</summary>
     <div class="row">
       <form action="/cmd" method="post"><button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
       <form action="/cmd" method="post">
@@ -195,8 +220,8 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
                oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output></span>
       </form>
     </div>
-    <p class="hint">Raw motor pulses (ms) and free running, for debugging. The cam disc direction (&rsaquo;/&lsaquo;) isn't the eye
-      direction: the eyes swing both ways as the cam disc turns.</p>
+    <p class="hint">Free running, for debugging. The cam disc direction (&rarr;/&larr;) isn't the eye direction: the eyes
+      swing both ways as the disc turns.</p>
   </details>
 
   <h2>Results</h2>

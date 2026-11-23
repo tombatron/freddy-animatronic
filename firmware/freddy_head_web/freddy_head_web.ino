@@ -5,14 +5,10 @@
   sensor sits over a diametric magnet on the eyeball's top pivot, so the firmware
   always knows where the eyes point: no homing, no timing, no drift.
 
-  Calibration wizard (on the page):
-    1. Sensor check     the magnet must read OK
-    2. Find the range   the cam disc runs a little over a turn; the furthest angles each way
-                        are the eyes' extremes
-    3. Which side       the eyes go to one extreme: you say whether that's left or right
-    4. Center           nudge until they look dead ahead
-    5. Check            a closed-loop tour: left, center, right, center
-  Saved in flash; it survives reboots and never drifts.
+  Calibration is manual (on the page): move the eyes with raw cam disc pulses or precise
+  eye nudges, and press "Set here" for full left, center and full right. Each point is
+  saved to flash as soon as it's set; redo any one of them any time. A "Show range" sweep
+  can draw the extremes the cam disc actually reaches, as a hint.
 
   Go to: eye position in % from -100 (full left) through 0 (center) to +100 (full
   right). A control loop drives the cam disc either way, slows near the target and stops
@@ -63,7 +59,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "3.2.0"
+#define FW_VERSION "4.0.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -92,8 +88,11 @@ const float EDGE_MARGIN = 2.5f;            // degrees: targets stay this far ins
 
 // ---------------- settings (saved in flash)
 int speedPct = 100;                        // free-run speed
-bool calibrated = false;
-float rightDeg = 0, leftDeg = 0, centerDeg = 0;   // sensor angles (0..360) at full right, full left, center
+bool haveL = false, haveR = false, haveC = false;   // which points have been set
+float rightDeg = 0, leftDeg = 0, centerDeg = 0;     // sensor angles (0..360) at full right, full left, center
+bool calibrated = false;                   // all three set, and center lies between the ends
+bool hintSwept = false;                    // a range sweep has run: its extremes are drawn as hints
+float hintA = 0, hintB = 0;
 float tolDeg = 1.0f;                       // a go-to is done within this many degrees
 int minSpeed = 50;                         // slowest the control loop drives (near the target)
 bool symmetric = false;                    // limit both sides to the shorter side's travel
@@ -132,21 +131,14 @@ struct {
 
 // ---------------- jobs
 enum Job { J_NONE, J_SWEEP, J_TOUR, J_DART };
-const char *JOB_NAMES[] = {"none", "finding range", "tour", "dart"};
+const char *JOB_NAMES[] = {"none", "showing range", "tour", "dart"};
 Job job = J_NONE;
 int jStep = 0;
 // LED steps (runs alongside anything else)
 const int LED_STEPS[] = {100, 50, 25, 12, 6, 3, 2, 1, 0};
 int ledStep = -1; uint32_t ledStepAt = 0;
 
-// ---------------- calibration wizard
-// 0 = not running; 1 sensor, 2 range, 3 which side, 4 center, 5 check
-int wizStep = 0;
-bool wizSwept = false;
-float wizExtA = 0, wizExtB = 0;            // the two extremes found by the sweep (sensor angles)
 float sweepStartDeg = 0;
-float wizNudge = 0;                        // center fine-tuning target, sensor angle
-bool snapCal; float snapR, snapL, snapC;   // restored on Cancel
 
 Preferences prefs;
 int resetReason = 0;
@@ -357,7 +349,7 @@ void sendPageState() {
 // Live values: each card is sent only when its HTML changes, and at most every
 // 100 ms (sys every 2 s). Values are rounded first so noise doesn't count as change.
 enum { C_EYES, C_POS, C_SENS, C_LED, C_SYS, C_WIZ, C_ENC, C_HEAD, N_CARDS };
-const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_sens", "c_led", "c_sys", "wiz", "enc", "head"};
+const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_sens", "c_led", "c_sys", "cal", "enc", "head"};
 uint32_t cardHash[N_CARDS], cardSent[N_CARDS];
 
 uint32_t fnv(const char *s) { uint32_t h = 2166136261u; while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; } return h; }
@@ -383,70 +375,41 @@ const char *magnetVerdict(const char **cls) {
   return "Magnet OK";
 }
 
-// ---------------------------------------------------------------- wizard card
-// actions: 0 start, 2 next, 3 back, 4 cancel, 6 sweep, 7 tour, 8 side is right, 9 side is left,
-//          10..13 nudge (left 2, left 0.5, right 0.5, right 2 degrees)
-String wbtn(int a, const char *label, const char *cls = "") {
-  return String("<button name=\"v\" value=\"") + a + "\" class=\"" + cls + "\">" + label + "</button>";
-}
-String wform(const String &buttons) {
-  return "<form action=\"/cmd\" method=\"post\" class=\"wbtns\"><input type=\"hidden\" name=\"a\" value=\"wiz\">" + buttons + "</form>";
+// ---------------------------------------------------------------- calibration panel
+// Sets with center between them? (going from left to right through center, not the long way round)
+bool calValid() {
+  if (!(haveL && haveR && haveC)) return false;
+  float lr = wrap180(rightDeg - leftDeg), lc = wrap180(centerDeg - leftDeg);
+  return fabsf(lr) > 5 && (lc > 0) == (lr > 0) && fabsf(lc) < fabsf(lr);
 }
 
-void pushWizard(uint32_t now) {
+static void calRow(String &h, const char *name, bool have, float deg, int which, float rel) {
+  h += "<tr><th>"; h += name; h += "</th><td>";
+  if (have) {
+    h += String(deg, 1) + "&deg;";
+    if (calibrated && which != 3) { h += " <span class=\"mute\">("; h += String(fabsf(rel), 0); h += "&deg; from center)</span>"; }
+  } else h += "<span class=\"mute\">not set</span>";
+  h += "</td><td><form action=\"/cmd\" method=\"post\"><input type=\"hidden\" name=\"a\" value=\"mark\">"
+       "<button name=\"v\" value=\""; h += which; h += "\" class=\""; h += have ? "" : "primary"; h += "\">Set here</button></form></td></tr>";
+}
+
+void pushCalPanel(uint32_t now) {
   String h;
-  h.reserve(2200);
-  char tmp[260];
-  if (wizStep == 0) {
-    snprintf(tmp, sizeof tmp, "%s", calibrated
-             ? "Calibrated. Run the wizard again if the sensor or magnet has moved."
-             : "<b>Not calibrated yet.</b> The wizard finds the eyes' range from the sensor, asks which side is right, then sets center.");
-    h = String("<h3>Calibration</h3><p>") + tmp + "</p>" + wform(wbtn(0, "Start calibration wizard", "primary"));
-  } else {
-    String title, text, buttons;
-    switch (wizStep) {
-      case 1: {
-        const char *cls; const char *v = magnetVerdict(&cls);
-        title = "Step 1 of 5 &middot; Sensor";
-        snprintf(tmp, sizeof tmp, "The sensor reads: <b class=\"%s\">%s</b>%s", cls, v,
-                 magnetOk() ? " &middot; " : ". Check the wiring or the magnet gap (Sensor details below).");
-        text = tmp;
-        if (magnetOk()) text += String(angNow(), 1) + "&deg;";
-        buttons = wbtn(2, "Next", magnetOk() ? "primary" : "");
-        break;
-      }
-      case 2:
-        title = "Step 2 of 5 &middot; Find the range";
-        if (job == J_SWEEP) text = "Running the cam disc a little over one turn and watching the angle&hellip;";
-        else if (wizSwept) {
-          snprintf(tmp, sizeof tmp, "Found a range of <b>%.0f&deg;</b> between %.1f&deg; and %.1f&deg; on the sensor. "
-                   "Sweep again if the eyes were blocked, otherwise Next.", fabsf(wrap180(wizExtA - wizExtB)), wizExtA, wizExtB);
-          text = tmp;
-        } else text = "Press Sweep: the cam disc runs a little over one full turn and the furthest angle each way becomes full left and full right.";
-        buttons = wbtn(6, wizSwept ? "Sweep again" : "Sweep", wizSwept ? "" : "primary");
-        if (wizSwept) buttons += wbtn(2, "Next", "primary");
-        break;
-      case 3:
-        title = "Step 3 of 5 &middot; Which side";
-        text = "The eyes are moving to one extreme. When they stop: which way are they looking (Freddy's own left/right)?";
-        buttons = wbtn(8, "They're looking right", "primary") + wbtn(9, "They're looking left", "primary");
-        break;
-      case 4:
-        title = "Step 4 of 5 &middot; Center";
-        text = "Starting from the middle of the range. Nudge until the eyes look dead ahead, then press This is center.";
-        buttons = wbtn(10, "&laquo; 2&deg;") + wbtn(11, "&lsaquo; 0.5&deg;") + wbtn(12, "0.5&deg; &rsaquo;") + wbtn(13, "2&deg; &raquo;") +
-                  wbtn(2, "This is center", "primary");
-        break;
-      case 5:
-        title = "Step 5 of 5 &middot; Check";
-        text = "The tour goes left, center, right, center. Each stop logs how close it landed. Finish saves the calibration.";
-        buttons = wbtn(7, "Run the tour again") + wbtn(2, "Finish", "primary");
-        break;
-    }
-    if (wizStep > 1) buttons += wbtn(3, "Back");
-    buttons += wbtn(4, "Cancel");
-    h = "<h3>" + title + "</h3><p>" + text + "</p>" + wform(buttons);
-  }
+  h.reserve(1800);
+  h += "<h3>Calibration</h3><table class=\"caltab\"><tr><th>Sensor now</th><td colspan=\"2\"><b>";
+  h += magnetOk() ? String(roundf(angNow() * 2) / 2, 1) + "&deg;" : String("no reading");
+  h += "</b></td></tr>";
+  calRow(h, "Full left", haveL, leftDeg, 1, calibrated ? relOf(leftDeg) : 0);
+  calRow(h, "Center", haveC, centerDeg, 3, 0);
+  calRow(h, "Full right", haveR, rightDeg, 2, calibrated ? relOf(rightDeg) : 0);
+  h += "</table><p>";
+  if (calibrated) {
+    char t[120];
+    snprintf(t, sizeof t, "<b class=\"ok\">Calibrated.</b> Travel L %.0f&deg; / R %.0f&deg; (%.0f&deg; total).", rangeL(), rangeR(), rangeL() + rangeR());
+    h += t;
+  } else if (haveL && haveR && haveC) h += "<b class=\"bad\">Center isn't between full left and full right.</b> Check the three points.";
+  else h += "Move the eyes to each position and press Set here. Each one is saved straight away.";
+  h += "</p>";
   pushCard(C_WIZ, h.c_str(), now);
 }
 
@@ -501,26 +464,31 @@ static void wedge(String &h, float from, float to, float rad, const char *cls) {
 void pushHead(uint32_t now) {
   String h;
   h.reserve(2400);
-  // What do we know? Full calibration, or (during the wizard) the range and a provisional center.
-  bool haveSides = calibrated || wizStep >= 4;
-  bool haveMid = haveSides || wizSwept;
-  float ref = haveSides ? centerDeg : wizSwept ? norm360(wizExtB + wrap180(wizExtA - wizExtB) / 2) : 0;
+  // What do we know? Draw relative to center if it's set; otherwise relative to the middle
+  // of whatever ends are set (or the sweep hint), so the eyes are visibly moving either way.
+  bool haveSides = haveL && haveR;
+  float ref = haveC ? centerDeg
+            : haveSides ? norm360(leftDeg + wrap180(rightDeg - leftDeg) / 2)
+            : hintSwept ? norm360(hintB + wrap180(hintA - hintB) / 2)
+            : 0;
+  bool haveMid = haveC || haveSides || hintSwept;
   float sign = haveSides ? rightSign() : 1;
   bool reading = magnetOk();
   float rel = reading ? wrap180(angNow() - ref) * sign : 0;
   rel = roundf(rel * 2) / 2;                                 // half-degree steps: smooth, but not chatty
+  auto relTo = [&](float sensorDeg) { return wrap180(sensorDeg - ref) * sign; };
 
   h += "<svg viewBox=\"-118 -126 236 206\" class=\"headsvg\">";
-  // range: full travel, and the usable part in symmetric mode
+  // range: full travel (when both ends are set), and the usable part in symmetric mode
   if (haveSides) {
-    wedge(h, -rangeL(), rangeR(), 92, "range");
-    if (symmetric) wedge(h, -effL(), effR(), 92, "usable");
-    ray(h, 0, -22, -rangeL(), 96, "edge"); ray(h, 0, -22, rangeR(), 96, "edge");
-  } else if (wizSwept) {
-    float half = fabsf(wrap180(wizExtA - wizExtB)) / 2;
-    wedge(h, -half, half, 92, "range");
+    float l = relTo(leftDeg), rr = relTo(rightDeg);
+    wedge(h, min(l, rr), max(l, rr), 92, "range");
+    if (symmetric && calibrated) wedge(h, -effL(), effR(), 92, "usable");
   }
-  if (haveMid) ray(h, 0, -22, 0, 100, "center");
+  if (haveL) ray(h, 0, -22, relTo(leftDeg), 96, "edge");
+  if (haveR) ray(h, 0, -22, relTo(rightDeg), 96, "edge");
+  if (hintSwept) { ray(h, 0, -22, relTo(hintA), 104, "hint"); ray(h, 0, -22, relTo(hintB), 104, "hint"); }
+  if (haveC) ray(h, 0, -22, 0, 100, "center");
   // head: ears, face, snout, eyes
   h += "<circle class=\"ear\" cx=\"-40\" cy=\"-30\" r=\"15\"/><circle class=\"ear\" cx=\"40\" cy=\"-30\" r=\"15\"/>"
        "<circle class=\"skull\" cx=\"0\" cy=\"8\" r=\"50\"/><ellipse class=\"snout\" cx=\"0\" cy=\"-38\" rx=\"17\" ry=\"11\"/>"
@@ -534,12 +502,12 @@ void pushHead(uint32_t now) {
   h += "<text x=\"-104\" y=\"72\" class=\"lbl\">L</text><text x=\"98\" y=\"72\" class=\"lbl\">R</text>";
   h += "<text x=\"0\" y=\"74\" class=\"read\">";
   if (!reading) h += "no angle reading";
-  else if (!haveMid) h += "range unknown: run the wizard";
+  else if (!haveMid) h += "set a point to see the eyes here";
   else {
     char t[64];
-    if (fabsf(rel) < 0.5f) snprintf(t, sizeof t, "dead center");
-    else snprintf(t, sizeof t, "%.1f&deg; %s%s", fabsf(rel), haveSides ? (rel > 0 ? "right" : "left") : "from middle",
-                  haveSides && !calibrated ? " (provisional)" : "");
+    if (haveC && fabsf(rel) < 0.5f) snprintf(t, sizeof t, "dead center");
+    else snprintf(t, sizeof t, "%.1f&deg; %s%s", fabsf(rel), haveSides ? (rel > 0 ? "right" : "left") : (rel > 0 ? "+" : "&minus;"),
+                  haveC ? "" : " from middle");
     h += t;
   }
   h += "</text></svg>";
@@ -594,14 +562,14 @@ void pushCards(uint32_t now) {
            shownRssi ? (String(shownRssi) + " dBm").c_str() : "AP mode", FW_VERSION, ESP.getFreeHeap() / 10240 * 10, resetReason);
   pushCard(C_SYS, b, now);
 
-  pushWizard(now);
+  pushCalPanel(now);
   pushEncoder(now);
   pushHead(now);
 }
 
 // ---------------------------------------------------------------- settings in flash
 void saveCal() {
-  prefs.putBool("cal", calibrated);
+  prefs.putBool("hl", haveL); prefs.putBool("hr", haveR); prefs.putBool("hc", haveC);
   prefs.putFloat("r", rightDeg);
   prefs.putFloat("l", leftDeg);
   prefs.putFloat("c", centerDeg);
@@ -722,12 +690,12 @@ void jobStep(bool ok) {
           report("sweep: only %.0f&deg; of travel seen. Did the eyes move? Is the magnet on the pivot?", range);
           break;
         }
-        wizExtA = norm360(sweepStartDeg + enc.turnMax);
-        wizExtB = norm360(sweepStartDeg + enc.turnMin);
-        wizSwept = true;
+        hintA = norm360(sweepStartDeg + enc.turnMax);
+        hintB = norm360(sweepStartDeg + enc.turnMin);
+        hintSwept = true;
         char b1[64], b2[96];
         snprintf(b1, sizeof b1, "%.0f&deg; of eye travel", range);
-        snprintf(b2, sizeof b2, "extremes at %.1f&deg; and %.1f&deg; on the sensor", wizExtA, wizExtB);
+        snprintf(b2, sizeof b2, "extremes at %.1f&deg; and %.1f&deg; on the sensor (dotted on the diagram)", hintA, hintB);
         resultRow("range sweep", b1, b2);
       }
       break;
@@ -755,74 +723,33 @@ void jobStep(bool ok) {
   }
 }
 
-// ---------------------------------------------------------------- calibration wizard
-void wizard(int a) {
-  switch (a) {
-    case 0:
-      stopAll(nullptr);
-      snapCal = calibrated; snapR = rightDeg; snapL = leftDeg; snapC = centerDeg;
-      wizStep = 1; wizSwept = false;
-      report("calibration wizard started");
-      break;
-    case 2:                                                  // next
-      if (wizStep == 1) { if (magnetOk()) wizStep = 2; else report("the sensor needs to read the magnet first"); }
-      else if (wizStep == 2) {
-        if (!wizSwept) { report("press Sweep first"); break; }
-        wizStep = 3;
-        // go to extreme A (a little inside it) and ask which side it is
-        seekTo(norm360(wizExtA - wrap180(wizExtA - wizExtB) / fabsf(wrap180(wizExtA - wizExtB)) * EDGE_MARGIN), "extreme");
-      } else if (wizStep == 4) {
-        stopAll(nullptr);
-        centerDeg = angNow();
-        calibrated = true;
-        char b1[64]; snprintf(b1, sizeof b1, "%.1f&deg; on the sensor", centerDeg);
-        char b2[96]; snprintf(b2, sizeof b2, "range L %.0f&deg; / R %.0f&deg;", rangeL(), rangeR());
-        resultRow("center set", b1, b2);
-        wizStep = 5;
-        startJob(J_TOUR);
-      } else if (wizStep == 5) {
-        stopAll(nullptr);
-        saveCal();
-        char b1[64]; snprintf(b1, sizeof b1, "L %.0f&deg; / R %.0f&deg; of travel", rangeL(), rangeR());
-        char b2[96]; snprintf(b2, sizeof b2, "center %.1f&deg;, tolerance %.1f&deg;", centerDeg, tolDeg);
-        resultRow("calibration saved", b1, b2);
-        wizStep = 0;
-      }
-      break;
-    case 3:                                                  // back
-      stopAll(nullptr);
-      if (wizStep == 5) { calibrated = snapCal; centerDeg = snapC; }
-      if (wizStep > 1) wizStep--;
-      if (wizStep == 3) wizStep = 2;                         // re-asking the side needs the move again
-      break;
-    case 4:                                                  // cancel
-      stopAll(nullptr);
-      calibrated = snapCal; rightDeg = snapR; leftDeg = snapL; centerDeg = snapC;
-      wizStep = 0;
-      report("calibration wizard cancelled: previous calibration kept");
-      break;
-    case 6: if (wizStep == 2) { wizSwept = false; startJob(J_SWEEP); } break;
-    case 7: if (wizStep == 5) startJob(J_TOUR); break;
-    case 8: case 9:                                          // the extreme we went to is right (8) or left (9)
-      if (wizStep != 3) break;
-      stopAll(nullptr);
-      if (a == 8) { rightDeg = wizExtA; leftDeg = wizExtB; } else { rightDeg = wizExtB; leftDeg = wizExtA; }
-      // start center at the middle of the range
-      centerDeg = norm360(leftDeg + wrap180(rightDeg - leftDeg) / 2);
-      wizNudge = centerDeg;
-      wizStep = 4;
-      seekTo(wizNudge, "middle");
-      break;
-    case 10: case 11: case 12: case 13: {                    // nudge in eye terms
-      if (wizStep != 4) break;
-      static const float STEP[] = {-2, -0.5f, 0.5f, 2};
-      float rs = wrap180(rightDeg - leftDeg) >= 0 ? 1.0f : -1.0f;
-      wizNudge = norm360(angNow() + STEP[a - 10] * rs);
-      stopAll(nullptr);
-      seekTo(wizNudge, "nudge", min(tolDeg, 0.5f), true);     // small steps: tighter, but never an error
-      break;
-    }
-  }
+// ---------------------------------------------------------------- manual calibration
+void markPoint(int which) {                                // 1 full left, 2 full right, 3 center
+  if (!magnetOk()) { report("set: no angle reading"); return; }
+  stopAll(nullptr);
+  float a = angNow();
+  const char *name = which == 1 ? "full left" : which == 2 ? "full right" : "center";
+  if (which == 1) { leftDeg = a; haveL = true; }
+  if (which == 2) { rightDeg = a; haveR = true; }
+  if (which == 3) { centerDeg = a; haveC = true; }
+  calibrated = calValid();
+  saveCal();
+  char b1[48]; snprintf(b1, sizeof b1, "%.1f&deg; on the sensor", a);
+  char b2[96];
+  if (calibrated) snprintf(b2, sizeof b2, "travel L %.0f&deg; / R %.0f&deg;", rangeL(), rangeR());
+  else snprintf(b2, sizeof b2, "%s", haveL && haveR && haveC ? "center isn't between the ends" : "set the other points too");
+  char t[40]; snprintf(t, sizeof t, "set %s", name);
+  resultRow(t, b1, b2);
+}
+
+// Nudge the eyes by tenths of a degree: + is right once both ends are set, sensor + before that.
+void nudgeEyes(int tenths) {
+  if (!magnetOk()) { report("nudge: no angle reading"); return; }
+  stopAll(nullptr);
+  float s = (haveL && haveR) ? rightSign() : 1;
+  static char name[24];
+  snprintf(name, sizeof name, "nudge %+.1f&deg;", tenths / 10.0f);
+  seekTo(norm360(angNow() + tenths / 10.0f * s), name, min(tolDeg, 0.5f), true);
 }
 
 // ---------------------------------------------------------------- commands
@@ -865,7 +792,14 @@ void runCmd(char a, int v, int t) {
                              symmetric ? effR() : rangeL(), rangeR());
       else report(symmetric ? "symmetric mode on" : "full range mode on");
       break;
-    case 'w': wizard(v); break;
+    case 'k': if (v >= 1 && v <= 3) markPoint(v); break;
+    case 'K':
+      stopAll(nullptr);
+      haveL = haveR = haveC = calibrated = false; saveCal();
+      report("calibration cleared");
+      break;
+    case 'e': nudgeEyes(v); break;
+    case 'R': startJob(J_SWEEP); break;
     case 'Y': encResetStats(); report("sensor stats reset: turn the magnet (or run the cam disc) a full circle"); break;
     case 'E':
       ledStep = 0; ledStepAt = millis();
@@ -901,7 +835,7 @@ void setupWeb() {
     int t = r->hasParam("t", true) ? r->getParam("t", true)->value().toInt() : 0;
     static const struct { const char *name; char code; } MAP[] = {
       {"stop", 'x'}, {"fwd", 'f'}, {"rev", 'r'}, {"speed", 's'}, {"jogf", 'j'}, {"jogr", 'j'},
-      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"sym", 'Q'}, {"wiz", 'w'},
+      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"sym", 'Q'}, {"mark", 'k'}, {"clearcal", 'K'}, {"nudge", 'e'}, {"range", 'R'},
       {"encreset", 'Y'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
       {"clearlog", 'Z'}};
     Cmd c = {0, v, t};
@@ -960,10 +894,14 @@ void setup() {
   resetReason = (int)esp_reset_reason();
 
   prefs.begin("headtest3", false);
-  calibrated = prefs.getBool("cal", false);
+  bool oldCal = prefs.getBool("cal", false);               // v3 saved one flag for all three points
+  haveL = prefs.getBool("hl", oldCal);
+  haveR = prefs.getBool("hr", oldCal);
+  haveC = prefs.getBool("hc", oldCal);
   rightDeg = prefs.getFloat("r", 0);
   leftDeg = prefs.getFloat("l", 0);
   centerDeg = prefs.getFloat("c", 0);
+  calibrated = calValid();
   tolDeg = prefs.getFloat("tol", 1.0f);
   minSpeed = prefs.getInt("minspd", 50);
   symmetric = prefs.getBool("sym", false);
@@ -979,7 +917,7 @@ void setup() {
   esp_task_wdt_config_t wdt = {.timeout_ms = 2000, .idle_core_mask = 0, .trigger_panic = true};
   if (esp_task_wdt_reconfigure(&wdt) != ESP_OK) esp_task_wdt_init(&wdt);
   esp_task_wdt_add(NULL);
-  report("booted v%s. %s", FW_VERSION, calibrated ? "Calibration loaded." : "Not calibrated: run the calibration wizard.");
+  report("booted v%s. %s", FW_VERSION, calibrated ? "Calibration loaded." : "Not calibrated: set full left, center and full right.");
 }
 
 void loop() {
