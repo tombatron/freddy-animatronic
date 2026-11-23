@@ -183,11 +183,10 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
     <div class="row">
       <form action="/cmd" method="post"><input type="hidden" name="a" value="tol"><label>Tolerance</label>
         <span id="f_tol"><input type="number" name="v" min="0.3" max="5" step="0.1" value="1.0"></span>&deg;<button>Set</button></form>
-      <form action="/cmd" method="post"><input type="hidden" name="a" value="minspd"><label>Min power</label>
-        <span id="f_minspd"><input type="number" name="v" min="20" max="100" step="5" value="50"></span>%<button>Set</button></form>
+      
     </div>
-    <p class="hint">Tolerance: how close a go-to has to land. Min power: what the motor eases down to near the target
-      (if the eyes stall short, raise it; if they overshoot back and forth, lower it).</p>
+    <p class="hint">Tolerance: how close a go-to has to land. The eyes move at full power and brake early by how far they
+      coast, then finish with short taps; both are learned as they go.</p>
   </details>
 
   <details class="manual"><summary>Debug: sensor details</summary>

@@ -58,7 +58,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "5.4.0"
+#define FW_VERSION "5.4.1"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -105,6 +105,7 @@ const float END_ZONE = 5.0f;               // "at an end of travel": within this
 const float FINE_ZONE = 4.0f;              // closer than this (or than the coast): pulses
 const uint32_t PULSE_SETTLE = 130;         // ms to let the eyes stop after a pulse before measuring
 const int PULSE_MIN = 12, PULSE_MAX = 150; // ms
+const int PULSE_GROW_MAX = 80;             // a pulse that moved nothing grows, but only up to this (ms)
 const int MAX_PULSES = 14;
 float coastDeg = 3.0f;                     // learned: how far the eyes coast after braking from full power
 float pulseGain = 0.05f;                   // learned: degrees per ms of full-power pulse
@@ -134,7 +135,7 @@ struct {
   bool driving = false;                    // motor powered right now (for the trace)
   uint32_t checkAt = 0, phaseAt = 0, flipAt = 0;
   float angAtCheck = 0, angAtPhase = 0, lastStill = 0;
-  int pulseMs = 30, pulses = 0, flips = 0;
+  int pulseMs = 30, pulses = 0, flips = 0, still = 0;   // still: pulses in a row that moved nothing
   const char *name = "";
   bool gentle = false;                     // a nudge
   bool armed = true;                       // may reverse (false right after a reversal, until it takes effect)
@@ -542,8 +543,8 @@ void pushCards(uint32_t now) {
 
   if (mv.type == MV_SEEK) snprintf(b, sizeof b, "<div class=\"k\">Eyes</div><div class=\"v\">%s</div><div class=\"s\">%s &middot; %d%% %s</div>",
                                    job != J_NONE ? JOB_NAMES[job] : "moving", sk.name, sk.pct, sk.dir > 0 ? "&rarr;" : "&larr;");
-  else snprintf(b, sizeof b, "<div class=\"k\">Eyes</div><div class=\"v\">%s%s</div><div class=\"s\">tolerance %.1f&deg; &middot; min power %d%%</div>",
-                job != J_NONE ? JOB_NAMES[job] : mvName[mv.type], motorOn() ? (mv.dir > 0 ? " &rarr;" : " &larr;") : "", tolDeg, minSpeed);
+  else snprintf(b, sizeof b, "<div class=\"k\">Eyes</div><div class=\"v\">%s%s</div><div class=\"s\">tolerance %.1f&deg; &middot; coast %.1f&deg;</div>",
+                job != J_NONE ? JOB_NAMES[job] : mvName[mv.type], motorOn() ? (mv.dir > 0 ? " &rarr;" : " &larr;") : "", tolDeg, coastDeg);
   pushCard(C_EYES, b, now);
 
   if (calibrated && magnetOk()) {
@@ -679,7 +680,7 @@ void seekTo(float target, const char *name, float tol = -1, bool gentle = false)
   bool atEnd = calibrated && (relNow > rangeR() - END_ZONE || relNow < -rangeL() + END_ZONE);
   if (calibrated && (atEnd || sk.fwdSign == 0)) sk.dir = (relOf(sk.target) > relNow) ? END_DIR_RIGHT : END_DIR_LEFT;
   else sk.dir = sk.fwdSign == 0 ? 1 : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
-  sk.flips = 0; sk.pulses = 0; sk.armed = true;
+  sk.flips = 0; sk.pulses = 0; sk.still = 0; sk.armed = true;
   sk.best = sk.startErr = sk.origErr = fabsf(err); sk.bestAng = ang; sk.bestErr = err; sk.atLimit = false;
   uint32_t now = millis();
   sk.checkAt = sk.phaseAt = sk.flipAt = now; sk.angAtCheck = sk.angAtPhase = ang;
@@ -697,7 +698,7 @@ void seekTo(float target, const char *name, float tol = -1, bool gentle = false)
 static void seekDone(uint32_t now, float err) {
   brake(); mv.type = MV_NONE;
   uint32_t took = since(mv.start, now);
-  if (sk.atLimit) report("%s: end of travel, stopped at the end (%.1f&deg; short of the target)", sk.name, fabsf(sk.bestErr));
+  if (sk.atLimit) report("%s: stopped at the end of travel", sk.name);
   else if (job == J_NONE) report("go to %s: done, %+.1f&deg; off, %lu ms, %d pulse%s", sk.name, err, took, sk.pulses, sk.pulses == 1 ? "" : "s");
   else report("%s: %+.1f&deg; off, %lu ms, %d pulse%s", sk.name, err, took, sk.pulses, sk.pulses == 1 ? "" : "s");
   traceDump();
@@ -739,10 +740,12 @@ void seekStep(uint32_t now) {
       bool overEnd = sk.best < sk.startErr - 1.0f && (err > 0) == (sk.bestErr > 0);
       bool stuckAtEnd = sk.flips >= 1 && fabsf(sk.bestErr) > sk.origErr - 1.0f;
       if (!sk.atLimit && (overEnd || stuckAtEnd)) {
-        // the cam disc carried the eyes over the end of travel: go back to the end and stop
-        sk.atLimit = true; sk.target = sk.bestAng; sk.tol = max(sk.tol, 0.8f);
-        err = wrap180(sk.target - ang);
-        sk.bestErr = err;
+        // The cam disc carried the eyes over the end of travel: the target can't be reached.
+        // Brake and stop there (tapping toward the end doesn't work: the disc barely moves
+        // the eyes at the end, and longer taps throw it over the top).
+        sk.atLimit = true;
+        brake(); sk.phase = PH_COAST; sk.phaseAt = now; sk.angAtPhase = ang; sk.lastStill = ang; sk.checkAt = now;
+        return;
       }
       sk.flips++;
       if (sk.flips > 6) { seekFail("%s: gave up reversing, %+.1f&deg; off", err); return; }
@@ -760,7 +763,7 @@ void seekStep(uint32_t now) {
         float coasted = fabsf(wrap180(ang - sk.angAtPhase));
         coastDeg = constrain(0.7f * coastDeg + 0.3f * coasted, 0.5f, 10.0f);
       }
-      if (fabsf(err) <= sk.tol) { seekDone(now, err); return; }
+      if (fabsf(err) <= sk.tol || sk.atLimit) { seekDone(now, err); return; }
       sk.phase = PH_PULSE;
       return;
 
@@ -791,11 +794,19 @@ void seekStep(uint32_t now) {
         sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;   // learn the disc direction
         pulseGain = constrain(0.7f * pulseGain + 0.3f * fabsf(moved) / sk.pulseMs, 0.005f, 0.5f);
       }
-      if (fabsf(moved) < 0.1f) sk.pulseMs = min(PULSE_MAX, (int)(sk.pulseMs * 1.6f) + 5);   // stiction / slack: push harder
-      else sk.pulseMs = (int)constrain(0.8f * fabsf(err) / pulseGain, (float)PULSE_MIN, (float)PULSE_MAX);
-      if (toward < -0.3f && fabsf(err) > fabsf(errBefore) + 0.5f && sk.pulses >= 3 && !sk.atLimit) {
-        // pulses push the eyes away whichever way: past the end of travel. Stop at the closest point.
-        if (fabsf(wrap180(sk.bestAng - ang)) < 1.0f) { sk.atLimit = true; seekDone(now, err); return; }
+      if (fabsf(moved) < 0.1f) {                               // nothing: stiction / slack, or an end of travel
+        if (++sk.still >= 3) {
+          if (fabsf(err) < 1.0f) { seekDone(now, err); return; }
+          sk.atLimit = true; seekDone(now, err); return;       // three taps, no movement: treat as the end
+        }
+        sk.pulseMs = min(PULSE_GROW_MAX, (int)(sk.pulseMs * 1.6f) + 5);
+      } else {
+        sk.still = 0;
+        sk.pulseMs = (int)constrain(0.8f * fabsf(err) / pulseGain, (float)PULSE_MIN, (float)PULSE_MAX);
+      }
+      if (toward < -0.3f && fabsf(err) > fabsf(errBefore) + 0.5f && sk.pulses >= 3) {
+        // taps push the eyes away whichever way: over an end of travel. Stop here.
+        sk.atLimit = true; seekDone(now, err); return;
       }
       if (fabsf(err) < fabsf(sk.bestErr)) { sk.bestErr = err; sk.bestAng = ang; }
       sk.phase = PH_PULSE;
@@ -871,7 +882,14 @@ void nudgeEyes(int tenths) {
   snprintf(name, sizeof name, "nudge %+.1f&deg;", tenths / 10.0f);
   // The tolerance has to be well under the step, or a 0.5 degree nudge is "already there".
   float step = fabsf(tenths / 10.0f);
-  seekTo(norm360(angNow() + tenths / 10.0f * s), name, min(tolDeg, max(0.15f, step * 0.35f)), true);
+  float tol = min(tolDeg, max(0.15f, step * 0.35f));
+  float target = norm360(angNow() + tenths / 10.0f * s);
+  if (calibrated) {                                          // stay inside the calibrated ends
+    float rel = constrain(relOf(target), -rangeL(), rangeR());
+    if (fabsf(rel - relOf(angNow())) <= tol) { report("%s: already at the calibrated end", name); return; }
+    target = norm360(centerDeg + rel * rightSign());
+  }
+  seekTo(target, name, tol, true);
 }
 
 // ---------------------------------------------------------------- commands
