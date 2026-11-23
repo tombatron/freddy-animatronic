@@ -48,7 +48,7 @@ flowchart LR
     ESP -- "I2S" --> AMP
     MIC["J16 INMP441 (optional)"] -- I2S --> ESP
     SW["Shoulder switches, eye home,<br/>trigger, PIR"] --> ESP
-    ESP <-- I2C --> Q["J14 Qwiic: INA219, MPU6050"]
+    ESP <-- I2C --> Q["J14 Qwiic: AS5600 eye sensor, INA219, MPU6050"]
 ```
 
 ## Design choices
@@ -103,12 +103,12 @@ Avoided: strapping pins 0, 3, 45, 46; USB 19, 20; octal PSRAM 35–37; UART0 43,
 | J3 / J6 | Right / left shoulder motor (cable 1) | 1 OUT1, 2 OUT2 |
 | J4 / J7 | Right / left elbow (cable 2) | 1 GND, 2 VMOT, 3 signal |
 | J5 / J8 | Right / left shoulder switch (cable 3) | 1 +3V3 through 220Ω (R22/R23, red), 2 GND (black), 3 switch (yellow), 4 white (test point only) |
-| J9 | Eye home switch (head cable 1) | 1 switch (yellow), 2 GND (white) |
+| J9 | Eye home switch (head cable 1) | 1 switch (yellow), 2 GND (white). Unused now the switch is broken; see J14 |
 | J10 | Eye LEDs (head cable 2) | 1 LED + (yellow), 2 LED − (white) |
 | J11 | Eye motor (head cable 3) | 1 motor (yellow), 2 motor (orange) |
 | J12 | Trigger | 3.5mm mono jack: tip = TRIG, sleeve = GND |
 | J13 | PIR | 1 VMOT (yellow, power), 2 signal (orange), 3 GND (black). Powered from VMOT, as the stock board does |
-| J14 | I2C | JST-SH 4-pin Qwiic on the top edge (handy for a sensor in the head): GND, 3V3, SDA, SCL |
+| J14 | I2C | JST-SH 4-pin Qwiic on the top edge: GND, 3V3, SDA, SCL. The eye AS5600 (0x36) goes here; INA219 (0x40) and MPU6050 (0x68) can share the bus |
 | J15 | Speaker | 2 solder pads (1 +, 2 −), wired from the amp's speaker holes. Cut the speaker's JST-PH plug off and solder its wires straight in, extending them to reach the head. Zip-tie holes behind |
 | J16 | INMP441 module (later) | 1×6 female header: 1 VDD (3V3), 2 GND, 3 L/R (GND), 4 WS, 5 SCK, 6 SD. Check against the module's pin order before plugging it in |
 | JP1 | Amp gain | 3-pin jumper on the amp's GAIN pin: open = 9 dB (default), to GND = 12 dB, to VIN = 6 dB (15 dB would need 100k to GND) |

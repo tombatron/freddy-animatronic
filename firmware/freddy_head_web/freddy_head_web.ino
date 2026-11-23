@@ -63,7 +63,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "6.0.0"
+#define FW_VERSION "6.0.1"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -96,14 +96,7 @@ bool haveL = false, haveR = false, haveC = false;   // which points have been se
 float rightDeg = 0, leftDeg = 0, centerDeg = 0;     // sensor angles (0..360) at full right, full left, center
 bool calibrated = false;                   // all three set, and center lies between the ends
 float tolDeg = 1.0f;                       // a go-to is done within this many degrees
-int minSpeed = 50;                         // (unused since 5.4: the head has too much stiction to creep)
-bool symmetric = false;                    // (unused since v6: center is the midpoint, so the sides are equal)
 bool rightIsMax = true;                    // the higher sensor angle is full right (bench head); Swap flips it
-// Leaving an end of travel, both disc directions bring the eyes back toward center, via
-// different stretches of the disc. Bench-tested: these give the smoother motion.
-const int END_DIR_RIGHT = -1;              // disc reverse to move the eyes right from an end
-const int END_DIR_LEFT = 1;                // disc forward to move them left
-const float END_ZONE = 5.0f;               // "at an end of travel": within this many degrees of it
 // The eye linkage has a lot of stiction and slack (bench trace, Nov 2026): below ~85-95%
 // power the eyes don't move at all, then they lurch and coast 3-4 degrees after braking.
 // So: big moves drive at full power and brake early by the (learned) coast; the last few
@@ -259,17 +252,12 @@ float rightSign() { return wrap180(rightDeg - leftDeg) >= 0 ? 1.0f : -1.0f; }
 float relOf(float sensorDeg) { return wrap180(sensorDeg - centerDeg) * rightSign(); }
 float rangeR() { return relOf(rightDeg); }           // > 0
 float rangeL() { return -relOf(leftDeg); }           // > 0
-// The % scale: in symmetric mode both sides use the shorter side's travel, so left 50% and
-// right 50% are mirror images. "Far" targets always use the true extremes.
-// (symmetric: the shorter side minus the edge margin, so both sides stop at exactly the same angle)
-float symRange() { return max(1.0f, min(rangeR(), rangeL()) - EDGE_MARGIN); }
-float effR() { return symmetric ? symRange() : rangeR(); }
-float effL() { return symmetric ? symRange() : rangeL(); }
-float pctOfRel(float rel) { return rel >= 0 ? 100.0f * rel / max(1.0f, effR()) : 100.0f * rel / max(1.0f, effL()); }
+// The % scale: 100% is the measured end of travel on each side.
+float pctOfRel(float rel) { return rel >= 0 ? 100.0f * rel / max(1.0f, rangeR()) : 100.0f * rel / max(1.0f, rangeL()); }
 float sensorOfPct(float pct, bool far = false) {
+  (void)far;                                                 // kept for the 'far' go-to option; same extremes now
   pct = constrain(pct, -100.0f, 100.0f);
-  float rr = far ? rangeR() : effR(), rl = far ? rangeL() : effL();
-  float rel = pct >= 0 ? pct / 100.0f * rr : pct / 100.0f * rl;
+  float rel = pct >= 0 ? pct / 100.0f * rangeR() : pct / 100.0f * rangeL();
   rel = constrain(rel, -rangeL() + EDGE_MARGIN, rangeR() - EDGE_MARGIN);
   return norm360(centerDeg + rel * rightSign());
 }
@@ -365,8 +353,6 @@ void sendPageState() {
   stream("update", "f_period", b);
   snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"0.3\" max=\"5\" step=\"0.1\" value=\"%.1f\">", tolDeg);
   stream("update", "f_tol", b);
-  snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"20\" max=\"100\" step=\"5\" value=\"%d\">", minSpeed);
-  stream("update", "f_minspd", b);
 }
 
 // Live values: each card is sent only when its HTML changes, and at most every
@@ -502,11 +488,10 @@ void pushHead(uint32_t now) {
   auto relTo = [&](float sensorDeg) { return wrap180(sensorDeg - ref) * sign; };
 
   h += "<svg viewBox=\"-118 -126 236 206\" class=\"headsvg\">";
-  // range: full travel (when both ends are set), and the usable part in symmetric mode
+  // range: full travel (when both ends are set)
   if (haveSides) {
     float l = relTo(leftDeg), rr = relTo(rightDeg);
     wedge(h, min(l, rr), max(l, rr), 92, "range");
-    if (symmetric && calibrated) wedge(h, -effL(), effR(), 92, "usable");
   }
   if (haveL) ray(h, 0, -22, relTo(leftDeg), 96, "edge");
   if (haveR) ray(h, 0, -22, relTo(rightDeg), 96, "edge");
@@ -554,8 +539,7 @@ void pushCards(uint32_t now) {
     if (abs(p) > 102) snprintf(val, sizeof val, "far %s", p > 0 ? "R" : "L");
     else snprintf(val, sizeof val, "%s%d%%", p > 0 ? "R " : p < 0 ? "L " : "", min(abs(p), 100));
     char mode[48];
-    if (symmetric) snprintf(mode, sizeof mode, "symmetric &plusmn;%.0f&deg;", effR());
-    else snprintf(mode, sizeof mode, "L %.0f&deg; / R %.0f&deg;", rangeL(), rangeR());
+    snprintf(mode, sizeof mode, "L %.0f&deg; / R %.0f&deg;", rangeL(), rangeR());
     snprintf(b, sizeof b, "<div class=\"k\">Eye position</div><div class=\"v\">%s</div><div class=\"s\">%+.1f&deg; from center &middot; %s</div>"
              "<div class=\"bar\"><b class=\"l\" style=\"left:0%%\"></b><b class=\"c\" style=\"left:50%%\"></b><b class=\"r\" style=\"left:100%%\"></b>"
              "<i style=\"left:%d%%\"></i></div>", val, rel, mode, bar);
@@ -604,7 +588,7 @@ void saveCal() {
   prefs.putFloat("c", centerDeg);
 }
 void saveTuning() {
-  prefs.putFloat("tol", tolDeg); prefs.putInt("minspd", minSpeed); prefs.putBool("sym", symmetric);
+  prefs.putFloat("tol", tolDeg);
 }
 
 // ---------------------------------------------------------------- moves
@@ -794,49 +778,11 @@ void jobStep(bool ok) {
   }
 }
 
-// ---------------------------------------------------------------- manual calibration
-void markPoint(int which) {                                // 1 full left, 2 full right, 3 center
-  if (!magnetOk()) { report("set: no angle reading"); return; }
-  stopAll(nullptr);
-  float a = angNow();
-  const char *name = which == 1 ? "full left" : which == 2 ? "full right" : "center";
-  if (which == 1) { leftDeg = a; haveL = true; }
-  if (which == 2) { rightDeg = a; haveR = true; }
-  if (which == 3) { centerDeg = a; haveC = true; }
-  calibrated = calValid();
-  saveCal();
-  char b1[48]; snprintf(b1, sizeof b1, "%.1f&deg; on the sensor", a);
-  char b2[96];
-  if (calibrated) snprintf(b2, sizeof b2, "travel L %.0f&deg; / R %.0f&deg;", rangeL(), rangeR());
-  else snprintf(b2, sizeof b2, "%s", haveL && haveR && haveC ? "center isn't between the ends" : "set the other points too");
-  char t[40]; snprintf(t, sizeof t, "set %s", name);
-  resultRow(t, b1, b2);
-}
-
-// Nudge the eyes by tenths of a degree: + is right once both ends are set, sensor + before that.
-void nudgeEyes(int tenths) {
-  if (!magnetOk()) { report("nudge: no angle reading"); return; }
-  stopAll(nullptr);
-  float s = (haveL && haveR) ? rightSign() : 1;
-  static char name[24];
-  snprintf(name, sizeof name, "nudge %+.1f&deg;", tenths / 10.0f);
-  // The tolerance has to be well under the step, or a 0.5 degree nudge is "already there".
-  float step = fabsf(tenths / 10.0f);
-  float tol = min(tolDeg, max(0.15f, step * 0.35f));
-  float target = norm360(angNow() + tenths / 10.0f * s);
-  if (calibrated) {                                          // stay inside the calibrated ends
-    float rel = constrain(relOf(target), -rangeL(), rangeR());
-    if (fabsf(rel - relOf(angNow())) <= tol) { report("%s: already at the calibrated end", name); return; }
-    target = norm360(centerDeg + rel * rightSign());
-  }
-  seekTo(target, name, tol, true);
-}
-
 // ---------------------------------------------------------------- commands
 void status() {
-  report("sensor %s %.1f&deg; | %s | L %.1f C %.1f R %.1f | %s | tol %.1f | min power %d | led %s %d%%",
+  report("sensor %s %.1f&deg; | %s | L %.1f C %.1f R %.1f | tol %.1f | led %s %d%%",
          magnetOk() ? "ok" : "no reading", angNow(), calibrated ? "calibrated" : "not calibrated",
-         leftDeg, centerDeg, rightDeg, symmetric ? "symmetric" : "full range", tolDeg, minSpeed, LED_MODES[ledMode], ledPct);
+         leftDeg, centerDeg, rightDeg, tolDeg, LED_MODES[ledMode], ledPct);
 }
 
 void runCmd(char a, int v, int t) {
@@ -854,7 +800,7 @@ void runCmd(char a, int v, int t) {
     case 'j': stopAll(nullptr); startMove(MV_TIMED, t < 0 ? -1 : 1, 100, constrain(abs(v), 10, 2000)); break;
     case 'G': {                                              // go to: v = percent, -100..100
       stopAll(nullptr);
-      bool far = t == 1;                                     // far: the true extremes, ignoring symmetric mode
+      bool far = t == 1;
       char name[24];
       if (far) snprintf(name, sizeof name, "far %s", v > 0 ? "right" : "left");
       else snprintf(name, sizeof name, v == 0 ? "center" : "%s %d%%", v > 0 ? "right" : "left", abs(v));
@@ -865,15 +811,7 @@ void runCmd(char a, int v, int t) {
     case 'd': if (calibrated) startJob(J_DART); else report("calibrate first"); break;
     case 'T': if (calibrated) startJob(J_TOUR); else report("calibrate first"); break;
     case 'O': tolDeg = constrain(v / 10.0f, 0.3f, 5.0f); saveTuning(); report("tolerance %.1f&deg;", tolDeg); break;
-    case 'S': minSpeed = constrain(v, 20, 100); saveTuning(); report("min power %d%%", minSpeed); break;
     case 'V': traceOn = v != 0; report(traceOn ? "trace on: each move logs its path (ms:degrees moved:power)" : "trace off"); break;
-    case 'Q':
-      symmetric = v != 0; saveTuning();
-      if (calibrated) report(symmetric ? "symmetric: both sides &plusmn;%.0f&deg;" : "full range: L %.0f&deg; / R %.0f&deg;",
-                             symmetric ? effR() : rangeL(), rangeR());
-      else report(symmetric ? "symmetric mode on" : "full range mode on");
-      break;
-    case 'k': if (v >= 1 && v <= 3) markPoint(v); break;
     case 'R': startJob(J_SWEEP); break;
     case 'A':                                                // swap left/right
       if (!calibrated) break;
@@ -883,12 +821,6 @@ void runCmd(char a, int v, int t) {
       calibrated = calValid(); saveCal(); prefs.putBool("rmax", rightIsMax);
       report("left and right swapped");
       break;
-    case 'K':
-      stopAll(nullptr);
-      haveL = haveR = haveC = calibrated = false; saveCal();
-      report("calibration cleared");
-      break;
-    case 'e': nudgeEyes(v); break;
     case 'Y': encResetStats(); report("sensor stats reset: turn the magnet (or run the cam disc) a full circle"); break;
     case 'E':
       ledStep = 0; ledStepAt = millis();
@@ -924,7 +856,7 @@ void setupWeb() {
     int t = r->hasParam("t", true) ? r->getParam("t", true)->value().toInt() : 0;
     static const struct { const char *name; char code; } MAP[] = {
       {"stop", 'x'}, {"fwd", 'f'}, {"rev", 'r'}, {"speed", 's'}, {"jogf", 'j'}, {"jogr", 'j'},
-      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"sym", 'Q'}, {"mark", 'k'}, {"clearcal", 'K'}, {"nudge", 'e'}, {"trace", 'V'}, {"calibrate", 'R'}, {"swap", 'A'},
+      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"trace", 'V'}, {"calibrate", 'R'}, {"swap", 'A'},
       {"encreset", 'Y'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
       {"clearlog", 'Z'}};
     Cmd c = {0, v, t};
@@ -992,8 +924,6 @@ void setup() {
   centerDeg = prefs.getFloat("c", 0);
   calibrated = calValid();
   tolDeg = prefs.getFloat("tol", 1.0f);
-  minSpeed = prefs.getInt("minspd", 50);
-  symmetric = false;                                       // v6: center is the midpoint
   rightIsMax = prefs.getBool("rmax", true);
 
 

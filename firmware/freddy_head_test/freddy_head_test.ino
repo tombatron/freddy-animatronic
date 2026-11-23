@@ -1,6 +1,9 @@
 /*
   freddy_head_test: explore what the head can do with a TB6612 driver
 
+  HISTORICAL: needs the eye home switch, which broke during the bench test.
+  Superseded by freddy_head_web (AS5600 angle sensor).
+
   The stock board only ever runs the eye motor forward at full power and stops
   it on the home switch. This sketch tries everything else: speed control,
   reverse, stopping at a chosen point in the sweep, short "glances", and LED

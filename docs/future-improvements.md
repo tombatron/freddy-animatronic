@@ -2,9 +2,11 @@
 
 Ideas worth doing later, with enough detail to pick them up cold.
 
-## Eye angle sensor (needs a 3D printer)
+## Eye angle sensor
 
-**Why:** the eye home switch broke during the head bench test (its leaf contacts came out and couldn't be put back; the switch body itself still works). Since `freddy_head_web` v1.2 the eyes are positioned by time alone, with center set by eye, which drifts a little with every start and stop. An angle sensor reads where the eyes actually point, all the time: no drift, no turn-length learning, and calibration becomes "look left, look right, done".
+**Done on the bench (Nov 2026):** fitted with the no-printer mount below and driven by `freddy_head_web` v6 (see the [head bench test](head-bench-test.md)). A printed bracket would still be tidier. Left here for the mounting notes.
+
+**Why:** the eye home switch broke during the head bench test (its leaf contacts came out and couldn't be put back; the switch body itself still works). Timing alone drifts a little with every start and stop. An angle sensor reads where the eyes actually point, all the time: no drift, no turn-length learning, and calibration becomes "look left, look right, done".
 
 **Where:** the white keyed peg on top of the eyeball is the eye's top pivot. It only twists (it doesn't move sideways) and there's plenty of room above it. Head apart, Nov 2026.
 
@@ -25,11 +27,9 @@ Ideas worth doing later, with enough detail to pick them up cold.
 - Tie DIR to GND (often left floating on these boards, which makes readings jump).
 - At 3.3 V the chip wants its VDD5V and VDD3V3 pins bridged; try as-is first, bridge them if readings are noisy or it drops off I2C.
 
-**Controller:** no PCB change. J14 (Qwiic, head-end edge) has 3V3, GND, SDA (GPIO41), SCL (GPIO42) and its own 4.7k pull-ups; AS5600 is address 0x36. The enclosure lid already has a J14 cable notch. (On the head bench breadboard GPIO41/42 drive the LEDs, so use two free GPIOs there.)
+**Controller:** no PCB change. J14 (Qwiic, head-end edge) has 3V3, GND, SDA (GPIO41), SCL (GPIO42) and its own 4.7k pull-ups; AS5600 is address 0x36. The enclosure lid already has a J14 cable notch. (On the head bench breadboard GPIO41/42 drive the LEDs, so it uses GPIO4/5 there.)
 
-**Firmware:**
-- Alignment mode: live magnet status (too weak / OK / too strong), field magnitude, and angle wobble across a sweep, to center the bracket.
-- Closed-loop eye positioning on the measured angle instead of timing; the calibration wizard shrinks to marking full left and full right.
+**Firmware:** done in `freddy_head_web` (magnet status and field strength in Debug, one-sweep auto calibration, forward-only seeks). Finer control needs a different mechanism (servo, below).
 
 **Stock board:** the AS5600 does nothing for it. If stock compatibility matters, also fit a roller microswitch on cable 1 (below).
 

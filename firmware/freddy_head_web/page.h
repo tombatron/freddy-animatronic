@@ -63,12 +63,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .v.ok { color:var(--ok); } .v.warn { color:#d08a00; } .v.bad { color:var(--bad); }
   .split { display:grid; grid-template-columns:minmax(240px, 1fr) 2fr; gap:12px; margin-top:16px; align-items:start; }
   .split .wiz { margin-top:0; }
-  .movebox { margin-top:12px; }
   .gotos { display:flex; flex-wrap:wrap; gap:8px; }
-  .movebox form { margin-top:8px; }
-  .movebox label { min-width:70px; display:inline-block; }
-  .movebox .jog button { min-width:0; padding:6px 9px; }
-  .movebox .gap { width:8px; }
   .caltab { border:none; background:none; width:auto; }
   .caltab th, .caltab td { border:none; padding:3px 12px 3px 0; font-size:14px; }
   .caltab form { margin:0; }
@@ -78,7 +73,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .headsvg { width:100%; max-width:320px; display:block; margin:4px auto 0; }
   .headsvg .ear { fill:#8a5a2b; } .headsvg .skull { fill:#a06a35; } .headsvg .snout { fill:#d8b48a; }
   .headsvg .nose { fill:#2a1a10; } .headsvg .eye { fill:#fff; stroke:#2a1a10; stroke-width:1.5; }
-  .headsvg .range { fill:var(--accent); opacity:.10; } .headsvg .usable { fill:var(--accent); opacity:.18; }
+  .headsvg .range { fill:var(--accent); opacity:.10; }
   .headsvg .edge { stroke:var(--mute); stroke-width:1; }
   .headsvg .center { stroke:var(--ok); stroke-width:1.5; stroke-dasharray:4 3; }
   .headsvg .target { stroke:#d08a00; stroke-width:2; stroke-dasharray:6 4; }
@@ -175,7 +170,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   <details class="manual"><summary>Debug: free run</summary>
     <div class="row"><form action="/cmd" method="post"><input type="hidden" name="a" value="trace"><label>Trace moves</label>
       <button name="v" value="1">On</button><button name="v" value="0">Off</button></form></div>
-    <p class="hint">Trace: each go-to and nudge logs its path when it ends: ms since start : degrees moved : motor power
+    <p class="hint">Trace: each go-to logs its path when it ends: ms since start : degrees moved : motor power
       (+/&minus; = disc direction). Paste those lines to Claude to tune the control loop.</p>
     <div class="row">
       <form action="/cmd" method="post"><button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>

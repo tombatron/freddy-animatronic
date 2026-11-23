@@ -51,9 +51,11 @@ Flash [`firmware/freddy_head_web`](../firmware/freddy_head_web/) (needs the "ESP
 
 Older versions are in the git history: v1–v2 positioned the eyes by timing with center set by eye, v3 had a calibration wizard.
 
-For the controller and rev B: a Hall sensor and a magnet on the cam disc would replace the leaf switch with nothing to bend, wired to the same eye-switch input.
+For the controller: the AS5600 plugs into the Qwiic port (J14), no PCB change. J9 (eye switch) stays for a stock-style roller switch if one is ever fitted.
 
-## Run it (serial only)
+## Run it (serial only, needs the home switch)
+
+**Historical:** this sketch homes on the eye switch, which is now broken, so most commands no longer work. Kept for reference.
 
 Flash [`firmware/freddy_head_test`](../firmware/freddy_head_test/), then:
 

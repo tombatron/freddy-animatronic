@@ -28,7 +28,7 @@ See the [head bench test](head-bench-test.md) for exploring speed, reverse, aimi
 
 
 - Eye motor: one low-side MOSFET (one direction is enough).
-- Home switch: a GPIO with a pull-up; stop the motor on its falling edge.
+- Home switch: a GPIO with a pull-up; stop the motor on its falling edge. (Ours broke during the bench test; the eyes now use an AS5600 angle sensor on the Qwiic port instead. See [future improvements](future-improvements.md).)
 - LEDs: one direction, ~2.8V at ~20mA. From a ~7V rail that needs a ~220Ω series resistor; PWM for dimming and flicker.
 
 **Measured currents (stock show):** eye motor 80–90mA running; eye LEDs ~20mA. Both well inside a TB6612 channel (1.2A continuous).
