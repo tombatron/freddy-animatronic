@@ -63,7 +63,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "3.0.3"
+#define FW_VERSION "3.1.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -96,6 +96,7 @@ bool calibrated = false;
 float rightDeg = 0, leftDeg = 0, centerDeg = 0;   // sensor angles (0..360) at full right, full left, center
 float tolDeg = 1.0f;                       // a go-to is done within this many degrees
 int minSpeed = 50;                         // slowest the control loop drives (near the target)
+bool symmetric = false;                    // limit both sides to the shorter side's travel
 const float SLOW_ZONE = 15.0f;             // full speed until this close, then ramp down to minSpeed
 int ledPct = 60, ledPeriod = 3000;
 enum LedMode { L_OFF, L_ON, L_BREATHE, L_FLICKER, L_BLINK };
@@ -243,10 +244,17 @@ float rightSign() { return wrap180(rightDeg - leftDeg) >= 0 ? 1.0f : -1.0f; }
 float relOf(float sensorDeg) { return wrap180(sensorDeg - centerDeg) * rightSign(); }
 float rangeR() { return relOf(rightDeg); }           // > 0
 float rangeL() { return -relOf(leftDeg); }           // > 0
-float pctOfRel(float rel) { return rel >= 0 ? 100.0f * rel / max(1.0f, rangeR()) : 100.0f * rel / max(1.0f, rangeL()); }
-float sensorOfPct(float pct) {
+// The % scale: in symmetric mode both sides use the shorter side's travel, so left 50% and
+// right 50% are mirror images. "Far" targets always use the true extremes.
+// (symmetric: the shorter side minus the edge margin, so both sides stop at exactly the same angle)
+float symRange() { return max(1.0f, min(rangeR(), rangeL()) - EDGE_MARGIN); }
+float effR() { return symmetric ? symRange() : rangeR(); }
+float effL() { return symmetric ? symRange() : rangeL(); }
+float pctOfRel(float rel) { return rel >= 0 ? 100.0f * rel / max(1.0f, effR()) : 100.0f * rel / max(1.0f, effL()); }
+float sensorOfPct(float pct, bool far = false) {
   pct = constrain(pct, -100.0f, 100.0f);
-  float rel = pct >= 0 ? pct / 100.0f * rangeR() : pct / 100.0f * rangeL();
+  float rr = far ? rangeR() : effR(), rl = far ? rangeL() : effL();
+  float rel = pct >= 0 ? pct / 100.0f * rr : pct / 100.0f * rl;
   rel = constrain(rel, -rangeL() + EDGE_MARGIN, rangeR() - EDGE_MARGIN);
   return norm360(centerDeg + rel * rightSign());
 }
@@ -487,10 +495,15 @@ void pushCards(uint32_t now) {
     float rel = relOf(angNow());
     int p = (int)lroundf(pctOfRel(rel));
     int bar = constrain(50 + p / 2, 0, 100);
-    snprintf(b, sizeof b, "<div class=\"k\">Eye position</div><div class=\"v\">%s%d%%</div><div class=\"s\">%+.1f&deg; from center (L %.0f&deg; / R %.0f&deg;)</div>"
+    char val[24];
+    if (abs(p) > 102) snprintf(val, sizeof val, "far %s", p > 0 ? "R" : "L");
+    else snprintf(val, sizeof val, "%s%d%%", p > 0 ? "R " : p < 0 ? "L " : "", min(abs(p), 100));
+    char mode[48];
+    if (symmetric) snprintf(mode, sizeof mode, "symmetric &plusmn;%.0f&deg;", effR());
+    else snprintf(mode, sizeof mode, "L %.0f&deg; / R %.0f&deg;", rangeL(), rangeR());
+    snprintf(b, sizeof b, "<div class=\"k\">Eye position</div><div class=\"v\">%s</div><div class=\"s\">%+.1f&deg; from center &middot; %s</div>"
              "<div class=\"bar\"><b class=\"l\" style=\"left:0%%\"></b><b class=\"c\" style=\"left:50%%\"></b><b class=\"r\" style=\"left:100%%\"></b>"
-             "<i style=\"left:%d%%\"></i></div>",
-             p > 0 ? "R " : p < 0 ? "L " : "", abs(p), rel, rangeL(), rangeR(), bar);
+             "<i style=\"left:%d%%\"></i></div>", val, rel, mode, bar);
   } else if (!magnetOk()) {
     snprintf(b, sizeof b, "<div class=\"k\">Eye position</div><div class=\"v\">?</div><div class=\"s\">no angle reading: see Sensor details</div>");
   } else {
@@ -527,7 +540,7 @@ void saveCal() {
   prefs.putFloat("l", leftDeg);
   prefs.putFloat("c", centerDeg);
 }
-void saveTuning() { prefs.putFloat("tol", tolDeg); prefs.putInt("minspd", minSpeed); }
+void saveTuning() { prefs.putFloat("tol", tolDeg); prefs.putInt("minspd", minSpeed); prefs.putBool("sym", symmetric); }
 
 // ---------------------------------------------------------------- moves
 void startMove(MoveType t, int dir, int pct, uint32_t ms) {
@@ -613,9 +626,9 @@ void seekStep(uint32_t now) {
   motorDrive(sk.dir, sk.pct);
 }
 
-void gotoPct(float pct, const char *name) {
+void gotoPct(float pct, const char *name, bool far = false) {
   if (!calibrated) { report("go to: calibrate first"); job = J_NONE; return; }
-  seekTo(sensorOfPct(pct), name);
+  seekTo(sensorOfPct(pct, far), name);
 }
 
 // ---------------------------------------------------------------- jobs
@@ -748,9 +761,9 @@ void wizard(int a) {
 
 // ---------------------------------------------------------------- commands
 void status() {
-  report("sensor %s %.1f&deg; | %s | L %.1f C %.1f R %.1f | tol %.1f | min speed %d | led %s %d%%",
+  report("sensor %s %.1f&deg; | %s | L %.1f C %.1f R %.1f | %s | tol %.1f | min speed %d | led %s %d%%",
          magnetOk() ? "ok" : "no reading", angNow(), calibrated ? "calibrated" : "not calibrated",
-         leftDeg, centerDeg, rightDeg, tolDeg, minSpeed, LED_MODES[ledMode], ledPct);
+         leftDeg, centerDeg, rightDeg, symmetric ? "symmetric" : "full range", tolDeg, minSpeed, LED_MODES[ledMode], ledPct);
 }
 
 void runCmd(char a, int v, int t) {
@@ -768,15 +781,24 @@ void runCmd(char a, int v, int t) {
     case 'j': stopAll(nullptr); startMove(MV_TIMED, t < 0 ? -1 : 1, 100, constrain(abs(v), 10, 2000)); break;
     case 'G': {                                              // go to: v = percent, -100..100
       stopAll(nullptr);
-      char name[24]; snprintf(name, sizeof name, v == 0 ? "center" : "%s %d%%", v > 0 ? "right" : "left", abs(v));
+      bool far = t == 1;                                     // far: the true extremes, ignoring symmetric mode
+      char name[24];
+      if (far) snprintf(name, sizeof name, "far %s", v > 0 ? "right" : "left");
+      else snprintf(name, sizeof name, v == 0 ? "center" : "%s %d%%", v > 0 ? "right" : "left", abs(v));
       static char nameKeep[24]; strlcpy(nameKeep, name, sizeof nameKeep);
-      gotoPct(v, nameKeep);
+      gotoPct(v, nameKeep, far);
       break;
     }
     case 'd': if (calibrated) startJob(J_DART); else report("calibrate first"); break;
     case 'T': if (calibrated) startJob(J_TOUR); else report("calibrate first"); break;
     case 'O': tolDeg = constrain(v / 10.0f, 0.3f, 5.0f); saveTuning(); report("tolerance %.1f&deg;", tolDeg); break;
     case 'S': minSpeed = constrain(v, 20, 100); saveTuning(); report("min speed %d%%", minSpeed); break;
+    case 'Q':
+      symmetric = v != 0; saveTuning();
+      if (calibrated) report(symmetric ? "symmetric: both sides &plusmn;%.0f&deg;" : "full range: L %.0f&deg; / R %.0f&deg;",
+                             symmetric ? effR() : rangeL(), rangeR());
+      else report(symmetric ? "symmetric mode on" : "full range mode on");
+      break;
     case 'w': wizard(v); break;
     case 'Y': encResetStats(); report("sensor stats reset: turn the magnet (or run the cam disc) a full circle"); break;
     case 'E':
@@ -813,7 +835,7 @@ void setupWeb() {
     int t = r->hasParam("t", true) ? r->getParam("t", true)->value().toInt() : 0;
     static const struct { const char *name; char code; } MAP[] = {
       {"stop", 'x'}, {"fwd", 'f'}, {"rev", 'r'}, {"speed", 's'}, {"jogf", 'j'}, {"jogr", 'j'},
-      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"wiz", 'w'},
+      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"sym", 'Q'}, {"wiz", 'w'},
       {"encreset", 'Y'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
       {"clearlog", 'Z'}};
     Cmd c = {0, v, t};
@@ -878,6 +900,7 @@ void setup() {
   centerDeg = prefs.getFloat("c", 0);
   tolDeg = prefs.getFloat("tol", 1.0f);
   minSpeed = prefs.getInt("minspd", 50);
+  symmetric = prefs.getBool("sym", false);
 
   Wire.begin(PIN_SDA, PIN_SCL, 400000);
   Wire.setTimeOut(5);
