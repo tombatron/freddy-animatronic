@@ -63,7 +63,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "3.0.2"
+#define FW_VERSION "3.0.3"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -88,7 +88,7 @@ const int PIN_RGB = 48;
 const int LED_BITS = 10, LED_MAX = (1 << LED_BITS) - 1;   // 10 bits for smooth dimming
 const uint32_t RUN_LIMIT_MS = 30000;       // free running stops by itself after this
 const int TURN_MS = 4224;                  // one cam disc turn at full speed (measured on the bench)
-const float EDGE_MARGIN = 1.5f;            // degrees: targets stay this far inside the extremes
+const float EDGE_MARGIN = 2.5f;            // degrees: targets stay this far inside the extremes (the eyes barely move there)
 
 // ---------------- settings (saved in flash)
 int speedPct = 100;                        // free-run speed
@@ -122,6 +122,7 @@ struct {
   float angAtCheck = 0;
   int flips = 0, settles = 0;
   const char *name = "";
+  bool gentle = false;                     // a nudge: stop quietly when close instead of failing
   // Which way the eyes moved (on the sensor) the last time the cam disc ran forward: +1, -1,
   // or 0 = unknown. It only changes when the eyes pass an extreme, so it's a good guess
   // for the next move's starting direction.
@@ -553,11 +554,12 @@ void stopAll(const char *why) {
 // ---------------------------------------------------------------- closed-loop seek
 // Drive the cam disc until the sensor reads target (degrees, 0..360). Direction is found by
 // watching the angle: if the eyes move away from the target, reverse.
-void seekTo(float target, const char *name, float tol = -1) {
+void seekTo(float target, const char *name, float tol = -1, bool gentle = false) {
   if (!magnetOk()) { report("go to %s: no angle reading", name); if (job != J_NONE) { job = J_NONE; } return; }
   sk.target = norm360(target);
   sk.name = name;
   sk.tol = tol > 0 ? tol : tolDeg;
+  sk.gentle = gentle;
   float err = wrap180(sk.target - angNow());
   if (fabsf(err) <= sk.tol) { report("go to %s: already there (%+.1f&deg;)", name, err); if (job != J_NONE) jobStep(true); return; }
   // start the way that moved the eyes toward the target last time (forward if unknown)
@@ -582,7 +584,10 @@ void seekStep(uint32_t now) {
       else { report("%s: %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s"); jobStep(true); }
       return;
     }
-    if (++sk.settles > 4) { endMove(false, "go to: overshoots and won't settle. Raise the tolerance or lower min speed."); return; }
+    if (++sk.settles > 4) {
+      if (sk.gentle) { mv.type = MV_NONE; report("%s: close enough (%+.1f&deg;)", sk.name, err); return; }
+      endMove(false, "go to: overshoots and won't settle. Raise the tolerance or lower min speed."); return;
+    }
     sk.checkAt = now; sk.angAtCheck = ang;                   // coasted past: correct
   }
   if (fabsf(err) <= sk.tol) { motorBrake(); sk.settleAt = now; return; }
@@ -596,7 +601,10 @@ void seekStep(uint32_t now) {
       if ((moved > 0) != (err > 0)) { sk.dir = -sk.dir; sk.flips++; }
     } else if (now > sk.kickUntil) sk.kickUntil = now + 150;  // stalled at low speed: full power briefly
     sk.checkAt = now; sk.angAtCheck = ang;
-    if (sk.flips > 16) { endMove(false, "go to: keeps reversing. Check the calibration."); return; }
+    if (sk.flips > (sk.gentle ? 4 : 16)) {
+      if (sk.gentle) { motorBrake(); mv.type = MV_NONE; report("%s: close enough (%+.1f&deg;)", sk.name, wrap180(sk.target - ang)); return; }
+      endMove(false, "go to: keeps reversing. Check the calibration."); return;
+    }
   }
   float a = fabsf(err);
   int pct = a >= SLOW_ZONE ? 100 : minSpeed + (int)((100 - minSpeed) * max(0.0f, a - sk.tol) / (SLOW_ZONE - sk.tol));
@@ -732,7 +740,7 @@ void wizard(int a) {
       float rs = wrap180(rightDeg - leftDeg) >= 0 ? 1.0f : -1.0f;
       wizNudge = norm360(angNow() + STEP[a - 10] * rs);
       stopAll(nullptr);
-      seekTo(wizNudge, "nudge", min(tolDeg, 0.3f));           // small steps need a tight tolerance
+      seekTo(wizNudge, "nudge", min(tolDeg, 0.5f), true);     // small steps: tighter, but never an error
       break;
     }
   }
