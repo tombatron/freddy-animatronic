@@ -64,11 +64,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .split { display:grid; grid-template-columns:minmax(240px, 1fr) 2fr; gap:12px; margin-top:16px; align-items:start; }
   .split .wiz { margin-top:0; }
   .movebox { margin-top:12px; }
-  .pathcard { margin-top:12px; }
   .gotos { display:flex; flex-wrap:wrap; gap:8px; }
-  .pathcard form { margin:4px 0; }
-  .pathcard label { min-width:110px; display:inline-block; font-weight:600; }
-  .pathcard .hint { margin:4px 0 8px; }
   .movebox form { margin-top:8px; }
   .movebox label { min-width:70px; display:inline-block; }
   .movebox .jog button { min-width:0; padding:6px 9px; }
@@ -134,23 +130,12 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
       <div class="card movebox">
         <div class="k">Move the eyes</div>
         <form action="/cmd" method="post" class="jog"><input type="hidden" name="a" value="nudge"><label>Eyes</label>
-          <button name="v" value="-20">&laquo; 2&deg;</button><button name="v" value="-5">&lsaquo; 0.5&deg;</button><span class="gap"></span>
-          <button name="v" value="5">0.5&deg; &rsaquo;</button><button name="v" value="20">2&deg; &raquo;</button></form>
-        <form action="/cmd" method="post" class="jog"><label>Cam disc</label>
-          <button name="a" value="jogr" onclick="this.form.v.value=250">&laquo; 250</button>
-          <button name="a" value="jogr" onclick="this.form.v.value=100">100</button>
-          <button name="a" value="jogr" onclick="this.form.v.value=50">50</button>
-          <button name="a" value="jogr" onclick="this.form.v.value=20">20 &lsaquo;</button><span class="gap"></span>
-          <button name="a" value="jogf" onclick="this.form.v.value=20">&rsaquo; 20</button>
-          <button name="a" value="jogf" onclick="this.form.v.value=50">50</button>
-          <button name="a" value="jogf" onclick="this.form.v.value=100">100</button>
-          <button name="a" value="jogf" onclick="this.form.v.value=250">250 &raquo;</button>
-          <input type="hidden" name="v" value="50"></form>
-        <form action="/cmd" method="post"><button name="a" value="range">Show range (sweep)</button>
-          <button name="a" value="clearcal" class="small">Clear calibration</button></form>
-        <p class="hint">Eyes: closed-loop steps in degrees (&lsaquo; left / right &rsaquo; once both ends are set; sensor &minus;/+
-          before that). Cam disc: raw motor pulses in ms; the eyes go whichever way the disc takes them. Show range runs
-          the disc one turn and draws the furthest angles it reached as dotted lines, as a guide.</p>
+          <button name="v" value="-100">&laquo; 10&deg;</button><button name="v" value="-20">2&deg;</button><button name="v" value="-5">0.5&deg; &lsaquo;</button><span class="gap"></span>
+          <button name="v" value="5">&rsaquo; 0.5&deg;</button><button name="v" value="20">2&deg;</button><button name="v" value="100">10&deg; &raquo;</button></form>
+
+        <form action="/cmd" method="post"><button name="a" value="clearcal" class="small">Clear calibration</button></form>
+        <p class="hint">Steps in degrees: &lsaquo; left / right &rsaquo; once both ends are set (before that, just the sensor's
+          &minus; and + directions).</p>
       </div>
     </div>
   </section>
@@ -168,9 +153,8 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   <div class="row">
     <form action="/cmd" method="post"><button name="a" value="dart">Glance left &amp; right</button><button name="a" value="tour">Tour</button></form>
   </div>
-  <div class="card pathcard" id="path"></div>
   <p class="hint">Center is your calibrated center; Left and Right are halfway to the ends; Full left and Full right are the ends
-    (in symmetric mode, the shorter side's travel on both sides). Positions are measured by the angle sensor.
+    (in symmetric mode, the shorter side's travel on both sides). The firmware works out how to drive the motor.
     The control loop drives the cam disc whichever way gets there and stops within the tolerance.</p>
 
   <h2>Lights</h2>
@@ -206,14 +190,14 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
       overshoot back and forth, raise the tolerance or lower min speed; if they stall short of the target, raise min speed.</p>
   </details>
 
-  <details class="manual"><summary>Sensor details</summary>
+  <details class="manual"><summary>Debug: sensor details</summary>
     <div class="card" id="enc"></div>
     <div class="row"><form action="/cmd" method="post"><button name="a" value="encreset">Reset stats</button></form></div>
     <p class="hint">Field swing: reset, then turn the cam disc a full circle (Run &rarr; below). A small swing means the magnet is
       centered over the chip. Noise: hold still.</p>
   </details>
 
-  <details class="manual"><summary>Free run</summary>
+  <details class="manual"><summary>Debug: free run</summary>
     <div class="row">
       <form action="/cmd" method="post"><button name="a" value="fwd">Run &rarr;</button><button name="a" value="rev">Run &larr;</button></form>
       <form action="/cmd" method="post">

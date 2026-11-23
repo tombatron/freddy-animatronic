@@ -5,10 +5,9 @@
   sensor sits over a diametric magnet on the eyeball's top pivot, so the firmware
   always knows where the eyes point: no homing, no timing, no drift.
 
-  Calibration is manual (on the page): move the eyes with raw cam disc pulses or precise
-  eye nudges, and press "Set here" for full left, center and full right. Each point is
-  saved to flash as soon as it's set; redo any one of them any time. A "Show range" sweep
-  can draw the extremes the cam disc actually reaches, as a hint.
+  Calibration is manual (on the page): nudge the eyes (0.5, 2 or 10 degrees) and press
+  "Set here" for full left, center and full right. Each point is saved to flash as soon
+  as it's set; redo any one of them any time.
 
   Go to: eye position in % from -100 (full left) through 0 (center) to +100 (full
   right). A control loop drives the cam disc either way, slows near the target and stops
@@ -59,7 +58,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "4.2.0"
+#define FW_VERSION "5.0.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -91,22 +90,14 @@ int speedPct = 100;                        // free-run speed
 bool haveL = false, haveR = false, haveC = false;   // which points have been set
 float rightDeg = 0, leftDeg = 0, centerDeg = 0;     // sensor angles (0..360) at full right, full left, center
 bool calibrated = false;                   // all three set, and center lies between the ends
-bool hintSwept = false;                    // a range sweep has run: its extremes are drawn as hints
-float hintA = 0, hintB = 0;
 float tolDeg = 1.0f;                       // a go-to is done within this many degrees
 int minSpeed = 50;                         // slowest the control loop drives (near the target)
 bool symmetric = false;                    // limit both sides to the shorter side's travel
-// Path: how a go-to picks the cam disc direction.
-//   0 shortest   reverse within the segment, whichever way gets there first
-//   1 forward    the disc only turns forward (like the stock board), over an extreme if need be
-//   2 preferred  a chosen disc direction for moving the eyes right, and one for moving left
-// Fixed directions (1, 2) still allow a small reverse correction within FINE_ZONE of the target.
-// Defaults from the bench head (Nov 2026): preferred, right = disc reverse, left = disc forward.
-int pathMode = 2;
-int prefRight = -1, prefLeft = 1;          // disc direction for each eye direction in mode 2 (+1 forward, -1 reverse)
-const float FINE_ZONE = 3.0f;
+// Leaving an end of travel, both disc directions bring the eyes back toward center, via
+// different stretches of the disc. Bench-tested: these give the smoother motion.
+const int END_DIR_RIGHT = -1;              // disc reverse to move the eyes right from an end
+const int END_DIR_LEFT = 1;                // disc forward to move them left
 const float END_ZONE = 5.0f;               // "at an end of travel": within this many degrees of it
-const char *PATH_NAMES[] = {"shortest", "forward only", "preferred per direction"};
 const float SLOW_ZONE = 15.0f;             // full speed until this close, then ramp down to minSpeed
 int ledPct = 60, ledPeriod = 3000;
 enum LedMode { L_OFF, L_ON, L_BREATHE, L_FLICKER, L_BLINK };
@@ -134,7 +125,6 @@ struct {
   int flips = 0, settles = 0;
   const char *name = "";
   bool gentle = false;                     // a nudge: stop quietly when close instead of failing
-  int mode = 0;                            // path mode for this move (nudges always use shortest)
   bool approaching = true;                 // was the angle last seen moving toward the target?
   // Which way the eyes moved (on the sensor) the last time the cam disc ran forward: +1, -1,
   // or 0 = unknown. It only changes when the eyes pass an extreme, so it's a good guess
@@ -143,15 +133,14 @@ struct {
 } sk;
 
 // ---------------- jobs
-enum Job { J_NONE, J_SWEEP, J_TOUR, J_DART };
-const char *JOB_NAMES[] = {"none", "showing range", "tour", "dart"};
+enum Job { J_NONE, J_TOUR, J_DART };
+const char *JOB_NAMES[] = {"none", "tour", "dart"};
 Job job = J_NONE;
 int jStep = 0;
 // LED steps (runs alongside anything else)
 const int LED_STEPS[] = {100, 50, 25, 12, 6, 3, 2, 1, 0};
 int ledStep = -1; uint32_t ledStepAt = 0;
 
-float sweepStartDeg = 0;
 
 Preferences prefs;
 int resetReason = 0;
@@ -361,8 +350,8 @@ void sendPageState() {
 
 // Live values: each card is sent only when its HTML changes, and at most every
 // 100 ms (sys every 2 s). Values are rounded first so noise doesn't count as change.
-enum { C_EYES, C_POS, C_SENS, C_LED, C_SYS, C_WIZ, C_ENC, C_HEAD, C_PATH, C_GOTO, N_CARDS };
-const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_sens", "c_led", "c_sys", "cal", "enc", "head", "path", "gotos"};
+enum { C_EYES, C_POS, C_SENS, C_LED, C_SYS, C_WIZ, C_ENC, C_HEAD, C_GOTO, N_CARDS };
+const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_sens", "c_led", "c_sys", "cal", "enc", "head", "gotos"};
 uint32_t cardHash[N_CARDS], cardSent[N_CARDS];
 
 uint32_t fnv(const char *s) { uint32_t h = 2166136261u; while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; } return h; }
@@ -482,9 +471,8 @@ void pushHead(uint32_t now) {
   bool haveSides = haveL && haveR;
   float ref = haveC ? centerDeg
             : haveSides ? norm360(leftDeg + wrap180(rightDeg - leftDeg) / 2)
-            : hintSwept ? norm360(hintB + wrap180(hintA - hintB) / 2)
             : 0;
-  bool haveMid = haveC || haveSides || hintSwept;
+  bool haveMid = haveC || haveSides;
   float sign = haveSides ? rightSign() : 1;
   bool reading = magnetOk();
   float rel = reading ? wrap180(angNow() - ref) * sign : 0;
@@ -500,7 +488,6 @@ void pushHead(uint32_t now) {
   }
   if (haveL) ray(h, 0, -22, relTo(leftDeg), 96, "edge");
   if (haveR) ray(h, 0, -22, relTo(rightDeg), 96, "edge");
-  if (hintSwept) { ray(h, 0, -22, relTo(hintA), 104, "hint"); ray(h, 0, -22, relTo(hintB), 104, "hint"); }
   if (haveC) ray(h, 0, -22, 0, 100, "center");
   // head: ears, face, snout, eyes
   h += "<circle class=\"ear\" cx=\"-40\" cy=\"-30\" r=\"15\"/><circle class=\"ear\" cx=\"40\" cy=\"-30\" r=\"15\"/>"
@@ -525,39 +512,6 @@ void pushHead(uint32_t now) {
   }
   h += "</text></svg>";
   pushCard(C_HEAD, h.c_str(), now);
-}
-
-// ---------------------------------------------------------------- path panel
-// Only the chosen mode's controls are shown.
-void pushPath(uint32_t now) {
-  static const char *DESC[] = {
-    "The disc reverses within the segment, whichever way gets the eyes there first.",
-    "The disc only turns forward, like the stock board: sometimes the long way round, over an extreme.",
-    "At the ends of travel either disc direction works, via different stretches of the disc: pick which one to use for moving right and for moving left. Elsewhere it goes the direct way and never rides over an end."};
-  String h;
-  h.reserve(1400);
-  h += "<form action=\"/cmd\" method=\"post\" class=\"seg\"><input type=\"hidden\" name=\"a\" value=\"path\"><label>Path</label>";
-  for (int m = 0; m < 3; m++) {
-    h += "<button name=\"v\" value=\""; h += m; h += "\" class=\""; h += m == pathMode ? "primary" : ""; h += "\">";
-    h += m == 0 ? "Shortest" : m == 1 ? "Forward only" : "Preferred per direction"; h += "</button>";
-  }
-  h += "</form><p class=\"hint\">"; h += DESC[pathMode]; h += "</p>";
-  if (pathMode == 2) {
-    for (int side = 0; side < 2; side++) {                   // 0 = moving right, 1 = moving left
-      int cur = side == 0 ? prefRight : prefLeft;
-      h += "<form action=\"/cmd\" method=\"post\" class=\"seg\"><input type=\"hidden\" name=\"a\" value=\"pref\"><label>";
-      h += side == 0 ? "Moving right" : "Moving left"; h += "</label>";
-      for (int d = 0; d < 2; d++) {                          // 0 = forward, 1 = reverse
-        int code = side * 2 + d + 1;                         // 1 right-fwd, 2 right-rev, 3 left-fwd, 4 left-rev
-        bool on = (d == 0) == (cur > 0);
-        h += "<button name=\"v\" value=\""; h += code; h += "\" class=\""; h += on ? "primary" : ""; h += "\">";
-        h += d == 0 ? "Disc forward" : "Disc reverse"; h += "</button>";
-      }
-      h += "</form>";
-    }
-    if (!calibrated) h += "<p class=\"hint\"><b class=\"bad\">Needs full left, center and full right set</b> to know which way is right.</p>";
-  }
-  pushCard(C_PATH, h.c_str(), now);
 }
 
 void pushCards(uint32_t now) {
@@ -611,7 +565,6 @@ void pushCards(uint32_t now) {
   pushCalPanel(now);
   pushEncoder(now);
   pushHead(now);
-  pushPath(now);
   {                                                         // go-to buttons: Far only differs from Full in symmetric mode
     String h = "<form action=\"/cmd\" method=\"post\"><input type=\"hidden\" name=\"a\" value=\"goto\">"
                "<button name=\"v\" value=\"-100\">Full left</button><button name=\"v\" value=\"-50\">Left</button>"
@@ -633,7 +586,6 @@ void saveCal() {
 }
 void saveTuning() {
   prefs.putFloat("tol", tolDeg); prefs.putInt("minspd", minSpeed); prefs.putBool("sym", symmetric);
-  prefs.putInt("path", pathMode); prefs.putInt("pr", prefRight); prefs.putInt("pl", prefLeft);
 }
 
 // ---------------------------------------------------------------- moves
@@ -667,26 +619,21 @@ void seekTo(float target, const char *name, float tol = -1, bool gentle = false)
   sk.name = name;
   sk.tol = tol > 0 ? tol : tolDeg;
   sk.gentle = gentle;
-  sk.mode = gentle ? 0 : pathMode;
   float err = wrap180(sk.target - angNow());
   if (fabsf(err) <= sk.tol) { report("go to %s: already there (%+.1f&deg;)", name, err); if (job != J_NONE) jobStep(true); return; }
   // start the way that moved the eyes toward the target last time (forward if unknown)
-  if (sk.mode == 1) sk.dir = 1;
-  else if (sk.mode == 2 && calibrated) {
-    // At an end of travel both disc directions bring the eyes back, via different stretches of
-    // the disc: that's where the preference applies. Anywhere else, go the direct way (it never
-    // rides over an end), like shortest.
-    float relNow = relOf(angNow());
-    bool atEnd = relNow > rangeR() - END_ZONE || relNow < -rangeL() + END_ZONE;
-    if (atEnd || sk.fwdSign == 0) sk.dir = (relOf(sk.target) > relNow) ? prefRight : prefLeft;
-    else sk.dir = (err > 0) == (sk.fwdSign > 0) ? 1 : -1;
-  }
+  // Start the way that moved the eyes toward the target last time (the sensor corrects it
+  // within 40 ms if that's wrong). Leaving an end, where either way works, use the
+  // bench-tested direction.
+  float relNow = calibrated ? relOf(angNow()) : 0;
+  bool atEnd = calibrated && (relNow > rangeR() - END_ZONE || relNow < -rangeL() + END_ZONE);
+  if (calibrated && (atEnd || sk.fwdSign == 0)) sk.dir = (relOf(sk.target) > relNow) ? END_DIR_RIGHT : END_DIR_LEFT;
   else sk.dir = sk.fwdSign == 0 ? 1 : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
   sk.approaching = true;
   sk.flips = 0; sk.settles = 0; sk.settleAt = 0; sk.kickUntil = 0;
   sk.checkAt = millis(); sk.angAtCheck = angNow();
   sk.pct = 100;
-  startMove(MV_SEEK, sk.dir, 100, sk.mode == 0 ? 4000 : 7000);   // fixed directions may go most of a turn
+  startMove(MV_SEEK, sk.dir, 100, 4000);
 }
 
 void seekStep(uint32_t now) {
@@ -712,15 +659,13 @@ void seekStep(uint32_t now) {
   if (fabsf(err) <= sk.tol) { motorBrake(); sk.settleAt = now; return; }
   if (since(mv.start, now) > mv.ms) { endMove(false, "go to: timed out. Is the motor powered?"); return; }
 
-  // every 40 ms: is the angle moving toward the target? If not, reverse (shortest path, or
-  // a fixed-direction move that's within FINE_ZONE: a small correction). Barely moving: kick.
+  // every 40 ms: is the angle moving toward the target? If not, reverse. Barely moving: kick.
   if (since(sk.checkAt, now) >= 40) {
     float moved = wrap180(ang - sk.angAtCheck);
     if (fabsf(moved) > 0.15f) {
       sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;   // learn the cam disc's current direction
       sk.approaching = (moved > 0) == (err > 0);
-      bool mayReverse = sk.mode != 1 || fabsf(err) < FINE_ZONE;   // only forward-only commits to a direction
-      if (!sk.approaching && mayReverse) { sk.dir = -sk.dir; sk.flips++; }
+      if (!sk.approaching) { sk.dir = -sk.dir; sk.flips++; }
     } else if (now > sk.kickUntil) sk.kickUntil = now + 150;  // stalled at low speed: full power briefly
     sk.checkAt = now; sk.angAtCheck = ang;
     if (sk.flips > (sk.gentle ? 4 : 16)) {
@@ -731,7 +676,6 @@ void seekStep(uint32_t now) {
   float a = fabsf(err);
   int pct = a >= SLOW_ZONE ? 100 : minSpeed + (int)((100 - minSpeed) * max(0.0f, a - sk.tol) / (SLOW_ZONE - sk.tol));
   if (now < sk.kickUntil) pct = 100;
-  if (sk.mode == 1 && !sk.approaching) pct = 100;            // forward only, heading over an end: no need to creep
   sk.pct = constrain(pct, minSpeed, 100);
   motorDrive(sk.dir, sk.pct);
 }
@@ -749,32 +693,8 @@ void startJob(Job j) {
 }
 
 void jobStep(bool ok) {
-  if (!ok && job != J_SWEEP) { job = J_NONE; return; }
+  if (!ok) { job = J_NONE; return; }
   switch (job) {
-    case J_SWEEP:                                            // run a bit over one turn, watching the extremes
-      if (jStep == 0) {
-        if (!magnetOk()) { job = J_NONE; report("sweep: no angle reading"); break; }
-        encResetStats();
-        sweepStartDeg = angNow();
-        jStep = 1;
-        report("sweep: running %d ms", TURN_MS * 13 / 10);
-        startMove(MV_TIMED, 1, 100, TURN_MS * 13 / 10);
-      } else {
-        job = J_NONE;
-        float range = enc.turnMax - enc.turnMin;
-        if (range < 20 || range > 200) {
-          report("sweep: only %.0f&deg; of travel seen. Did the eyes move? Is the magnet on the pivot?", range);
-          break;
-        }
-        hintA = norm360(sweepStartDeg + enc.turnMax);
-        hintB = norm360(sweepStartDeg + enc.turnMin);
-        hintSwept = true;
-        char b1[64], b2[96];
-        snprintf(b1, sizeof b1, "%.0f&deg; of eye travel", range);
-        snprintf(b2, sizeof b2, "extremes at %.1f&deg; and %.1f&deg; on the sensor (dotted on the diagram)", hintA, hintB);
-        resultRow("range sweep", b1, b2);
-      }
-      break;
     case J_TOUR: {                                           // left, center, right, center with pauses
       static const float PCTS[] = {-100, 0, 100, 0};
       static const char *NAMES[] = {"full left", "center", "full right", "center"};
@@ -875,14 +795,6 @@ void runCmd(char a, int v, int t) {
       report("calibration cleared");
       break;
     case 'e': nudgeEyes(v); break;
-    case 'R': startJob(J_SWEEP); break;
-    case 'h': pathMode = constrain(v, 0, 2); saveTuning(); report("path: %s", PATH_NAMES[pathMode]); break;
-    case 'u':
-      if (v == 1 || v == 2) prefRight = v == 1 ? 1 : -1;
-      if (v == 3 || v == 4) prefLeft = v == 3 ? 1 : -1;
-      saveTuning();
-      report("moving right: disc %s, moving left: disc %s", prefRight > 0 ? "forward" : "reverse", prefLeft > 0 ? "forward" : "reverse");
-      break;
     case 'Y': encResetStats(); report("sensor stats reset: turn the magnet (or run the cam disc) a full circle"); break;
     case 'E':
       ledStep = 0; ledStepAt = millis();
@@ -918,7 +830,7 @@ void setupWeb() {
     int t = r->hasParam("t", true) ? r->getParam("t", true)->value().toInt() : 0;
     static const struct { const char *name; char code; } MAP[] = {
       {"stop", 'x'}, {"fwd", 'f'}, {"rev", 'r'}, {"speed", 's'}, {"jogf", 'j'}, {"jogr", 'j'},
-      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"sym", 'Q'}, {"mark", 'k'}, {"clearcal", 'K'}, {"nudge", 'e'}, {"range", 'R'}, {"path", 'h'}, {"pref", 'u'},
+      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"sym", 'Q'}, {"mark", 'k'}, {"clearcal", 'K'}, {"nudge", 'e'},
       {"encreset", 'Y'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
       {"clearlog", 'Z'}};
     Cmd c = {0, v, t};
@@ -988,9 +900,7 @@ void setup() {
   tolDeg = prefs.getFloat("tol", 1.0f);
   minSpeed = prefs.getInt("minspd", 50);
   symmetric = prefs.getBool("sym", false);
-  pathMode = constrain(prefs.getInt("path", 2), 0, 2);
-  prefRight = prefs.getInt("pr", -1) < 0 ? -1 : 1;
-  prefLeft = prefs.getInt("pl", 1) < 0 ? -1 : 1;
+
 
   Wire.begin(PIN_SDA, PIN_SCL, 400000);
   Wire.setTimeOut(5);
