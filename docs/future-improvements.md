@@ -36,3 +36,11 @@ Ideas worth doing later, with enough detail to pick them up cold.
 ## Eye home switch replacement (stock-compatible)
 
 If the stock board needs its home signal back: an Omron D2F-01L3 (subminiature, 12.8×5.8×6.5 mm, hinge roller lever, gold contacts for low current) fits where the original switch sat (13.4 mm). Wire C and NO to head cable 1 (yellow, white); leave NC open. The roller makes reverse running safe, which is probably what pulled the original leaves out. Set it so the cam disc's pointed tab rolls the lever in by 1–2 mm at center.
+
+## Servo-driven eyes + radar tracking ("Freddy 2.1")
+
+**Why:** the stock eye drive (DC gearmotor turning a cam disc) is built to sweep the eyes back and forth, not to stop at a chosen angle. Move traces on the bench head (Nov 2026) showed heavy stiction and gear slack: no movement below ~85–95% power, then a lurch and 3–4° of coast; reversing or short taps make the eyes twitch. `freddy_head_web` v6 works around it (automatic calibration, five positions, forward-only full-power moves that brake early by a learned coast), good to about 1–2°, but a move can take up to one cam disc turn (~4 s).
+
+**Upgrade:** replace the cam disc drive with a hobby servo (metal-gear micro, MG90S class) linked to the eye pivot. Position control is built in: smooth slow follows, quick glances, holding any angle. Needs 5 V and one signal GPIO (rev A: a spare GPIO and the 5 V rail; rev B: add a 3-pin servo header). The eyes lose stock-board compatibility. The AS5600 (above) stays useful to confirm the angle.
+
+**Then radar tracking makes sense.** The HLK-LD2450 (24 GHz mmWave, ~$13) reports up to 3 people's X/Y positions at 10 Hz through the costume, so servo eyes can follow someone walking past. With the cam disc eyes it's only worth it as a smarter trigger than the PIR (distance zones, which side someone is on). Wiring: 5 V + GND + its TX to an ESP32 RX (rev A: the PIR connector J13's signal pin, GPIO9, with 5 V tapped from the logic rail since J13 carries the motor rail; rev B: a 4-pin sensor connector with 5 V, GND, RX, TX).
