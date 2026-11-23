@@ -58,7 +58,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "5.1.1"
+#define FW_VERSION "5.1.2"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -128,7 +128,8 @@ struct {
   int dir = 1, pct = 100;
   uint32_t settleAt = 0, flipAt = 0, lastSample = 0;
   float integ = START_POWER;               // the integral part of the motor power
-  int away = 0;                            // consecutive readings moving away from the target
+  float best = 0;                          // closest |error| since the last reversal
+  bool armed = true;                       // may reverse (false right after a reversal, until it takes effect)
   int flips = 0, settles = 0;
   const char *name = "";
   bool gentle = false;                     // a nudge: stop quietly when close instead of failing
@@ -652,7 +653,8 @@ void seekTo(float target, const char *name, float tol = -1, bool gentle = false)
   if (calibrated && (atEnd || sk.fwdSign == 0)) sk.dir = (relOf(sk.target) > relNow) ? END_DIR_RIGHT : END_DIR_LEFT;
   else sk.dir = sk.fwdSign == 0 ? 1 : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
   sk.approaching = true;
-  sk.flips = 0; sk.settles = 0; sk.settleAt = 0; sk.away = 0;
+  sk.flips = 0; sk.settles = 0; sk.settleAt = 0;
+  sk.best = fabsf(err); sk.armed = true;
   sk.integ = START_POWER; sk.flipAt = millis(); sk.lastSample = enc.samples;
   sk.pct = (int)START_POWER;
   startMove(MV_SEEK, sk.dir, sk.pct, 4000);
@@ -673,12 +675,12 @@ void seekStep(uint32_t now) {
       return;
     }
     if (++sk.settles > 4) {
-      if (sk.gentle) { mv.type = MV_NONE; report("%s: close enough (%+.1f&deg;)", sk.name, err); return; }
+      if (sk.gentle && fabsf(err) < 1.0f) { mv.type = MV_NONE; report("%s: close enough (%+.1f&deg;)", sk.name, err); return; }
       endMove(false, "go to: overshoots and won't settle. Raise the tolerance or lower the max speed."); return;
     }
     // coasted past: correct, starting the way that moves the eyes toward the target
     sk.dir = sk.fwdSign == 0 ? sk.dir : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
-    sk.integ = START_POWER * 0.7f; sk.away = 0; sk.flipAt = now;
+    sk.integ = START_POWER * 0.7f; sk.flipAt = now; sk.best = fabsf(err); sk.armed = true;
   }
   if (fabsf(err) <= sk.tol) { motorBrake(); sk.settleAt = now; return; }
   if (since(mv.start, now) > mv.ms) { endMove(false, "go to: timed out. Is the motor powered, or are the eyes stuck?"); return; }
@@ -687,16 +689,23 @@ void seekStep(uint32_t now) {
 
   float v = encSpeed();                                      // sensor deg/s
   float toward = err > 0 ? v : -v;                           // eye speed toward the target
-  if (fabsf(v) > 4) sk.fwdSign = ((v > 0) == (sk.dir > 0)) ? 1 : -1;   // learn the disc's current direction
+  // Learn which way the disc is moving the eyes, but only from settled motion: right after a
+  // reversal the speed window still holds the old direction.
+  if (fabsf(v) > 4 && since(sk.flipAt, now) >= 100) sk.fwdSign = ((v > 0) == (sk.dir > 0)) ? 1 : -1;
   sk.approaching = toward > -4;
 
-  // moving away for 3 readings in a row (after settling in): reverse
-  sk.away = (toward < -4 && since(sk.flipAt, now) > 60) ? sk.away + 1 : 0;
-  if (sk.away >= 3) {
-    sk.dir = -sk.dir; sk.flips++; sk.away = 0; sk.flipAt = now; sk.integ = START_POWER;
-    if (sk.flips > (sk.gentle ? 4 : 8)) {
-      if (sk.gentle) { motorBrake(); mv.type = MV_NONE; report("%s: close enough (%+.1f&deg;)", sk.name, err); return; }
-      endMove(false, "go to: keeps reversing. Check the calibration."); return;
+  // Reverse when the error has grown 1.5 degrees past the closest it's been. After a reversal,
+  // wait until it takes effect (eyes coming back, or 0.5 s) before judging again: the gearmotor
+  // and linkage need time to stop and turn round.
+  sk.best = min(sk.best, fabsf(err));
+  if (!sk.armed && (toward > 2 || since(sk.flipAt, now) > 500)) sk.armed = true;
+  if (sk.armed && fabsf(err) > sk.best + 1.5f) {
+    sk.dir = -sk.dir; sk.flips++; sk.flipAt = now; sk.armed = false; sk.best = fabsf(err); sk.integ = START_POWER;
+    if (sk.flips > 6) {
+      motorBrake(); mv.type = MV_NONE;
+      report("%s: gave up after %d reversals, %+.1f&deg; off", sk.name, sk.flips, err);
+      if (job != J_NONE) job = J_NONE;
+      return;
     }
   }
 
