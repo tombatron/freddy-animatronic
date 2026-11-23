@@ -35,4 +35,4 @@ Ideas worth doing later, with enough detail to pick them up cold.
 
 ## Eye home switch replacement (stock-compatible)
 
-If the stock board needs its home signal back: an Omron D2F-01L3 (subminiature, 12.8×5.8×6.5 mm, hinge roller lever, gold contacts for low current) fits where the original switch sat (13.4 mm). Wire C and NO to head cable 1 (yellow, white); leave NC open. The roller makes reverse running safe, which is probably what pulled the original leaves out. Set it so the cam's pointed tab rolls the lever in by 1–2 mm at center.
+If the stock board needs its home signal back: an Omron D2F-01L3 (subminiature, 12.8×5.8×6.5 mm, hinge roller lever, gold contacts for low current) fits where the original switch sat (13.4 mm). Wire C and NO to head cable 1 (yellow, white); leave NC open. The roller makes reverse running safe, which is probably what pulled the original leaves out. Set it so the cam disc's pointed tab rolls the lever in by 1–2 mm at center.

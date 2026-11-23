@@ -118,7 +118,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
     <form action="/cmd" method="post"><button name="a" value="dart">Glance left &amp; right</button><button name="a" value="tour">Tour</button></form>
   </div>
   <p class="hint">Positions are % of the way from center to full left or full right, measured by the angle sensor.
-    The control loop drives the cam whichever way gets there and stops within the tolerance.</p>
+    The control loop drives the cam disc whichever way gets there and stops within the tolerance.</p>
 
   <h2>Lights</h2>
   <div class="row">
@@ -149,7 +149,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   <details class="manual"><summary>Sensor details</summary>
     <div class="card" id="enc"></div>
     <div class="row"><form action="/cmd" method="post"><button name="a" value="encreset">Reset stats</button></form></div>
-    <p class="hint">Field swing: reset, then turn the cam a full circle (Run &rarr; below). A small swing means the magnet is
+    <p class="hint">Field swing: reset, then turn the cam disc a full circle (Run &rarr; below). A small swing means the magnet is
       centered over the chip. Noise: hold still.</p>
   </details>
 
@@ -170,8 +170,8 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
                oninput="this.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><output>100%</output></span>
       </form>
     </div>
-    <p class="hint">Raw motor pulses (ms) and free running, for debugging. The cam direction (&rsaquo;/&lsaquo;) isn't the eye
-      direction: the eyes swing both ways as the cam turns.</p>
+    <p class="hint">Raw motor pulses (ms) and free running, for debugging. The cam disc direction (&rsaquo;/&lsaquo;) isn't the eye
+      direction: the eyes swing both ways as the cam disc turns.</p>
   </details>
 
   <h2>Results</h2>

@@ -7,7 +7,7 @@
 
   Calibration wizard (on the page):
     1. Sensor check     the magnet must read OK
-    2. Find the range   the cam runs a little over a turn; the furthest angles each way
+    2. Find the range   the cam disc runs a little over a turn; the furthest angles each way
                         are the eyes' extremes
     3. Which side       the eyes go to one extreme: you say whether that's left or right
     4. Center           nudge until they look dead ahead
@@ -15,11 +15,11 @@
   Saved in flash; it survives reboots and never drifts.
 
   Go to: eye position in % from -100 (full left) through 0 (center) to +100 (full
-  right). A control loop drives the cam either way, slows near the target and stops
+  right). A control loop drives the cam disc either way, slows near the target and stops
   within the tolerance (default 1 degree).
 
-  The cam turns continuously and swings the eyes center -> right -> center -> left, so
-  which motor direction moves the eyes which way depends on where the cam is. The
+  The cam disc turns continuously and swings the eyes center -> right -> center -> left, so
+  which motor direction moves the eyes which way depends on where the cam disc is. The
   control loop doesn't need to know: it watches the angle and reverses when the eyes
   move away from the target.
 
@@ -63,7 +63,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "3.0.1"
+#define FW_VERSION "3.0.2"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -87,7 +87,7 @@ const int PIN_RGB = 48;
 
 const int LED_BITS = 10, LED_MAX = (1 << LED_BITS) - 1;   // 10 bits for smooth dimming
 const uint32_t RUN_LIMIT_MS = 30000;       // free running stops by itself after this
-const int TURN_MS = 4224;                  // one cam turn at full speed (measured on the bench)
+const int TURN_MS = 4224;                  // one cam disc turn at full speed (measured on the bench)
 const float EDGE_MARGIN = 1.5f;            // degrees: targets stay this far inside the extremes
 
 // ---------------- settings (saved in flash)
@@ -122,7 +122,7 @@ struct {
   float angAtCheck = 0;
   int flips = 0, settles = 0;
   const char *name = "";
-  // Which way the eyes moved (on the sensor) the last time the cam ran forward: +1, -1,
+  // Which way the eyes moved (on the sensor) the last time the cam disc ran forward: +1, -1,
   // or 0 = unknown. It only changes when the eyes pass an extreme, so it's a good guess
   // for the next move's starting direction.
   int fwdSign = 0;
@@ -408,12 +408,12 @@ void pushWizard(uint32_t now) {
       }
       case 2:
         title = "Step 2 of 5 &middot; Find the range";
-        if (job == J_SWEEP) text = "Running the cam a little over one turn and watching the angle&hellip;";
+        if (job == J_SWEEP) text = "Running the cam disc a little over one turn and watching the angle&hellip;";
         else if (wizSwept) {
           snprintf(tmp, sizeof tmp, "Found a range of <b>%.0f&deg;</b> between %.1f&deg; and %.1f&deg; on the sensor. "
                    "Sweep again if the eyes were blocked, otherwise Next.", fabsf(wrap180(wizExtA - wizExtB)), wizExtA, wizExtB);
           text = tmp;
-        } else text = "Press Sweep: the cam runs a little over one full turn and the furthest angle each way becomes full left and full right.";
+        } else text = "Press Sweep: the cam disc runs a little over one full turn and the furthest angle each way becomes full left and full right.";
         buttons = wbtn(6, wizSwept ? "Sweep again" : "Sweep", wizSwept ? "" : "primary");
         if (wizSwept) buttons += wbtn(2, "Next", "primary");
         break;
@@ -551,7 +551,7 @@ void stopAll(const char *why) {
 }
 
 // ---------------------------------------------------------------- closed-loop seek
-// Drive the cam until the sensor reads target (degrees, 0..360). Direction is found by
+// Drive the cam disc until the sensor reads target (degrees, 0..360). Direction is found by
 // watching the angle: if the eyes move away from the target, reverse.
 void seekTo(float target, const char *name, float tol = -1) {
   if (!magnetOk()) { report("go to %s: no angle reading", name); if (job != J_NONE) { job = J_NONE; } return; }
@@ -592,7 +592,7 @@ void seekStep(uint32_t now) {
   if (since(sk.checkAt, now) >= 40) {
     float moved = wrap180(ang - sk.angAtCheck);
     if (fabsf(moved) > 0.15f) {
-      sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;   // learn the cam's current direction
+      sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;   // learn the cam disc's current direction
       if ((moved > 0) != (err > 0)) { sk.dir = -sk.dir; sk.flips++; }
     } else if (now > sk.kickUntil) sk.kickUntil = now + 150;  // stalled at low speed: full power briefly
     sk.checkAt = now; sk.angAtCheck = ang;
@@ -770,7 +770,7 @@ void runCmd(char a, int v, int t) {
     case 'O': tolDeg = constrain(v / 10.0f, 0.3f, 5.0f); saveTuning(); report("tolerance %.1f&deg;", tolDeg); break;
     case 'S': minSpeed = constrain(v, 20, 100); saveTuning(); report("min speed %d%%", minSpeed); break;
     case 'w': wizard(v); break;
-    case 'Y': encResetStats(); report("sensor stats reset: turn the magnet (or run the cam) a full circle"); break;
+    case 'Y': encResetStats(); report("sensor stats reset: turn the magnet (or run the cam disc) a full circle"); break;
     case 'E':
       ledStep = 0; ledStepAt = millis();
       report("LED steps: 100, 50, 25, 12, 6, 3, 2, 1%%, 2.5 s each. Note where they vanish.");

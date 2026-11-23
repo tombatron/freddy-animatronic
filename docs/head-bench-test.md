@@ -4,7 +4,7 @@ The stock board uses the head in exactly one way: eye motor forward at full powe
 
 **Questions to answer:**
 
-1. **Speed:** what's the slowest speed that still turns the cam, and how does sweep time change with speed?
+1. **Speed:** what's the slowest speed that still turns the cam disc, and how does sweep time change with speed?
 2. **Reverse:** does the eye motor run backwards? The stock board never tried.
 3. **Aim:** can we stop the eyes at a chosen point (look left, look right) by timing from the home switch, and how repeatable is it?
 4. **Glances:** do short forward/back pulses make convincing eye darts?
@@ -45,16 +45,16 @@ Flash [`firmware/freddy_head_web`](../firmware/freddy_head_web/) (needs the "ESP
 
 The **calibration wizard** at the top of the page:
 1. **Sensor:** the magnet has to read OK.
-2. **Find the range:** the cam runs a little over one turn; the furthest angle each way becomes full left and full right.
+2. **Find the range:** the cam disc runs a little over one turn; the furthest angle each way becomes full left and full right.
 3. **Which side:** the eyes go to one extreme and you say whether they're looking left or right.
 4. **Center:** nudge by 0.5° or 2° until they look dead ahead.
 5. **Check:** a closed-loop tour of left, center, right, center, logging how close each stop landed. Finish saves it.
 
-**Go to** works in eye terms: −100% (full left) to +100% (full right), with buttons, a slider, a glance and a tour. A control loop drives the cam whichever way gets the eyes there (the cam swings them both ways each turn, so it watches the angle and reverses if they move away), slows near the target and stops within the tolerance (1° by default). **Tuning** has the tolerance and minimum speed; **Sensor details** has the alignment panel (magnet status, field swing, noise); **Manual motor** has raw pulses and free running for debugging. LED controls are unchanged.
+**Go to** works in eye terms: −100% (full left) to +100% (full right), with buttons, a slider, a glance and a tour. A control loop drives the cam disc whichever way gets the eyes there (the cam disc swings them both ways each turn, so it watches the angle and reverses if they move away), slows near the target and stops within the tolerance (1° by default). **Tuning** has the tolerance and minimum speed; **Sensor details** has the alignment panel (magnet status, field swing, noise); **Manual motor** has raw pulses and free running for debugging. LED controls are unchanged.
 
 Older versions (v1.x, v2.x) positioned the eyes by timing with center set by eye; they're in the git history.
 
-For the controller and rev B: a Hall sensor and a magnet on the cam would replace the leaf switch with nothing to bend, wired to the same eye-switch input.
+For the controller and rev B: a Hall sensor and a magnet on the cam disc would replace the leaf switch with nothing to bend, wired to the same eye-switch input.
 
 ## Run it (serial only)
 
@@ -82,8 +82,8 @@ Type a command and press Enter. **`x` or space stops the motor instantly**, no E
 ## Experiments
 
 1. **Basics:** `led 100`, then `led 0`. Then `home`: the eyes should end up straight ahead.
-2. **Speed range:** `speed 100`, `measure`. Repeat at 80, 60, 40, 30, 20… until the cam stalls (`f` and watch). Note sweep time per speed. Stock is about 4.4 s at full power.
-3. **Reverse:** `speed 60`, `r`. Does the cam turn backwards smoothly? Do the switch closures still happen?
+2. **Speed range:** `speed 100`, `measure`. Repeat at 80, 60, 40, 30, 20… until the cam disc stalls (`f` and watch). Note sweep time per speed. Stock is about 4.4 s at full power.
+3. **Reverse:** `speed 60`, `r`. Does the cam disc turn backwards smoothly? Do the switch closures still happen?
 4. **Aim:** at one speed, `measure`, then `goto 25` and `goto 75`. Are those the two extremes (left and right)? Repeat each 3–4 times: how close does it land each time?
 5. **Glances:** `home`, then try `nudge 150`, `nudge -150`, and `dart`. Try different speeds and pulse lengths.
 6. **LEDs:** step `led` down from 100 to find where they stop being visible. Try `breathe` and `flicker`.
@@ -94,4 +94,4 @@ Write the results into this doc (a table of speed vs sweep time, and notes per e
 
 - The TB6612 brakes the motor (shorts it) on stop, so it stops faster than the stock board's coast. Expect less overshoot than stock.
 - The motor only draws ~90mA, so the adapter never sags in this test, and the ESP32 is fine on USB.
-- If `home` times out, check cable 1 and the 10k pull-up, or the speed is too low to turn the cam.
+- If `home` times out, check cable 1 and the 10k pull-up, or the speed is too low to turn the cam disc.

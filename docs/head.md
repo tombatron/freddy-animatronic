@@ -6,7 +6,7 @@ The head is a one-way eye motor, a home switch and a set of LEDs. There's no ser
 
 | Cable | Role | Behavior during a show |
 | --- | --- | --- |
-| 3 (yellow/orange) | Eye sweep motor | Switched on for the whole show, always one direction; a cam turns rotation into the side-to-side sweep. About 4.4 s per sweep, six sweeps |
+| 3 (yellow/orange) | Eye sweep motor | Switched on for the whole show, always one direction; a cam disc turns rotation into the side-to-side sweep. About 4.4 s per sweep, six sweeps |
 | 1 (yellow/white) | Eye home switch | Yellow pulled up to 4.8V. Drops to 0V for ~250 ms once per sweep; the last drop (~460 ms) is when the board stops the motor |
 | 2 (yellow/white) | Eye LEDs | Off at idle. Yellow = + (anode), white = − (cathode), one direction only; the board lights them by pulling white low. ~2.8V across when lit, ~20mA (meter reading, flicker averaged). Rapid flicker near the end of the show |
 

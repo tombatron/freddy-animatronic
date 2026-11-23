@@ -218,7 +218,7 @@ void loop() {
   // motion timeouts
   if (motion == M_TIMED && now - motionStart >= timedMs) stopMotor("timed");
   if ((motion == M_HOME || motion == M_MEASURE) && now - motionStart > HOME_TIMEOUT_MS + (motion == M_MEASURE ? 3 * 15000UL : 0))
-    stopMotor("timeout: home switch never closed. Check cable 1, or the speed is too low to turn the cam");
+    stopMotor("timeout: home switch never closed. Check cable 1, or the speed is too low to turn the cam disc");
   if (motion == M_RUN && now - motionStart > RUN_LIMIT_MS) stopMotor("30 s safety limit");
 
   // LED effects
