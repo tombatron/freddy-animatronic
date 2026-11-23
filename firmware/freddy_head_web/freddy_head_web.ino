@@ -59,7 +59,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "4.1.0"
+#define FW_VERSION "4.1.1"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -101,8 +101,9 @@ bool symmetric = false;                    // limit both sides to the shorter si
 //   1 forward    the disc only turns forward (like the stock board), over an extreme if need be
 //   2 preferred  a chosen disc direction for moving the eyes right, and one for moving left
 // Fixed directions (1, 2) still allow a small reverse correction within FINE_ZONE of the target.
-int pathMode = 0;
-int prefRight = 1, prefLeft = 1;           // disc direction for each eye direction in mode 2 (+1 forward, -1 reverse)
+// Defaults from the bench head (Nov 2026): preferred, right = disc reverse, left = disc forward.
+int pathMode = 2;
+int prefRight = -1, prefLeft = 1;          // disc direction for each eye direction in mode 2 (+1 forward, -1 reverse)
 const float FINE_ZONE = 3.0f;
 const char *PATH_NAMES[] = {"shortest", "forward only", "preferred per direction"};
 const float SLOW_ZONE = 15.0f;             // full speed until this close, then ramp down to minSpeed
@@ -968,8 +969,8 @@ void setup() {
   tolDeg = prefs.getFloat("tol", 1.0f);
   minSpeed = prefs.getInt("minspd", 50);
   symmetric = prefs.getBool("sym", false);
-  pathMode = constrain(prefs.getInt("path", 0), 0, 2);
-  prefRight = prefs.getInt("pr", 1) < 0 ? -1 : 1;
+  pathMode = constrain(prefs.getInt("path", 2), 0, 2);
+  prefRight = prefs.getInt("pr", -1) < 0 ? -1 : 1;
   prefLeft = prefs.getInt("pl", 1) < 0 ? -1 : 1;
 
   Wire.begin(PIN_SDA, PIN_SCL, 400000);
