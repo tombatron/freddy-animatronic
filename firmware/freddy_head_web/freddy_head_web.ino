@@ -18,6 +18,10 @@
   v2: a calibration wizard on the page walks through all of that (center, turn length,
   full right, full left, a check tour), plus a one-step Quick re-center for drift.
 
+  v2.1: AS5600 eye angle sensor readout and alignment helper (live angle, magnet
+  status, field-strength swing for centering, noise). Breadboard: SDA GPIO4, SCL GPIO5;
+  PCB: the Qwiic port (SDA 41, SCL 42). Tie the module's DIR pin to GND.
+
   Also: free running at any speed (position becomes unknown below 100%), dart,
   LED modes (off, on, breathe, flicker, blink), LED steps.
 
@@ -44,6 +48,7 @@
 #include <ESPAsyncWebServer.h>
 #include <Preferences.h>
 #include "esp_task_wdt.h"
+#include <Wire.h>
 #include "page.h"
 
 #if __has_include("secrets.h")
@@ -55,7 +60,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "2.0.0"
+#define FW_VERSION "2.1.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -65,9 +70,11 @@ const char *AP_SSID = "Freddy";
 #if USE_PCB_PINS
 const int PIN_M1 = 11, PIN_M2 = 12;        // TB6612 AIN1/AIN2: eye motor
 const int PIN_L1 = 15, PIN_L2 = 16;        // TB6612 BIN1/BIN2: eye LEDs
+const int PIN_SDA = 41, PIN_SCL = 42;      // Qwiic port J14 (AS5600)
 #else
 const int PIN_M1 = 38, PIN_M2 = 39;
 const int PIN_L1 = 41, PIN_L2 = 42;
+const int PIN_SDA = 4, PIN_SCL = 5;        // AS5600 on the breadboard
 #endif
 #ifdef RGB_BUILTIN
 const int PIN_RGB = RGB_BUILTIN;
@@ -129,6 +136,78 @@ int ledStep = -1; uint32_t ledStepAt = 0;
 
 Preferences prefs;
 int resetReason = 0;
+
+// ---------------- AS5600 eye angle sensor
+const uint8_t AS5600_ADDR = 0x36;
+struct {
+  bool found = false;                      // answered on I2C
+  uint8_t status = 0;                      // bit 5 MD magnet detected, 4 ML too weak, 3 MH too strong
+  uint16_t raw = 0;                        // 0..4095 = one full turn
+  uint8_t agc = 0;                         // gain the chip is using: mid-range is best
+  uint16_t mag = 0;                        // field strength (CORDIC magnitude)
+  // statistics since the last reset: turn the magnet a full circle to fill them in
+  uint16_t magMin = 0xFFFF, magMax = 0;
+  float unwrapped = 0, turnMin = 0, turnMax = 0;   // degrees turned, for "did you cover a full circle"
+  uint16_t lastRaw = 0; bool haveLast = false;
+  // noise: spread of the last ~1 s of readings
+  float win[50]; int winN = 0, winI = 0;
+  uint32_t lastPoll = 0, lastProbe = 0;
+} enc;
+
+bool asRead(uint8_t reg, uint8_t *buf, int n) {
+  Wire.beginTransmission(AS5600_ADDR);
+  Wire.write(reg);
+  if (Wire.endTransmission(false) != 0) return false;
+  if (Wire.requestFrom((int)AS5600_ADDR, n) != n) return false;
+  for (int i = 0; i < n; i++) buf[i] = Wire.read();
+  return true;
+}
+
+void encResetStats() {
+  enc.magMin = 0xFFFF; enc.magMax = 0;
+  enc.unwrapped = enc.turnMin = enc.turnMax = 0;
+  enc.haveLast = false; enc.winN = enc.winI = 0;
+}
+
+// Poll at 50 Hz while it answers; look for it once a second while it doesn't.
+void encPoll(uint32_t now) {
+  if (now - enc.lastPoll < 20) return;
+  enc.lastPoll = now;
+  if (!enc.found && now - enc.lastProbe < 1000) return;
+  enc.lastProbe = now;
+  uint8_t a[5], b[3];
+  bool ok = asRead(0x0B, a, 5) && asRead(0x1A, b, 3);   // STATUS, RAW ANGLE (2), ANGLE (2) / AGC, MAGNITUDE (2)
+  if (!ok) { if (enc.found) report("AS5600: lost on I2C"); enc.found = false; return; }
+  if (!enc.found) { report("AS5600: found on I2C"); encResetStats(); }
+  enc.found = true;
+  enc.status = a[0];
+  enc.raw = ((a[1] & 0x0F) << 8) | a[2];
+  enc.agc = b[0];
+  enc.mag = ((b[1] & 0x0F) << 8) | b[2];
+  if (!(enc.status & 0x20)) return;                     // no magnet: nothing meaningful to track
+  enc.magMin = min(enc.magMin, enc.mag);
+  enc.magMax = max(enc.magMax, enc.mag);
+  if (enc.haveLast) {
+    int d = (int)enc.raw - (int)enc.lastRaw;            // shortest way round
+    if (d > 2048) d -= 4096;
+    if (d < -2048) d += 4096;
+    enc.unwrapped += d * 360.0f / 4096;
+    enc.turnMin = min(enc.turnMin, enc.unwrapped);
+    enc.turnMax = max(enc.turnMax, enc.unwrapped);
+  }
+  enc.lastRaw = enc.raw; enc.haveLast = true;
+  enc.win[enc.winI] = enc.unwrapped;
+  enc.winI = (enc.winI + 1) % 50;
+  if (enc.winN < 50) enc.winN++;
+}
+
+// Peak-to-peak jitter of the last second, in degrees (meaningful only when nothing moves).
+float encNoise() {
+  if (enc.winN < 10) return 0;
+  float lo = 1e9f, hi = -1e9f;
+  for (int i = 0; i < enc.winN; i++) { lo = min(lo, enc.win[i]); hi = max(hi, enc.win[i]); }
+  return hi - lo;
+}
 
 // ---------------- web
 AsyncWebServer server(80);
@@ -238,8 +317,8 @@ void sendPageState() {
 
 // Live values: each card is sent only when its HTML changes, and at most every
 // 100 ms (sys every 2 s). Values are rounded first so noise doesn't count as change.
-enum { C_EYES, C_POS, C_CAL, C_LED, C_SYS, C_WIZ, N_CARDS };
-const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_cal", "c_led", "c_sys", "wiz"};
+enum { C_EYES, C_POS, C_CAL, C_LED, C_SYS, C_WIZ, C_ENC, N_CARDS };
+const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_cal", "c_led", "c_sys", "wiz", "enc"};
 uint32_t cardHash[N_CARDS], cardSent[N_CARDS];
 
 uint32_t fnv(const char *s) { uint32_t h = 2166136261u; while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; } return h; }
@@ -334,6 +413,48 @@ void pushWizard(uint32_t now) {
   pushCard(C_WIZ, h.c_str(), now);
 }
 
+// ---------------------------------------------------------------- AS5600 panel
+void pushEncoder(uint32_t now) {
+  char b[1800];
+  if (!enc.found) {
+    snprintf(b, sizeof b, "<div class=\"verdict bad\">Sensor not found</div><p>No answer at I2C address 0x36 on SDA GPIO%d / SCL GPIO%d. "
+             "Check VCC (3V3), GND, SDA and SCL, and that SDA and SCL aren't swapped.</p>", PIN_SDA, PIN_SCL);
+    pushCard(C_ENC, b, now);
+    return;
+  }
+  bool md = enc.status & 0x20, ml = enc.status & 0x10, mh = enc.status & 0x08;
+  const char *cls = "ok", *verdict = "Magnet OK";
+  const char *hint = "Now turn the magnet slowly through a full circle and watch the field swing.";
+  if (!md && ml) { cls = "bad"; verdict = "Magnet too far / not seen"; hint = "Bring the magnet closer: 0.5-3 mm above the chip, centered."; }
+  else if (!md) { cls = "bad"; verdict = "No magnet"; hint = "Place the magnet over the chip, about 1.5 mm away."; }
+  else if (mh) { cls = "warn"; verdict = "Magnet too close"; hint = "Back it off a little: the field is too strong."; }
+  else if (ml) { cls = "warn"; verdict = "Magnet a bit far"; hint = "Works, but closer would be better."; }
+
+  float deg = enc.raw * 360.0f / 4096;
+  int degQ = (int)lroundf(deg * 2);                          // half-degree steps: plenty for watching
+  float turned = enc.turnMax - enc.turnMin;
+  char swing[200];
+  if (enc.magMax >= enc.magMin && enc.magMax > 0) {
+    float pct = 100.0f * (enc.magMax - enc.magMin) / max(1, (int)enc.magMax);
+    const char *q = turned < 330 ? "keep turning: needs a full circle" : pct < 5 ? "well centered" : pct < 15 ? "OK, could be better" : "off-center: slide the sensor";
+    snprintf(swing, sizeof swing, "%d&ndash;%d (%.0f%% swing) &middot; <b>%s</b>", enc.magMin, enc.magMax, pct, q);
+  } else snprintf(swing, sizeof swing, "&ndash;");
+  float noise = encNoise();
+  float nx = 50 + 40 * sinf(deg * PI / 180), ny = 50 - 40 * cosf(deg * PI / 180);
+
+  snprintf(b, sizeof b,
+           "<div class=\"enc\"><svg viewBox=\"0 0 100 100\" class=\"dial\"><circle cx=\"50\" cy=\"50\" r=\"46\"/>"
+           "<line x1=\"50\" y1=\"50\" x2=\"%.1f\" y2=\"%.1f\"/></svg><div>"
+           "<div class=\"verdict %s\">%s</div><p>%s</p>"
+           "<table><tr><th>Angle</th><td>%.1f&deg; (raw %d)</td></tr>"
+           "<tr><th>Field strength</th><td>%d &middot; gain %d</td></tr>"
+           "<tr><th>Field swing</th><td>%s</td></tr>"
+           "<tr><th>Turned</th><td>%.0f&deg; since reset</td></tr>"
+           "<tr><th>Noise</th><td>%.2f&deg; peak-to-peak over 1 s (hold still)</td></tr></table></div></div>",
+           nx, ny, cls, verdict, hint, degQ / 2.0f, enc.raw / 8 * 8, enc.mag / 16 * 16, enc.agc, swing, turned, noise);
+  pushCard(C_ENC, b, now);
+}
+
 void pushCards(uint32_t now) {
   char b[900], m[160];
   const char *mvName[] = {"stopped", "running", "moving", "pausing"};
@@ -373,6 +494,7 @@ void pushCards(uint32_t now) {
            shownRssi ? (String(shownRssi) + " dBm").c_str() : "AP mode", FW_VERSION, ESP.getFreeHeap() / 10240 * 10, resetReason);
   pushCard(C_SYS, b, now);
   pushWizard(now);
+  pushEncoder(now);
 }
 
 // ---------------------------------------------------------------- settings in flash
@@ -623,6 +745,7 @@ void runCmd(char a, int v, int t) {
     case 'W': memset(cardHash, 0, sizeof cardHash); sendPageState(); break;   // new page: resend everything
     case 'Z': logCount = resCount = 0; if (canPush()) { stream("update", "log", ""); stream("update", "results", ""); } break;
     case '?': status(); break;
+    case 'Y': encResetStats(); report("AS5600: stats reset. Turn the magnet a full circle."); break;
   }
 }
 
@@ -647,7 +770,7 @@ void setupWeb() {
       {"stop", 'x'}, {"fwd", 'f'}, {"rev", 'r'}, {"speed", 's'}, {"jogf", 'j'}, {"jogr", 'j'},
       {"center", 'c'}, {"learn", 'g'}, {"mark", 'k'}, {"goto", 'G'}, {"spin", 'N'}, {"turn", 'T'},
       {"lead", 'L'}, {"dart", 'd'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
-      {"clearlog", 'Z'}, {"wiz", 'w'}};
+      {"clearlog", 'Z'}, {"wiz", 'w'}, {"encreset", 'Y'}};
     Cmd c = {0, v, t};
     for (auto &m : MAP) if (a == m.name) c.a = m.code;
     if (a == "jogr") c.t = -1;
@@ -714,6 +837,8 @@ void setup() {
 
   delay(1500);
   Serial.printf("\n# freddy_head_web v%s (%s) | reset reason %d | pins: %s\n", FW_VERSION, FW_BUILD, resetReason, USE_PCB_PINS ? "PCB" : "breadboard");
+  Wire.begin(PIN_SDA, PIN_SCL, 400000);
+  Wire.setTimeOut(5);
   setupWifi();
   setupWeb();
   // Watchdog: if loop() hangs, reset. A reset releases the motor pins.
@@ -737,6 +862,8 @@ void loop() {
   static uint32_t lastLoop = now;
   uint32_t dt = since(lastLoop, now);
   lastLoop = now;
+
+  encPoll(now);
 
   // position: count travel while the motor runs at full speed
   if (motorOn() && mv.pct == POS_SPEED && posKnown) {

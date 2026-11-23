@@ -48,6 +48,15 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .wbtns button { margin-right:4px; }
   details.manual { margin-top:22px; }
   details.manual summary { cursor:pointer; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); }
+  .enc { display:flex; gap:16px; align-items:flex-start; }
+  .enc p { margin:4px 0 8px; color:var(--mute); font-size:13px; }
+  .enc table { border:none; background:none; }
+  .enc th, .enc td { border:none; padding:2px 10px 2px 0; }
+  .dial { width:110px; height:110px; flex:none; }
+  .dial circle { fill:none; stroke:var(--line); stroke-width:4; }
+  .dial line { stroke:var(--accent); stroke-width:5; stroke-linecap:round; }
+  .verdict { font-size:20px; font-weight:700; }
+  .verdict.ok { color:var(--ok); } .verdict.warn { color:#d08a00; } .verdict.bad { color:var(--bad); }
   .bar i { position:absolute; top:-3px; width:16px; height:16px; margin-left:-8px; border-radius:50%; background:var(--accent); }
   .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
   form { margin:0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
@@ -87,6 +96,13 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   <div id="msg"></div>
 
   <section id="wiz" class="wiz"></section>
+
+  <h2>Eye angle sensor</h2>
+  <div class="card" id="enc"></div>
+  <div class="row"><form action="/cmd" method="post"><button name="a" value="encreset">Reset stats</button></form></div>
+  <p class="hint">Alignment: get "Magnet OK", reset stats, then turn the magnet slowly through a full circle. A centered
+    magnet keeps the field nearly constant all the way round: slide the sensor until the swing is small. Then hold
+    still and check the noise.</p>
 
   <h2>Go to</h2>
   <div class="row">
