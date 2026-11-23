@@ -64,6 +64,10 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .split { display:grid; grid-template-columns:minmax(240px, 1fr) 2fr; gap:12px; margin-top:16px; align-items:start; }
   .split .wiz { margin-top:0; }
   .movebox { margin-top:12px; }
+  .pathcard { margin-top:12px; }
+  .pathcard form { margin:4px 0; }
+  .pathcard label { min-width:110px; display:inline-block; font-weight:600; }
+  .pathcard .hint { margin:4px 0 8px; }
   .movebox form { margin-top:8px; }
   .movebox label { min-width:70px; display:inline-block; }
   .movebox .jog button { min-width:0; padding:6px 9px; }
@@ -168,6 +172,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   <div class="row">
     <form action="/cmd" method="post"><button name="a" value="dart">Glance left &amp; right</button><button name="a" value="tour">Tour</button></form>
   </div>
+  <div class="card pathcard" id="path"></div>
   <p class="hint">Positions are % of the way from center to full left or full right (in symmetric mode, to the shorter side's travel), measured by the angle sensor.
     The control loop drives the cam disc whichever way gets there and stops within the tolerance.</p>
 
