@@ -183,11 +183,11 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
     <div class="row">
       <form action="/cmd" method="post"><input type="hidden" name="a" value="tol"><label>Tolerance</label>
         <span id="f_tol"><input type="number" name="v" min="0.3" max="5" step="0.1" value="1.0"></span>&deg;<button>Set</button></form>
-      <form action="/cmd" method="post"><input type="hidden" name="a" value="minspd"><label>Min speed</label>
-        <span id="f_minspd"><input type="number" name="v" min="20" max="100" step="5" value="50"></span>%<button>Set</button></form>
+      <form action="/cmd" method="post"><input type="hidden" name="a" value="minspd"><label>Max speed</label>
+        <span id="f_minspd"><input type="number" name="v" min="5" max="120" step="5" value="60"></span>&deg;/s<button>Set</button></form>
     </div>
-    <p class="hint">Tolerance: how close a go-to has to land. Min speed: how slowly it creeps in near the target. If go-tos
-      overshoot back and forth, raise the tolerance or lower min speed; if they stall short of the target, raise min speed.</p>
+    <p class="hint">Tolerance: how close a go-to has to land. Max speed: how fast the eyes may swing (60&deg;/s is about the
+      motor's full speed; lower is calmer). The motor power is steered to hold a speed that eases off near the target.</p>
   </details>
 
   <details class="manual"><summary>Debug: sensor details</summary>
