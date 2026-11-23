@@ -63,7 +63,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "3.1.0"
+#define FW_VERSION "3.2.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -356,8 +356,8 @@ void sendPageState() {
 
 // Live values: each card is sent only when its HTML changes, and at most every
 // 100 ms (sys every 2 s). Values are rounded first so noise doesn't count as change.
-enum { C_EYES, C_POS, C_SENS, C_LED, C_SYS, C_WIZ, C_ENC, N_CARDS };
-const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_sens", "c_led", "c_sys", "wiz", "enc"};
+enum { C_EYES, C_POS, C_SENS, C_LED, C_SYS, C_WIZ, C_ENC, C_HEAD, N_CARDS };
+const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_sens", "c_led", "c_sys", "wiz", "enc", "head"};
 uint32_t cardHash[N_CARDS], cardSent[N_CARDS];
 
 uint32_t fnv(const char *s) { uint32_t h = 2166136261u; while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; } return h; }
@@ -481,6 +481,71 @@ void pushEncoder(uint32_t now) {
   pushCard(C_ENC, b, now);
 }
 
+// ---------------------------------------------------------------- head diagram
+// Freddy seen from above, facing up the page, so screen right is Freddy's own right.
+// rel angle (degrees, + = right) -> direction (sin, -cos).
+static void ray(String &h, float x0, float y0, float deg, float len, const char *cls) {
+  float a = deg * PI / 180;
+  h += "<line class=\""; h += cls; h += "\" x1=\""; h += String(x0, 1); h += "\" y1=\""; h += String(y0, 1);
+  h += "\" x2=\""; h += String(x0 + len * sinf(a), 1); h += "\" y2=\""; h += String(y0 - len * cosf(a), 1); h += "\"/>";
+}
+static void wedge(String &h, float from, float to, float rad, const char *cls) {   // pie slice from the eyes' midpoint
+  const float cx = 0, cy = -22;
+  float a0 = from * PI / 180, a1 = to * PI / 180;
+  h += "<path class=\""; h += cls; h += "\" d=\"M"; h += String(cx, 1); h += ","; h += String(cy, 1);
+  h += " L"; h += String(cx + rad * sinf(a0), 1); h += ","; h += String(cy - rad * cosf(a0), 1);
+  h += " A"; h += String(rad, 0); h += ","; h += String(rad, 0); h += " 0 "; h += (to - from > 180) ? "1" : "0"; h += " 1 ";
+  h += String(cx + rad * sinf(a1), 1); h += ","; h += String(cy - rad * cosf(a1), 1); h += " Z\"/>";
+}
+
+void pushHead(uint32_t now) {
+  String h;
+  h.reserve(2400);
+  // What do we know? Full calibration, or (during the wizard) the range and a provisional center.
+  bool haveSides = calibrated || wizStep >= 4;
+  bool haveMid = haveSides || wizSwept;
+  float ref = haveSides ? centerDeg : wizSwept ? norm360(wizExtB + wrap180(wizExtA - wizExtB) / 2) : 0;
+  float sign = haveSides ? rightSign() : 1;
+  bool reading = magnetOk();
+  float rel = reading ? wrap180(angNow() - ref) * sign : 0;
+  rel = roundf(rel * 2) / 2;                                 // half-degree steps: smooth, but not chatty
+
+  h += "<svg viewBox=\"-118 -126 236 206\" class=\"headsvg\">";
+  // range: full travel, and the usable part in symmetric mode
+  if (haveSides) {
+    wedge(h, -rangeL(), rangeR(), 92, "range");
+    if (symmetric) wedge(h, -effL(), effR(), 92, "usable");
+    ray(h, 0, -22, -rangeL(), 96, "edge"); ray(h, 0, -22, rangeR(), 96, "edge");
+  } else if (wizSwept) {
+    float half = fabsf(wrap180(wizExtA - wizExtB)) / 2;
+    wedge(h, -half, half, 92, "range");
+  }
+  if (haveMid) ray(h, 0, -22, 0, 100, "center");
+  // head: ears, face, snout, eyes
+  h += "<circle class=\"ear\" cx=\"-40\" cy=\"-30\" r=\"15\"/><circle class=\"ear\" cx=\"40\" cy=\"-30\" r=\"15\"/>"
+       "<circle class=\"skull\" cx=\"0\" cy=\"8\" r=\"50\"/><ellipse class=\"snout\" cx=\"0\" cy=\"-38\" rx=\"17\" ry=\"11\"/>"
+       "<ellipse class=\"nose\" cx=\"0\" cy=\"-46\" rx=\"6\" ry=\"4\"/>"
+       "<circle class=\"eye\" cx=\"-17\" cy=\"-22\" r=\"6\"/><circle class=\"eye\" cx=\"17\" cy=\"-22\" r=\"6\"/>";
+  // target while a go-to runs
+  if (mv.type == MV_SEEK && haveMid) ray(h, 0, -22, roundf(wrap180(sk.target - ref) * sign * 2) / 2, 100, "target");
+  // gaze
+  if (reading && haveMid) { ray(h, -17, -22, rel, 78, "gaze"); ray(h, 17, -22, rel, 78, "gaze"); }
+  // labels
+  h += "<text x=\"-104\" y=\"72\" class=\"lbl\">L</text><text x=\"98\" y=\"72\" class=\"lbl\">R</text>";
+  h += "<text x=\"0\" y=\"74\" class=\"read\">";
+  if (!reading) h += "no angle reading";
+  else if (!haveMid) h += "range unknown: run the wizard";
+  else {
+    char t[64];
+    if (fabsf(rel) < 0.5f) snprintf(t, sizeof t, "dead center");
+    else snprintf(t, sizeof t, "%.1f&deg; %s%s", fabsf(rel), haveSides ? (rel > 0 ? "right" : "left") : "from middle",
+                  haveSides && !calibrated ? " (provisional)" : "");
+    h += t;
+  }
+  h += "</text></svg>";
+  pushCard(C_HEAD, h.c_str(), now);
+}
+
 void pushCards(uint32_t now) {
   char b[900];
   const char *mvName[] = {"stopped", "running", "pulse", "pausing", "moving"};
@@ -531,6 +596,7 @@ void pushCards(uint32_t now) {
 
   pushWizard(now);
   pushEncoder(now);
+  pushHead(now);
 }
 
 // ---------------------------------------------------------------- settings in flash

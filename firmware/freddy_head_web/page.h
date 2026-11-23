@@ -61,6 +61,19 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .lr { font-weight:700; color:var(--mute); }
   b.ok { color:var(--ok); } b.warn { color:#d08a00; } b.bad { color:var(--bad); }
   .v.ok { color:var(--ok); } .v.warn { color:#d08a00; } .v.bad { color:var(--bad); }
+  .split { display:grid; grid-template-columns:minmax(240px, 1fr) 2fr; gap:12px; margin-top:16px; align-items:start; }
+  .split .wiz { margin-top:0; }
+  @media (max-width: 640px) { .split { grid-template-columns:1fr; } }
+  .headsvg { width:100%; max-width:320px; display:block; margin:4px auto 0; }
+  .headsvg .ear { fill:#8a5a2b; } .headsvg .skull { fill:#a06a35; } .headsvg .snout { fill:#d8b48a; }
+  .headsvg .nose { fill:#2a1a10; } .headsvg .eye { fill:#fff; stroke:#2a1a10; stroke-width:1.5; }
+  .headsvg .range { fill:var(--accent); opacity:.10; } .headsvg .usable { fill:var(--accent); opacity:.18; }
+  .headsvg .edge { stroke:var(--mute); stroke-width:1; }
+  .headsvg .center { stroke:var(--ok); stroke-width:1.5; stroke-dasharray:4 3; }
+  .headsvg .target { stroke:#d08a00; stroke-width:2; stroke-dasharray:6 4; }
+  .headsvg .gaze { stroke:var(--accent); stroke-width:3; stroke-linecap:round; }
+  .headsvg .lbl { fill:var(--mute); font-size:12px; font-weight:700; }
+  .headsvg .read { fill:var(--ink); font-size:13px; font-weight:600; text-anchor:middle; }
   .bar i { position:absolute; top:-3px; width:16px; height:16px; margin-left:-8px; border-radius:50%; background:var(--accent); }
   .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
   form { margin:0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
@@ -99,7 +112,10 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   </section>
   <div id="msg"></div>
 
-  <section id="wiz" class="wiz"></section>
+  <section class="split">
+    <div class="card headcard"><div class="k">Where the software thinks the eyes point (seen from above, Freddy faces up)</div><div id="head"></div></div>
+    <section id="wiz" class="wiz"></section>
+  </section>
 
   <h2>Go to</h2>
   <div class="row">
