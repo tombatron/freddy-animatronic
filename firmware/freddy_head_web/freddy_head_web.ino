@@ -58,7 +58,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "5.1.0"
+#define FW_VERSION "5.1.1"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -773,7 +773,9 @@ void nudgeEyes(int tenths) {
   float s = (haveL && haveR) ? rightSign() : 1;
   static char name[24];
   snprintf(name, sizeof name, "nudge %+.1f&deg;", tenths / 10.0f);
-  seekTo(norm360(angNow() + tenths / 10.0f * s), name, min(tolDeg, 0.5f), true);
+  // The tolerance has to be well under the step, or a 0.5 degree nudge is "already there".
+  float step = fabsf(tenths / 10.0f);
+  seekTo(norm360(angNow() + tenths / 10.0f * s), name, min(tolDeg, max(0.15f, step * 0.35f)), true);
 }
 
 // ---------------------------------------------------------------- commands
