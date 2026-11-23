@@ -65,6 +65,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
   .split .wiz { margin-top:0; }
   .movebox { margin-top:12px; }
   .pathcard { margin-top:12px; }
+  .gotos { display:flex; flex-wrap:wrap; gap:8px; }
   .pathcard form { margin:4px 0; }
   .pathcard label { min-width:110px; display:inline-block; font-weight:600; }
   .pathcard .hint { margin:4px 0 8px; }
@@ -156,12 +157,7 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
 
   <h2>Go to</h2>
   <div class="row">
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto">
-      <button name="v" value="-100">Full left</button><button name="v" value="-50">Left</button>
-      <button name="v" value="0" class="primary">Center</button>
-      <button name="v" value="50">Right</button><button name="v" value="100">Full right</button></form>
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto"><input type="hidden" name="t" value="1">
-      <button name="v" value="-100">Far left</button><button name="v" value="100">Far right</button></form>
+    <div id="gotos" class="gotos"></div>
   </div>
   <div class="row">
     <form action="/cmd" method="post"><input type="hidden" name="a" value="goto"><label>Look</label>
@@ -173,7 +169,8 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
     <form action="/cmd" method="post"><button name="a" value="dart">Glance left &amp; right</button><button name="a" value="tour">Tour</button></form>
   </div>
   <div class="card pathcard" id="path"></div>
-  <p class="hint">Positions are % of the way from center to full left or full right (in symmetric mode, to the shorter side's travel), measured by the angle sensor.
+  <p class="hint">Center is your calibrated center; Left and Right are halfway to the ends; Full left and Full right are the ends
+    (in symmetric mode, the shorter side's travel on both sides). Positions are measured by the angle sensor.
     The control loop drives the cam disc whichever way gets there and stops within the tolerance.</p>
 
   <h2>Lights</h2>
@@ -197,8 +194,8 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
         <button name="v" value="1">Symmetric</button><button name="v" value="0">Full range</button></form>
     </div>
     <p class="hint">Symmetric limits both sides to the shorter side's travel, so left and right are mirror images
-      (the Eye position card shows which mode is on). Full range uses each side's whole travel. Far left / Far right
-      always go to the true extremes.</p>
+      (the Eye position card shows which mode is on). Full range uses each side's whole travel. Far left / Far right (shown only in
+      symmetric mode) go to the true extremes.</p>
     <div class="row">
       <form action="/cmd" method="post"><input type="hidden" name="a" value="tol"><label>Tolerance</label>
         <span id="f_tol"><input type="number" name="v" min="0.3" max="5" step="0.1" value="1.0"></span>&deg;<button>Set</button></form>

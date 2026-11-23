@@ -59,7 +59,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "4.1.1"
+#define FW_VERSION "4.2.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -105,6 +105,7 @@ bool symmetric = false;                    // limit both sides to the shorter si
 int pathMode = 2;
 int prefRight = -1, prefLeft = 1;          // disc direction for each eye direction in mode 2 (+1 forward, -1 reverse)
 const float FINE_ZONE = 3.0f;
+const float END_ZONE = 5.0f;               // "at an end of travel": within this many degrees of it
 const char *PATH_NAMES[] = {"shortest", "forward only", "preferred per direction"};
 const float SLOW_ZONE = 15.0f;             // full speed until this close, then ramp down to minSpeed
 int ledPct = 60, ledPeriod = 3000;
@@ -360,8 +361,8 @@ void sendPageState() {
 
 // Live values: each card is sent only when its HTML changes, and at most every
 // 100 ms (sys every 2 s). Values are rounded first so noise doesn't count as change.
-enum { C_EYES, C_POS, C_SENS, C_LED, C_SYS, C_WIZ, C_ENC, C_HEAD, C_PATH, N_CARDS };
-const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_sens", "c_led", "c_sys", "cal", "enc", "head", "path"};
+enum { C_EYES, C_POS, C_SENS, C_LED, C_SYS, C_WIZ, C_ENC, C_HEAD, C_PATH, C_GOTO, N_CARDS };
+const char *CARD_IDS[N_CARDS] = {"c_eyes", "c_pos", "c_sens", "c_led", "c_sys", "cal", "enc", "head", "path", "gotos"};
 uint32_t cardHash[N_CARDS], cardSent[N_CARDS];
 
 uint32_t fnv(const char *s) { uint32_t h = 2166136261u; while (*s) { h ^= (uint8_t)*s++; h *= 16777619u; } return h; }
@@ -532,7 +533,7 @@ void pushPath(uint32_t now) {
   static const char *DESC[] = {
     "The disc reverses within the segment, whichever way gets the eyes there first.",
     "The disc only turns forward, like the stock board: sometimes the long way round, over an extreme.",
-    "Pick the disc direction for moving the eyes right and for moving left. Try both on the head (Full left &harr; Full right) and keep the smoother one."};
+    "At the ends of travel either disc direction works, via different stretches of the disc: pick which one to use for moving right and for moving left. Elsewhere it goes the direct way and never rides over an end."};
   String h;
   h.reserve(1400);
   h += "<form action=\"/cmd\" method=\"post\" class=\"seg\"><input type=\"hidden\" name=\"a\" value=\"path\"><label>Path</label>";
@@ -611,6 +612,16 @@ void pushCards(uint32_t now) {
   pushEncoder(now);
   pushHead(now);
   pushPath(now);
+  {                                                         // go-to buttons: Far only differs from Full in symmetric mode
+    String h = "<form action=\"/cmd\" method=\"post\"><input type=\"hidden\" name=\"a\" value=\"goto\">"
+               "<button name=\"v\" value=\"-100\">Full left</button><button name=\"v\" value=\"-50\">Left</button>"
+               "<button name=\"v\" value=\"0\" class=\"primary\">Center</button>"
+               "<button name=\"v\" value=\"50\">Right</button><button name=\"v\" value=\"100\">Full right</button></form>";
+    if (symmetric)
+      h += "<form action=\"/cmd\" method=\"post\"><input type=\"hidden\" name=\"a\" value=\"goto\"><input type=\"hidden\" name=\"t\" value=\"1\">"
+           "<button name=\"v\" value=\"-100\">Far left</button><button name=\"v\" value=\"100\">Far right</button></form>";
+    pushCard(C_GOTO, h.c_str(), now);
+  }
 }
 
 // ---------------------------------------------------------------- settings in flash
@@ -661,7 +672,15 @@ void seekTo(float target, const char *name, float tol = -1, bool gentle = false)
   if (fabsf(err) <= sk.tol) { report("go to %s: already there (%+.1f&deg;)", name, err); if (job != J_NONE) jobStep(true); return; }
   // start the way that moved the eyes toward the target last time (forward if unknown)
   if (sk.mode == 1) sk.dir = 1;
-  else if (sk.mode == 2 && calibrated) sk.dir = (relOf(sk.target) > relOf(angNow())) ? prefRight : prefLeft;
+  else if (sk.mode == 2 && calibrated) {
+    // At an end of travel both disc directions bring the eyes back, via different stretches of
+    // the disc: that's where the preference applies. Anywhere else, go the direct way (it never
+    // rides over an end), like shortest.
+    float relNow = relOf(angNow());
+    bool atEnd = relNow > rangeR() - END_ZONE || relNow < -rangeL() + END_ZONE;
+    if (atEnd || sk.fwdSign == 0) sk.dir = (relOf(sk.target) > relNow) ? prefRight : prefLeft;
+    else sk.dir = (err > 0) == (sk.fwdSign > 0) ? 1 : -1;
+  }
   else sk.dir = sk.fwdSign == 0 ? 1 : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
   sk.approaching = true;
   sk.flips = 0; sk.settles = 0; sk.settleAt = 0; sk.kickUntil = 0;
@@ -700,7 +719,7 @@ void seekStep(uint32_t now) {
     if (fabsf(moved) > 0.15f) {
       sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;   // learn the cam disc's current direction
       sk.approaching = (moved > 0) == (err > 0);
-      bool mayReverse = sk.mode == 0 || fabsf(err) < FINE_ZONE;
+      bool mayReverse = sk.mode != 1 || fabsf(err) < FINE_ZONE;   // only forward-only commits to a direction
       if (!sk.approaching && mayReverse) { sk.dir = -sk.dir; sk.flips++; }
     } else if (now > sk.kickUntil) sk.kickUntil = now + 150;  // stalled at low speed: full power briefly
     sk.checkAt = now; sk.angAtCheck = ang;
@@ -712,7 +731,7 @@ void seekStep(uint32_t now) {
   float a = fabsf(err);
   int pct = a >= SLOW_ZONE ? 100 : minSpeed + (int)((100 - minSpeed) * max(0.0f, a - sk.tol) / (SLOW_ZONE - sk.tol));
   if (now < sk.kickUntil) pct = 100;
-  if (sk.mode != 0 && !sk.approaching) pct = 100;            // heading away, over an extreme: no need to creep
+  if (sk.mode == 1 && !sk.approaching) pct = 100;            // forward only, heading over an end: no need to creep
   sk.pct = constrain(pct, minSpeed, 100);
   motorDrive(sk.dir, sk.pct);
 }
