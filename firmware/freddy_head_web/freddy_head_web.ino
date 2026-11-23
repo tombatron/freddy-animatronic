@@ -58,7 +58,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "5.3.0"
+#define FW_VERSION "5.4.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -91,14 +91,23 @@ bool haveL = false, haveR = false, haveC = false;   // which points have been se
 float rightDeg = 0, leftDeg = 0, centerDeg = 0;     // sensor angles (0..360) at full right, full left, center
 bool calibrated = false;                   // all three set, and center lies between the ends
 float tolDeg = 1.0f;                       // a go-to is done within this many degrees
-int minSpeed = 50;                         // motor power the go-to eases down to near the target (%)
+int minSpeed = 50;                         // (unused since 5.4: the head has too much stiction to creep)
 bool symmetric = false;                    // limit both sides to the shorter side's travel
 // Leaving an end of travel, both disc directions bring the eyes back toward center, via
 // different stretches of the disc. Bench-tested: these give the smoother motion.
 const int END_DIR_RIGHT = -1;              // disc reverse to move the eyes right from an end
 const int END_DIR_LEFT = 1;                // disc forward to move them left
 const float END_ZONE = 5.0f;               // "at an end of travel": within this many degrees of it
-const float SLOW_ZONE = 15.0f;             // full power until this close, then ease down to minSpeed
+// The eye linkage has a lot of stiction and slack (bench trace, Nov 2026): below ~85-95%
+// power the eyes don't move at all, then they lurch and coast 3-4 degrees after braking.
+// So: big moves drive at full power and brake early by the (learned) coast; the last few
+// degrees are short full-power pulses, sized from what earlier pulses achieved (learned).
+const float FINE_ZONE = 4.0f;              // closer than this (or than the coast): pulses
+const uint32_t PULSE_SETTLE = 130;         // ms to let the eyes stop after a pulse before measuring
+const int PULSE_MIN = 12, PULSE_MAX = 150; // ms
+const int MAX_PULSES = 14;
+float coastDeg = 3.0f;                     // learned: how far the eyes coast after braking from full power
+float pulseGain = 0.05f;                   // learned: degrees per ms of full-power pulse
 int ledPct = 60, ledPeriod = 3000;
 enum LedMode { L_OFF, L_ON, L_BREATHE, L_FLICKER, L_BLINK };
 const char *LED_MODES[] = {"off", "on", "breathe", "flicker", "blink"};
@@ -116,16 +125,18 @@ bool motorOn() { return mv.type == MV_RUN || mv.type == MV_TIMED || mv.type == M
 uint32_t since(uint32_t t, uint32_t now) { return (int32_t)(now - t) > 0 ? now - t : 0; }
 
 // closed-loop seek state
+enum SeekPhase { PH_DRIVE, PH_COAST, PH_PULSE, PH_PULSE_WAIT };
 struct {
   float target = 0;                        // sensor angle, 0..360
   float tol = 1.0f;                        // this move's tolerance, degrees
   int dir = 1, pct = 100;
-  uint32_t checkAt = 0, settleAt = 0, flipAt = 0;
-  float angAtCheck = 0;
-  int boost = 0;                           // extra power while the eyes are barely moving (ramps, no kicks)
-  int flips = 0, settles = 0;
+  SeekPhase phase = PH_DRIVE;
+  bool driving = false;                    // motor powered right now (for the trace)
+  uint32_t checkAt = 0, phaseAt = 0, flipAt = 0;
+  float angAtCheck = 0, angAtPhase = 0, lastStill = 0;
+  int pulseMs = 30, pulses = 0, flips = 0;
   const char *name = "";
-  bool gentle = false;                     // a nudge: may stop "close enough" within 1 degree
+  bool gentle = false;                     // a nudge
   bool armed = true;                       // may reverse (false right after a reversal, until it takes effect)
   float best = 0, startErr = 0, origErr = 0;   // closest |error| this leg, |error| at the leg's start and the move's start
   float bestAng = 0, bestErr = 0;          // where the eyes got closest overall, and the signed error there
@@ -631,7 +642,7 @@ void traceAdd(uint32_t now) {
   TracePt &p = trace[traceN++];
   p.t = (uint16_t)min(since(mv.start, now), (uint32_t)65535);
   p.ang10 = (int16_t)lroundf(wrap180(angNow() - traceStartAng) * 10);
-  p.pwr = (int8_t)(motorOn() && !sk.settleAt ? sk.dir * sk.pct : 0);
+  p.pwr = (int8_t)(sk.driving ? sk.dir * sk.pct : 0);
 }
 void traceDump() {
   if (!traceOn || traceN == 0) return;
@@ -647,103 +658,150 @@ void traceDump() {
 // Drive the cam disc until the sensor reads target (degrees, 0..360). Every 40 ms it checks
 // whether the eyes moved toward the target; if they moved away, it reverses. Power eases
 // down near the target, with a gentle boost if the eyes are barely moving.
+// disc direction that should move the eyes toward a target err (sensor degrees), from what we've learned
+static int dirToward(float err) { return sk.fwdSign == 0 ? sk.dir : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1); }
+
+static void drive(int dir) { sk.dir = dir; sk.pct = 100; sk.driving = true; motorDrive(dir, 100); }
+static void brake() { sk.driving = false; motorBrake(); }
+
 void seekTo(float target, const char *name, float tol = -1, bool gentle = false) {
   if (!magnetOk()) { report("go to %s: no angle reading", name); if (job != J_NONE) { job = J_NONE; } return; }
   sk.target = norm360(target);
   sk.name = name;
   sk.tol = tol > 0 ? tol : tolDeg;
   sk.gentle = gentle;
-  float err = wrap180(sk.target - angNow());
+  float ang = angNow();
+  float err = wrap180(sk.target - ang);
   if (fabsf(err) <= sk.tol) { report("go to %s: already there (%+.1f&deg;)", name, err); if (job != J_NONE) jobStep(true); return; }
   // Start the way that moved the eyes toward the target last time. Leaving an end, where
   // either way works, use the bench-tested direction.
-  float relNow = calibrated ? relOf(angNow()) : 0;
+  float relNow = calibrated ? relOf(ang) : 0;
   bool atEnd = calibrated && (relNow > rangeR() - END_ZONE || relNow < -rangeL() + END_ZONE);
   if (calibrated && (atEnd || sk.fwdSign == 0)) sk.dir = (relOf(sk.target) > relNow) ? END_DIR_RIGHT : END_DIR_LEFT;
   else sk.dir = sk.fwdSign == 0 ? 1 : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
-  sk.flips = 0; sk.settles = 0; sk.settleAt = 0; sk.boost = 0; sk.armed = true;
-  sk.best = sk.startErr = sk.origErr = fabsf(err); sk.bestAng = angNow(); sk.bestErr = err; sk.atLimit = false;
-  sk.checkAt = millis(); sk.angAtCheck = angNow(); sk.flipAt = millis();
-  sk.pct = 100;
-  traceN = 0; traceStartAng = angNow();
-  startMove(MV_SEEK, sk.dir, 100, 4000);
+  sk.flips = 0; sk.pulses = 0; sk.armed = true;
+  sk.best = sk.startErr = sk.origErr = fabsf(err); sk.bestAng = ang; sk.bestErr = err; sk.atLimit = false;
+  uint32_t now = millis();
+  sk.checkAt = sk.phaseAt = sk.flipAt = now; sk.angAtCheck = sk.angAtPhase = ang;
+  traceN = 0; traceStartAng = ang;
+  startMove(MV_SEEK, sk.dir, 100, 5000);
+  if (fabsf(err) <= max(FINE_ZONE, coastDeg + 1)) {          // small move: straight to pulses
+    brake();
+    sk.phase = PH_PULSE;
+  } else {
+    sk.phase = PH_DRIVE;
+    drive(sk.dir);
+  }
 }
 
 static void seekDone(uint32_t now, float err) {
-  mv.type = MV_NONE;
+  brake(); mv.type = MV_NONE;
   uint32_t took = since(mv.start, now);
   if (sk.atLimit) report("%s: end of travel, stopped at the end (%.1f&deg; short of the target)", sk.name, fabsf(sk.bestErr));
-  else if (job == J_NONE) report("go to %s: done, %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s");
-  else report("%s: %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s");
+  else if (job == J_NONE) report("go to %s: done, %+.1f&deg; off, %lu ms, %d pulse%s", sk.name, err, took, sk.pulses, sk.pulses == 1 ? "" : "s");
+  else report("%s: %+.1f&deg; off, %lu ms, %d pulse%s", sk.name, err, took, sk.pulses, sk.pulses == 1 ? "" : "s");
   traceDump();
   if (job != J_NONE) jobStep(true);
 }
 
 static void seekFail(const char *fmt, float err) {
-  motorBrake(); mv.type = MV_NONE;
-  report(fmt, sk.name, sk.flips, err);
+  brake(); mv.type = MV_NONE;
+  report(fmt, sk.name, err);
   traceDump();
   if (job != J_NONE) job = J_NONE;
 }
 
 void seekStep(uint32_t now) {
-  if (!magnetOk()) { endMove(false, "go to: lost the angle reading"); traceDump(); return; }
+  if (!magnetOk()) { brake(); endMove(false, "go to: lost the angle reading"); traceDump(); return; }
   float ang = angNow();
   float err = wrap180(sk.target - ang);
-  if (sk.settleAt) {                                         // braked: wait for the coast to finish, then check
-    if (since(sk.settleAt, now) < 150) return;
-    sk.settleAt = 0;
-    traceAdd(now);
-    if (fabsf(err) <= sk.tol) { seekDone(now, err); return; }
-    if (++sk.settles > 4) {
-      if (sk.gentle && fabsf(err) < 1.0f) { seekDone(now, err); return; }
-      seekFail("%s: overshoots and won't settle (%d reversals, %+.1f&deg; off)", err); return;
-    }
-    // coasted past: correct, starting the way that moves the eyes toward the target
-    if (sk.fwdSign) sk.dir = (err > 0) == (sk.fwdSign > 0) ? 1 : -1;
-    sk.checkAt = now; sk.angAtCheck = ang; sk.flipAt = now; sk.armed = true; sk.boost = 0;
-    sk.best = sk.startErr = fabsf(err);
-  }
-  if (fabsf(err) <= sk.tol) { motorBrake(); sk.settleAt = now; return; }
-  if (since(mv.start, now) > mv.ms) { seekFail("%s: timed out (%d reversals, %+.1f&deg; off). Motor powered? Eyes stuck?", err); return; }
+  if (since(mv.start, now) > mv.ms) { seekFail("%s: timed out, %+.1f&deg; off. Motor powered? Eyes stuck?", err); return; }
 
-  if (since(sk.checkAt, now) >= 40) {                        // every 40 ms: which way did the eyes move?
-    traceAdd(now);
-    float moved = wrap180(ang - sk.angAtCheck);
-    sk.angAtCheck = ang; sk.checkAt = now;
-    bool movedWell = fabsf(moved) > 0.15f;
-    // learn the disc direction from settled motion only (not right after a reversal)
-    if (movedWell && since(sk.flipAt, now) >= 100) sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;
-    // gentle boost while barely moving, easing off once it moves
-    sk.boost = movedWell ? max(0, sk.boost - 10) : min(50, sk.boost + 8);
-
-    sk.best = min(sk.best, fabsf(err));
-    if (fabsf(err) < fabsf(sk.bestErr)) { sk.bestErr = err; sk.bestAng = ang; }
-    bool toward = movedWell && ((moved > 0) == (err > 0));
-    if (!sk.armed && (toward || since(sk.flipAt, now) > 400)) sk.armed = true;   // the reversal has taken effect
-
-    bool worse = sk.armed && movedWell && !toward && fabsf(err) > sk.best + 0.5f;
-    if (worse && !sk.atLimit) {
-      bool overEnd = sk.best < sk.startErr - 1.0f && (err > 0) == (sk.bestErr > 0);   // got closer, then drifted back
-      bool stuckAtEnd = sk.flips >= 1 && fabsf(sk.bestErr) > sk.origErr - 1.0f;      // tried both ways, under 1 degree closer
-      if (overEnd || stuckAtEnd) {
-        // the cam disc carried the eyes over the end of travel: go back to the end and stop
-        sk.atLimit = true; sk.target = sk.bestAng; sk.tol = max(sk.tol, 0.8f);
-        sk.dir = -sk.dir; sk.flipAt = now; sk.armed = false; sk.boost = 0;
-        sk.best = sk.startErr = fabsf(wrap180(sk.target - ang));
+  switch (sk.phase) {
+    case PH_DRIVE: {                                         // full power toward the target, brake early by the coast
+      if (fabsf(err) <= coastDeg || (err > 0) != (sk.bestErr > 0)) {
+        brake(); sk.phase = PH_COAST; sk.phaseAt = now; sk.angAtPhase = ang; sk.lastStill = ang; sk.checkAt = now;
+        traceAdd(now);
         return;
       }
+      if (since(sk.checkAt, now) < 40) return;               // every 40 ms: going the right way? end of travel?
+      traceAdd(now);
+      float moved = wrap180(ang - sk.angAtCheck);
+      sk.angAtCheck = ang; sk.checkAt = now;
+      bool movedWell = fabsf(moved) > 0.15f;
+      if (movedWell && since(sk.flipAt, now) >= 100) sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;
+      sk.best = min(sk.best, fabsf(err));
+      if (fabsf(err) < fabsf(sk.bestErr)) { sk.bestErr = err; sk.bestAng = ang; }
+      bool toward = movedWell && ((moved > 0) == (err > 0));
+      if (!sk.armed && (toward || since(sk.flipAt, now) > 400)) sk.armed = true;
+      bool worse = sk.armed && movedWell && !toward && fabsf(err) > sk.best + 0.5f;
+      if (!worse) return;
+      bool overEnd = sk.best < sk.startErr - 1.0f && (err > 0) == (sk.bestErr > 0);
+      bool stuckAtEnd = sk.flips >= 1 && fabsf(sk.bestErr) > sk.origErr - 1.0f;
+      if (!sk.atLimit && (overEnd || stuckAtEnd)) {
+        // the cam disc carried the eyes over the end of travel: go back to the end and stop
+        sk.atLimit = true; sk.target = sk.bestAng; sk.tol = max(sk.tol, 0.8f);
+        err = wrap180(sk.target - ang);
+        sk.bestErr = err;
+      }
+      sk.flips++;
+      if (sk.flips > 6) { seekFail("%s: gave up reversing, %+.1f&deg; off", err); return; }
+      sk.flipAt = now; sk.armed = false; sk.best = sk.startErr = fabsf(err);
+      drive(-sk.dir);
+      return;
     }
-    if (worse) {
-      sk.dir = -sk.dir; sk.flips++; sk.flipAt = now; sk.armed = false; sk.boost = 0;
-      sk.best = sk.startErr = fabsf(err);
-      if (sk.flips > 6) { seekFail("%s: gave up after %d reversals, %+.1f&deg; off", err); return; }
+
+    case PH_COAST:                                           // braked: wait until the eyes stop, learn the coast
+      if (since(sk.checkAt, now) < 40) return;
+      sk.checkAt = now;
+      if (fabsf(wrap180(ang - sk.lastStill)) > 0.1f && since(sk.phaseAt, now) < 400) { sk.lastStill = ang; return; }
+      traceAdd(now);
+      {
+        float coasted = fabsf(wrap180(ang - sk.angAtPhase));
+        coastDeg = constrain(0.7f * coastDeg + 0.3f * coasted, 0.5f, 10.0f);
+      }
+      if (fabsf(err) <= sk.tol) { seekDone(now, err); return; }
+      sk.phase = PH_PULSE;
+      return;
+
+    case PH_PULSE: {                                         // a short full-power pulse toward the target
+      if (fabsf(err) <= sk.tol) { seekDone(now, err); return; }
+      if (sk.pulses >= MAX_PULSES) {
+        if (fabsf(err) < 1.0f) { seekDone(now, err); return; }
+        seekFail("%s: couldn't get closer than %+.1f&deg; with pulses", err); return;
+      }
+      if (sk.pulses == 0 || sk.pulseMs <= 0) sk.pulseMs = (int)constrain(0.8f * fabsf(err) / pulseGain, (float)PULSE_MIN, (float)PULSE_MAX);
+      sk.pulses++;
+      sk.angAtPhase = ang; sk.phaseAt = now;
+      drive(dirToward(err));
+      traceAdd(now);
+      sk.phase = PH_PULSE_WAIT;
+      return;
+    }
+
+    case PH_PULSE_WAIT: {
+      uint32_t in = since(sk.phaseAt, now);
+      if (sk.driving && in >= (uint32_t)sk.pulseMs) { brake(); traceAdd(now); }
+      if (in < (uint32_t)sk.pulseMs + PULSE_SETTLE) return;
+      traceAdd(now);
+      float moved = wrap180(ang - sk.angAtPhase);              // sensor degrees this pulse moved the eyes
+      float errBefore = wrap180(sk.target - sk.angAtPhase);
+      float toward = (errBefore > 0) ? moved : -moved;
+      if (fabsf(moved) > 0.2f) {
+        sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;   // learn the disc direction
+        pulseGain = constrain(0.7f * pulseGain + 0.3f * fabsf(moved) / sk.pulseMs, 0.005f, 0.5f);
+      }
+      if (fabsf(moved) < 0.1f) sk.pulseMs = min(PULSE_MAX, (int)(sk.pulseMs * 1.6f) + 5);   // stiction / slack: push harder
+      else sk.pulseMs = (int)constrain(0.8f * fabsf(err) / pulseGain, (float)PULSE_MIN, (float)PULSE_MAX);
+      if (toward < -0.3f && fabsf(err) > fabsf(errBefore) + 0.5f && sk.pulses >= 3 && !sk.atLimit) {
+        // pulses push the eyes away whichever way: past the end of travel. Stop at the closest point.
+        if (fabsf(wrap180(sk.bestAng - ang)) < 1.0f) { sk.atLimit = true; seekDone(now, err); return; }
+      }
+      if (fabsf(err) < fabsf(sk.bestErr)) { sk.bestErr = err; sk.bestAng = ang; }
+      sk.phase = PH_PULSE;
+      return;
     }
   }
-  float a = fabsf(err);
-  int pct = a >= SLOW_ZONE ? 100 : minSpeed + (int)((100 - minSpeed) * max(0.0f, a - sk.tol) / (SLOW_ZONE - sk.tol));
-  sk.pct = constrain(pct + sk.boost, minSpeed, 100);
-  motorDrive(sk.dir, sk.pct);
 }
 
 void gotoPct(float pct, const char *name, bool far = false) {
