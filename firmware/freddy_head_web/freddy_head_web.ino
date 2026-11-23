@@ -58,7 +58,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "5.2.0"
+#define FW_VERSION "5.3.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -91,20 +91,14 @@ bool haveL = false, haveR = false, haveC = false;   // which points have been se
 float rightDeg = 0, leftDeg = 0, centerDeg = 0;     // sensor angles (0..360) at full right, full left, center
 bool calibrated = false;                   // all three set, and center lies between the ends
 float tolDeg = 1.0f;                       // a go-to is done within this many degrees
-int maxSpeed = 60;                         // eye speed cap, degrees per second (60 is about the motor's full speed)
+int minSpeed = 50;                         // motor power the go-to eases down to near the target (%)
 bool symmetric = false;                    // limit both sides to the shorter side's travel
 // Leaving an end of travel, both disc directions bring the eyes back toward center, via
 // different stretches of the disc. Bench-tested: these give the smoother motion.
 const int END_DIR_RIGHT = -1;              // disc reverse to move the eyes right from an end
 const int END_DIR_LEFT = 1;                // disc forward to move them left
 const float END_ZONE = 5.0f;               // "at an end of travel": within this many degrees of it
-// Speed control: the target eye speed is APPROACH x distance to go (capped at maxSpeed,
-// never below CREEP), and the motor power is steered (PI) to hold it.
-const float APPROACH = 5.0f;               // per second: 10 degrees out -> 50 deg/s, 2 degrees -> 10 deg/s
-const float CREEP = 6.0f;                  // deg/s: the slowest it aims for in the last degree or two
-const float KP = 0.8f;                     // % power per deg/s of speed error
-const float KI = 25.0f;                    // % power per degree of accumulated speed error
-const float START_POWER = 55.0f;           // where the power starts (and restarts after a reversal)
+const float SLOW_ZONE = 15.0f;             // full power until this close, then ease down to minSpeed
 int ledPct = 60, ledPeriod = 3000;
 enum LedMode { L_OFF, L_ON, L_BREATHE, L_FLICKER, L_BLINK };
 const char *LED_MODES[] = {"off", "on", "breathe", "flicker", "blink"};
@@ -126,23 +120,21 @@ struct {
   float target = 0;                        // sensor angle, 0..360
   float tol = 1.0f;                        // this move's tolerance, degrees
   int dir = 1, pct = 100;
-  uint32_t settleAt = 0, flipAt = 0, lastSample = 0;
-  float integ = START_POWER;               // the integral part of the motor power
-  float best = 0;                          // closest |error| since the last reversal
-  float startErr = 0;                      // |error| when this leg started (start, reversal or correction)
-  float bestAng = 0, bestErr = 0;          // where the eyes got closest overall, and the signed error there
-  bool atLimit = false;                    // the target is past the end of travel: heading back to the end
-  float origErr = 0;                       // |error| when the move started
-  bool armed = true;                       // may reverse (false right after a reversal, until it takes effect)
+  uint32_t checkAt = 0, settleAt = 0, flipAt = 0;
+  float angAtCheck = 0;
+  int boost = 0;                           // extra power while the eyes are barely moving (ramps, no kicks)
   int flips = 0, settles = 0;
   const char *name = "";
-  bool gentle = false;                     // a nudge: stop quietly when close instead of failing
-  bool approaching = true;                 // was the angle last seen moving toward the target?
+  bool gentle = false;                     // a nudge: may stop "close enough" within 1 degree
+  bool armed = true;                       // may reverse (false right after a reversal, until it takes effect)
+  float best = 0, startErr = 0, origErr = 0;   // closest |error| this leg, |error| at the leg's start and the move's start
+  float bestAng = 0, bestErr = 0;          // where the eyes got closest overall, and the signed error there
+  bool atLimit = false;                    // the target is past the end of travel: heading back to the end
   // Which way the eyes moved (on the sensor) the last time the cam disc ran forward: +1, -1,
-  // or 0 = unknown. It only changes when the eyes pass an extreme, so it's a good guess
-  // for the next move's starting direction.
+  // or 0 = unknown. It only changes when the eyes pass an end, so it's a good first guess.
   int fwdSign = 0;
 } sk;
+
 
 // ---------------- jobs
 enum Job { J_NONE, J_TOUR, J_DART };
@@ -189,14 +181,6 @@ struct {
   uint32_t hT[8]; float hA[8]; int hN = 0, hI = 0;
   uint32_t samples = 0;                    // counts readings, so the control loop runs once per reading
 } enc;
-
-// Eye speed on the sensor, degrees per second (+ = sensor angle increasing), over ~30 ms.
-float encSpeed() {
-  if (enc.hN < 4) return 0;
-  int newest = (enc.hI + 7) % 8, oldest = (enc.hI + 8 - min(enc.hN, 7)) % 8;
-  float dt = (enc.hT[newest] - enc.hT[oldest]) / 1000.0f;
-  return dt > 0 ? (enc.hA[newest] - enc.hA[oldest]) / dt : 0;
-}
 
 bool magnetOk() { return enc.found && (enc.status & 0x20); }
 float angNow() { return enc.raw * 360.0f / 4096; }
@@ -371,7 +355,7 @@ void sendPageState() {
   stream("update", "f_period", b);
   snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"0.3\" max=\"5\" step=\"0.1\" value=\"%.1f\">", tolDeg);
   stream("update", "f_tol", b);
-  snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"5\" max=\"120\" step=\"5\" value=\"%d\">", maxSpeed);
+  snprintf(b, sizeof b, "<input type=\"number\" name=\"v\" min=\"20\" max=\"100\" step=\"5\" value=\"%d\">", minSpeed);
   stream("update", "f_minspd", b);
 }
 
@@ -547,8 +531,8 @@ void pushCards(uint32_t now) {
 
   if (mv.type == MV_SEEK) snprintf(b, sizeof b, "<div class=\"k\">Eyes</div><div class=\"v\">%s</div><div class=\"s\">%s &middot; %d%% %s</div>",
                                    job != J_NONE ? JOB_NAMES[job] : "moving", sk.name, sk.pct, sk.dir > 0 ? "&rarr;" : "&larr;");
-  else snprintf(b, sizeof b, "<div class=\"k\">Eyes</div><div class=\"v\">%s%s</div><div class=\"s\">tolerance %.1f&deg; &middot; max %d&deg;/s</div>",
-                job != J_NONE ? JOB_NAMES[job] : mvName[mv.type], motorOn() ? (mv.dir > 0 ? " &rarr;" : " &larr;") : "", tolDeg, maxSpeed);
+  else snprintf(b, sizeof b, "<div class=\"k\">Eyes</div><div class=\"v\">%s%s</div><div class=\"s\">tolerance %.1f&deg; &middot; min power %d%%</div>",
+                job != J_NONE ? JOB_NAMES[job] : mvName[mv.type], motorOn() ? (mv.dir > 0 ? " &rarr;" : " &larr;") : "", tolDeg, minSpeed);
   pushCard(C_EYES, b, now);
 
   if (calibrated && magnetOk()) {
@@ -612,7 +596,7 @@ void saveCal() {
   prefs.putFloat("c", centerDeg);
 }
 void saveTuning() {
-  prefs.putFloat("tol", tolDeg); prefs.putInt("vmax", maxSpeed); prefs.putBool("sym", symmetric);
+  prefs.putFloat("tol", tolDeg); prefs.putInt("minspd", minSpeed); prefs.putBool("sym", symmetric);
 }
 
 // ---------------------------------------------------------------- moves
@@ -637,9 +621,32 @@ void stopAll(const char *why) {
   if (busy && why) report("STOP (%s)", why);
 }
 
+// Trace (Debug): every 40 ms check of a move is recorded and logged when the move ends.
+bool traceOn = false;
+const int TRACE_MAX = 120;
+struct TracePt { uint16_t t; int16_t ang10; int8_t pwr; };   // ms since start, angle from start x10, signed power
+TracePt trace[TRACE_MAX]; int traceN = 0; float traceStartAng = 0;
+void traceAdd(uint32_t now) {
+  if (!traceOn || traceN >= TRACE_MAX) return;
+  TracePt &p = trace[traceN++];
+  p.t = (uint16_t)min(since(mv.start, now), (uint32_t)65535);
+  p.ang10 = (int16_t)lroundf(wrap180(angNow() - traceStartAng) * 10);
+  p.pwr = (int8_t)(motorOn() && !sk.settleAt ? sk.dir * sk.pct : 0);
+}
+void traceDump() {
+  if (!traceOn || traceN == 0) return;
+  char line[200]; int n = 0, part = 1;
+  for (int i = 0; i < traceN; i++) {
+    n += snprintf(line + n, sizeof line - n, "%s%u:%.1f:%+d", n ? " " : "", trace[i].t, trace[i].ang10 / 10.0f, trace[i].pwr);
+    if (n > 150 || i == traceN - 1) { report("trace %d (ms:deg:power) %s", part++, line); n = 0; }
+  }
+  traceN = 0;
+}
+
 // ---------------------------------------------------------------- closed-loop seek
-// Drive the cam disc until the sensor reads target (degrees, 0..360). Direction is found by
-// watching the angle: if the eyes move away from the target, reverse.
+// Drive the cam disc until the sensor reads target (degrees, 0..360). Every 40 ms it checks
+// whether the eyes moved toward the target; if they moved away, it reverses. Power eases
+// down near the target, with a gentle boost if the eyes are barely moving.
 void seekTo(float target, const char *name, float tol = -1, bool gentle = false) {
   if (!magnetOk()) { report("go to %s: no angle reading", name); if (job != J_NONE) { job = J_NONE; } return; }
   sk.target = norm360(target);
@@ -648,96 +655,94 @@ void seekTo(float target, const char *name, float tol = -1, bool gentle = false)
   sk.gentle = gentle;
   float err = wrap180(sk.target - angNow());
   if (fabsf(err) <= sk.tol) { report("go to %s: already there (%+.1f&deg;)", name, err); if (job != J_NONE) jobStep(true); return; }
-  // start the way that moved the eyes toward the target last time (forward if unknown)
-  // Start the way that moved the eyes toward the target last time (the sensor corrects it
-  // within 40 ms if that's wrong). Leaving an end, where either way works, use the
-  // bench-tested direction.
+  // Start the way that moved the eyes toward the target last time. Leaving an end, where
+  // either way works, use the bench-tested direction.
   float relNow = calibrated ? relOf(angNow()) : 0;
   bool atEnd = calibrated && (relNow > rangeR() - END_ZONE || relNow < -rangeL() + END_ZONE);
   if (calibrated && (atEnd || sk.fwdSign == 0)) sk.dir = (relOf(sk.target) > relNow) ? END_DIR_RIGHT : END_DIR_LEFT;
   else sk.dir = sk.fwdSign == 0 ? 1 : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
-  sk.approaching = true;
-  sk.flips = 0; sk.settles = 0; sk.settleAt = 0;
-  sk.best = fabsf(err); sk.armed = true;
-  sk.startErr = fabsf(err); sk.bestAng = angNow(); sk.bestErr = err; sk.atLimit = false; sk.origErr = fabsf(err);
-  sk.integ = START_POWER; sk.flipAt = millis(); sk.lastSample = enc.samples;
-  sk.pct = (int)START_POWER;
-  startMove(MV_SEEK, sk.dir, sk.pct, 4000);
+  sk.flips = 0; sk.settles = 0; sk.settleAt = 0; sk.boost = 0; sk.armed = true;
+  sk.best = sk.startErr = sk.origErr = fabsf(err); sk.bestAng = angNow(); sk.bestErr = err; sk.atLimit = false;
+  sk.checkAt = millis(); sk.angAtCheck = angNow(); sk.flipAt = millis();
+  sk.pct = 100;
+  traceN = 0; traceStartAng = angNow();
+  startMove(MV_SEEK, sk.dir, 100, 4000);
+}
+
+static void seekDone(uint32_t now, float err) {
+  mv.type = MV_NONE;
+  uint32_t took = since(mv.start, now);
+  if (sk.atLimit) report("%s: end of travel, stopped at the end (%.1f&deg; short of the target)", sk.name, fabsf(sk.bestErr));
+  else if (job == J_NONE) report("go to %s: done, %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s");
+  else report("%s: %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s");
+  traceDump();
+  if (job != J_NONE) jobStep(true);
+}
+
+static void seekFail(const char *fmt, float err) {
+  motorBrake(); mv.type = MV_NONE;
+  report(fmt, sk.name, sk.flips, err);
+  traceDump();
+  if (job != J_NONE) job = J_NONE;
 }
 
 void seekStep(uint32_t now) {
-  if (!magnetOk()) { endMove(false, "go to: lost the angle reading"); return; }
+  if (!magnetOk()) { endMove(false, "go to: lost the angle reading"); traceDump(); return; }
   float ang = angNow();
   float err = wrap180(sk.target - ang);
   if (sk.settleAt) {                                         // braked: wait for the coast to finish, then check
     if (since(sk.settleAt, now) < 150) return;
     sk.settleAt = 0;
-    if (fabsf(err) <= sk.tol) {
-      mv.type = MV_NONE;
-      uint32_t took = since(mv.start, now);
-      if (sk.atLimit) {
-        report("%s: end of travel, stopped at the end (%.1f&deg; short of the target)", sk.name, fabsf(sk.bestErr));
-        if (job != J_NONE) jobStep(true);
-        return;
-      }
-      if (job == J_NONE) report("go to %s: done, %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s");
-      else { report("%s: %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s"); jobStep(true); }
-      return;
-    }
+    traceAdd(now);
+    if (fabsf(err) <= sk.tol) { seekDone(now, err); return; }
     if (++sk.settles > 4) {
-      if (sk.gentle && fabsf(err) < 1.0f) { mv.type = MV_NONE; report("%s: close enough (%+.1f&deg;)", sk.name, err); return; }
-      endMove(false, "go to: overshoots and won't settle. Raise the tolerance or lower the max speed."); return;
+      if (sk.gentle && fabsf(err) < 1.0f) { seekDone(now, err); return; }
+      seekFail("%s: overshoots and won't settle (%d reversals, %+.1f&deg; off)", err); return;
     }
     // coasted past: correct, starting the way that moves the eyes toward the target
-    sk.dir = sk.fwdSign == 0 ? sk.dir : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
-    sk.integ = START_POWER * 0.7f; sk.flipAt = now; sk.best = fabsf(err); sk.armed = true; sk.startErr = fabsf(err);
+    if (sk.fwdSign) sk.dir = (err > 0) == (sk.fwdSign > 0) ? 1 : -1;
+    sk.checkAt = now; sk.angAtCheck = ang; sk.flipAt = now; sk.armed = true; sk.boost = 0;
+    sk.best = sk.startErr = fabsf(err);
   }
   if (fabsf(err) <= sk.tol) { motorBrake(); sk.settleAt = now; return; }
-  if (since(mv.start, now) > mv.ms) { endMove(false, "go to: timed out. Is the motor powered, or are the eyes stuck?"); return; }
-  if (enc.samples == sk.lastSample) return;                  // run once per sensor reading (200 Hz)
-  sk.lastSample = enc.samples;
+  if (since(mv.start, now) > mv.ms) { seekFail("%s: timed out (%d reversals, %+.1f&deg; off). Motor powered? Eyes stuck?", err); return; }
 
-  float v = encSpeed();                                      // sensor deg/s
-  float toward = err > 0 ? v : -v;                           // eye speed toward the target
-  // Learn which way the disc is moving the eyes, but only from settled motion: right after a
-  // reversal the speed window still holds the old direction.
-  if (fabsf(v) > 4 && since(sk.flipAt, now) >= 100) sk.fwdSign = ((v > 0) == (sk.dir > 0)) ? 1 : -1;
-  sk.approaching = toward > -4;
+  if (since(sk.checkAt, now) >= 40) {                        // every 40 ms: which way did the eyes move?
+    traceAdd(now);
+    float moved = wrap180(ang - sk.angAtCheck);
+    sk.angAtCheck = ang; sk.checkAt = now;
+    bool movedWell = fabsf(moved) > 0.15f;
+    // learn the disc direction from settled motion only (not right after a reversal)
+    if (movedWell && since(sk.flipAt, now) >= 100) sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;
+    // gentle boost while barely moving, easing off once it moves
+    sk.boost = movedWell ? max(0, sk.boost - 10) : min(50, sk.boost + 8);
 
-  // Reverse when the error has grown 1.5 degrees past the closest it's been. After a reversal,
-  // wait until it takes effect (eyes coming back, or 0.5 s) before judging again: the gearmotor
-  // and linkage need time to stop and turn round.
-  sk.best = min(sk.best, fabsf(err));
-  if (fabsf(err) < fabsf(sk.bestErr)) { sk.bestErr = err; sk.bestAng = ang; }
-  if (!sk.armed && (toward > 2 || since(sk.flipAt, now) > 500)) sk.armed = true;
-  bool overEnd = sk.best < sk.startErr - 1.0f && (err > 0) == (sk.bestErr > 0);   // got closer, then drifted back
-  bool stuckAtEnd = sk.flips >= 1 && fabsf(sk.bestErr) > sk.origErr - 1.0f;       // tried both ways, neither got closer (under 1 degree)
-  if (sk.armed && fabsf(err) > sk.best + 1.5f && !sk.atLimit && (overEnd || stuckAtEnd)) {
-    // The cam disc carried the eyes over the end of travel (or they started at the end and
-    // both directions lead away). The target can't be reached: go back to the furthest
-    // point (the end) and stop there.
-    sk.atLimit = true;
-    sk.target = sk.bestAng;
-    sk.tol = max(sk.tol, 0.8f);
-    sk.dir = -sk.dir; sk.flipAt = now; sk.armed = false; sk.integ = START_POWER;
-    sk.best = fabsf(wrap180(sk.target - ang)); sk.startErr = sk.best;
-    return;
-  }
-  if (sk.armed && fabsf(err) > sk.best + 1.5f) {
-    sk.dir = -sk.dir; sk.flips++; sk.flipAt = now; sk.armed = false; sk.best = fabsf(err); sk.integ = START_POWER;
-    if (sk.flips > 6) {
-      motorBrake(); mv.type = MV_NONE;
-      report("%s: gave up after %d reversals, %+.1f&deg; off", sk.name, sk.flips, err);
-      if (job != J_NONE) job = J_NONE;
-      return;
+    sk.best = min(sk.best, fabsf(err));
+    if (fabsf(err) < fabsf(sk.bestErr)) { sk.bestErr = err; sk.bestAng = ang; }
+    bool toward = movedWell && ((moved > 0) == (err > 0));
+    if (!sk.armed && (toward || since(sk.flipAt, now) > 400)) sk.armed = true;   // the reversal has taken effect
+
+    bool worse = sk.armed && movedWell && !toward && fabsf(err) > sk.best + 0.5f;
+    if (worse && !sk.atLimit) {
+      bool overEnd = sk.best < sk.startErr - 1.0f && (err > 0) == (sk.bestErr > 0);   // got closer, then drifted back
+      bool stuckAtEnd = sk.flips >= 1 && fabsf(sk.bestErr) > sk.origErr - 1.0f;      // tried both ways, under 1 degree closer
+      if (overEnd || stuckAtEnd) {
+        // the cam disc carried the eyes over the end of travel: go back to the end and stop
+        sk.atLimit = true; sk.target = sk.bestAng; sk.tol = max(sk.tol, 0.8f);
+        sk.dir = -sk.dir; sk.flipAt = now; sk.armed = false; sk.boost = 0;
+        sk.best = sk.startErr = fabsf(wrap180(sk.target - ang));
+        return;
+      }
+    }
+    if (worse) {
+      sk.dir = -sk.dir; sk.flips++; sk.flipAt = now; sk.armed = false; sk.boost = 0;
+      sk.best = sk.startErr = fabsf(err);
+      if (sk.flips > 6) { seekFail("%s: gave up after %d reversals, %+.1f&deg; off", err); return; }
     }
   }
-
-  // speed control: aim for a speed that eases off near the target, and steer the power to hold it
-  float vTarget = constrain(APPROACH * fabsf(err), CREEP, (float)maxSpeed);
-  float e = vTarget - toward;
-  sk.integ = constrain(sk.integ + KI * e * 0.005f, 0.0f, 100.0f);
-  sk.pct = (int)constrain(sk.integ + KP * e, 0.0f, 100.0f);
+  float a = fabsf(err);
+  int pct = a >= SLOW_ZONE ? 100 : minSpeed + (int)((100 - minSpeed) * max(0.0f, a - sk.tol) / (SLOW_ZONE - sk.tol));
+  sk.pct = constrain(pct + sk.boost, minSpeed, 100);
   motorDrive(sk.dir, sk.pct);
 }
 
@@ -813,9 +818,9 @@ void nudgeEyes(int tenths) {
 
 // ---------------------------------------------------------------- commands
 void status() {
-  report("sensor %s %.1f&deg; | %s | L %.1f C %.1f R %.1f | %s | tol %.1f | max %d deg/s | led %s %d%%",
+  report("sensor %s %.1f&deg; | %s | L %.1f C %.1f R %.1f | %s | tol %.1f | min power %d | led %s %d%%",
          magnetOk() ? "ok" : "no reading", angNow(), calibrated ? "calibrated" : "not calibrated",
-         leftDeg, centerDeg, rightDeg, symmetric ? "symmetric" : "full range", tolDeg, maxSpeed, LED_MODES[ledMode], ledPct);
+         leftDeg, centerDeg, rightDeg, symmetric ? "symmetric" : "full range", tolDeg, minSpeed, LED_MODES[ledMode], ledPct);
 }
 
 void runCmd(char a, int v, int t) {
@@ -844,7 +849,8 @@ void runCmd(char a, int v, int t) {
     case 'd': if (calibrated) startJob(J_DART); else report("calibrate first"); break;
     case 'T': if (calibrated) startJob(J_TOUR); else report("calibrate first"); break;
     case 'O': tolDeg = constrain(v / 10.0f, 0.3f, 5.0f); saveTuning(); report("tolerance %.1f&deg;", tolDeg); break;
-    case 'S': maxSpeed = constrain(v, 5, 120); saveTuning(); report("max eye speed %d&deg;/s", maxSpeed); break;
+    case 'S': minSpeed = constrain(v, 20, 100); saveTuning(); report("min power %d%%", minSpeed); break;
+    case 'V': traceOn = v != 0; report(traceOn ? "trace on: each move logs its path (ms:degrees moved:power)" : "trace off"); break;
     case 'Q':
       symmetric = v != 0; saveTuning();
       if (calibrated) report(symmetric ? "symmetric: both sides &plusmn;%.0f&deg;" : "full range: L %.0f&deg; / R %.0f&deg;",
@@ -893,7 +899,7 @@ void setupWeb() {
     int t = r->hasParam("t", true) ? r->getParam("t", true)->value().toInt() : 0;
     static const struct { const char *name; char code; } MAP[] = {
       {"stop", 'x'}, {"fwd", 'f'}, {"rev", 'r'}, {"speed", 's'}, {"jogf", 'j'}, {"jogr", 'j'},
-      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"sym", 'Q'}, {"mark", 'k'}, {"clearcal", 'K'}, {"nudge", 'e'},
+      {"goto", 'G'}, {"dart", 'd'}, {"tour", 'T'}, {"tol", 'O'}, {"minspd", 'S'}, {"sym", 'Q'}, {"mark", 'k'}, {"clearcal", 'K'}, {"nudge", 'e'}, {"trace", 'V'},
       {"encreset", 'Y'}, {"ledsteps", 'E'}, {"bright", 'b'}, {"ledmode", 'M'}, {"period", 'P'},
       {"clearlog", 'Z'}};
     Cmd c = {0, v, t};
@@ -961,7 +967,7 @@ void setup() {
   centerDeg = prefs.getFloat("c", 0);
   calibrated = calValid();
   tolDeg = prefs.getFloat("tol", 1.0f);
-  maxSpeed = prefs.getInt("vmax", 60);
+  minSpeed = prefs.getInt("minspd", 50);
   symmetric = prefs.getBool("sym", false);
 
 
