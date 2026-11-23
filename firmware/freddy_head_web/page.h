@@ -127,16 +127,6 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
     <div class="card headcard"><div class="k">Where the software thinks the eyes point (seen from above, Freddy faces up)</div><div id="head"></div></div>
     <div>
       <section id="cal" class="wiz"></section>
-      <div class="card movebox">
-        <div class="k">Move the eyes</div>
-        <form action="/cmd" method="post" class="jog"><input type="hidden" name="a" value="nudge"><label>Eyes</label>
-          <button name="v" value="-100">&laquo; 10&deg;</button><button name="v" value="-20">2&deg;</button><button name="v" value="-5">0.5&deg; &lsaquo;</button><span class="gap"></span>
-          <button name="v" value="5">&rsaquo; 0.5&deg;</button><button name="v" value="20">2&deg;</button><button name="v" value="100">10&deg; &raquo;</button></form>
-
-        <form action="/cmd" method="post"><button name="a" value="clearcal" class="small">Clear calibration</button></form>
-        <p class="hint">Steps in degrees: &lsaquo; left / right &rsaquo; once both ends are set (before that, just the sensor's
-          &minus; and + directions).</p>
-      </div>
     </div>
   </section>
 
@@ -145,17 +135,10 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
     <div id="gotos" class="gotos"></div>
   </div>
   <div class="row">
-    <form action="/cmd" method="post"><input type="hidden" name="a" value="goto"><label>Look</label>
-      <span class="lr">L</span><input type="range" name="v" min="-100" max="100" step="5" value="0" class="wide"
-        oninput="this.nextElementSibling.nextElementSibling.value=this.value+'%'" onchange="this.form.requestSubmit()"><span class="lr">R</span>
-      <output>0%</output></form>
-  </div>
-  <div class="row">
     <form action="/cmd" method="post"><button name="a" value="dart">Glance left &amp; right</button><button name="a" value="tour">Tour</button></form>
   </div>
-  <p class="hint">Center is your calibrated center; Left and Right are halfway to the ends; Full left and Full right are the ends
-    (in symmetric mode, the shorter side's travel on both sides). The firmware works out how to drive the motor.
-    The control loop drives the cam disc whichever way gets there and stops within the tolerance.</p>
+  <p class="hint">Mid left / Mid right are halfway from center to the ends. The cam disc always turns forward (like the
+    stock board), so a move can take the long way round: up to one turn, about 4 s.</p>
 
   <h2>Lights</h2>
   <div class="row">
@@ -174,19 +157,12 @@ const char PAGE_HTML[] = R"rawliteral(<!doctype html>
 
   <details class="manual" open><summary>Tuning</summary>
     <div class="row">
-      <form action="/cmd" method="post"><input type="hidden" name="a" value="sym"><label>Range</label>
-        <button name="v" value="1">Symmetric</button><button name="v" value="0">Full range</button></form>
-    </div>
-    <p class="hint">Symmetric limits both sides to the shorter side's travel, so left and right are mirror images
-      (the Eye position card shows which mode is on). Full range uses each side's whole travel. Far left / Far right (shown only in
-      symmetric mode) go to the true extremes.</p>
-    <div class="row">
       <form action="/cmd" method="post"><input type="hidden" name="a" value="tol"><label>Tolerance</label>
         <span id="f_tol"><input type="number" name="v" min="0.3" max="5" step="0.1" value="1.0"></span>&deg;<button>Set</button></form>
       
     </div>
-    <p class="hint">Tolerance: how close a go-to has to land. The eyes move at full power and brake early by how far they
-      coast, then finish with short taps; both are learned as they go.</p>
+    <p class="hint">Tolerance: a move that lands further off than this goes round once more. The eyes brake early by how far
+      they coast; that's learned as they go (shown on the Eyes card).</p>
   </details>
 
   <details class="manual"><summary>Debug: sensor details</summary>
