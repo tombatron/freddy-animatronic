@@ -58,7 +58,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "5.1.2"
+#define FW_VERSION "5.2.0"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -129,6 +129,10 @@ struct {
   uint32_t settleAt = 0, flipAt = 0, lastSample = 0;
   float integ = START_POWER;               // the integral part of the motor power
   float best = 0;                          // closest |error| since the last reversal
+  float startErr = 0;                      // |error| when this leg started (start, reversal or correction)
+  float bestAng = 0, bestErr = 0;          // where the eyes got closest overall, and the signed error there
+  bool atLimit = false;                    // the target is past the end of travel: heading back to the end
+  float origErr = 0;                       // |error| when the move started
   bool armed = true;                       // may reverse (false right after a reversal, until it takes effect)
   int flips = 0, settles = 0;
   const char *name = "";
@@ -655,6 +659,7 @@ void seekTo(float target, const char *name, float tol = -1, bool gentle = false)
   sk.approaching = true;
   sk.flips = 0; sk.settles = 0; sk.settleAt = 0;
   sk.best = fabsf(err); sk.armed = true;
+  sk.startErr = fabsf(err); sk.bestAng = angNow(); sk.bestErr = err; sk.atLimit = false; sk.origErr = fabsf(err);
   sk.integ = START_POWER; sk.flipAt = millis(); sk.lastSample = enc.samples;
   sk.pct = (int)START_POWER;
   startMove(MV_SEEK, sk.dir, sk.pct, 4000);
@@ -670,6 +675,11 @@ void seekStep(uint32_t now) {
     if (fabsf(err) <= sk.tol) {
       mv.type = MV_NONE;
       uint32_t took = since(mv.start, now);
+      if (sk.atLimit) {
+        report("%s: end of travel, stopped at the end (%.1f&deg; short of the target)", sk.name, fabsf(sk.bestErr));
+        if (job != J_NONE) jobStep(true);
+        return;
+      }
       if (job == J_NONE) report("go to %s: done, %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s");
       else { report("%s: %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s"); jobStep(true); }
       return;
@@ -680,7 +690,7 @@ void seekStep(uint32_t now) {
     }
     // coasted past: correct, starting the way that moves the eyes toward the target
     sk.dir = sk.fwdSign == 0 ? sk.dir : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
-    sk.integ = START_POWER * 0.7f; sk.flipAt = now; sk.best = fabsf(err); sk.armed = true;
+    sk.integ = START_POWER * 0.7f; sk.flipAt = now; sk.best = fabsf(err); sk.armed = true; sk.startErr = fabsf(err);
   }
   if (fabsf(err) <= sk.tol) { motorBrake(); sk.settleAt = now; return; }
   if (since(mv.start, now) > mv.ms) { endMove(false, "go to: timed out. Is the motor powered, or are the eyes stuck?"); return; }
@@ -698,7 +708,21 @@ void seekStep(uint32_t now) {
   // wait until it takes effect (eyes coming back, or 0.5 s) before judging again: the gearmotor
   // and linkage need time to stop and turn round.
   sk.best = min(sk.best, fabsf(err));
+  if (fabsf(err) < fabsf(sk.bestErr)) { sk.bestErr = err; sk.bestAng = ang; }
   if (!sk.armed && (toward > 2 || since(sk.flipAt, now) > 500)) sk.armed = true;
+  bool overEnd = sk.best < sk.startErr - 1.0f && (err > 0) == (sk.bestErr > 0);   // got closer, then drifted back
+  bool stuckAtEnd = sk.flips >= 1 && fabsf(sk.bestErr) > sk.origErr - 1.0f;       // tried both ways, neither got closer (under 1 degree)
+  if (sk.armed && fabsf(err) > sk.best + 1.5f && !sk.atLimit && (overEnd || stuckAtEnd)) {
+    // The cam disc carried the eyes over the end of travel (or they started at the end and
+    // both directions lead away). The target can't be reached: go back to the furthest
+    // point (the end) and stop there.
+    sk.atLimit = true;
+    sk.target = sk.bestAng;
+    sk.tol = max(sk.tol, 0.8f);
+    sk.dir = -sk.dir; sk.flipAt = now; sk.armed = false; sk.integ = START_POWER;
+    sk.best = fabsf(wrap180(sk.target - ang)); sk.startErr = sk.best;
+    return;
+  }
   if (sk.armed && fabsf(err) > sk.best + 1.5f) {
     sk.dir = -sk.dir; sk.flips++; sk.flipAt = now; sk.armed = false; sk.best = fabsf(err); sk.integ = START_POWER;
     if (sk.flips > 6) {

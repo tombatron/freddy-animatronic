@@ -45,7 +45,7 @@ Flash [`firmware/freddy_head_web`](../firmware/freddy_head_web/) (needs the "ESP
 
 **Calibration is manual (v4).** Next to the head diagram (Freddy seen from above, facing up the page: gaze arrows, set points, range):
 1. Move the eyes with the nudge buttons: 0.5°, 2° or 10° left or right (before both ends are set, the sensor's − and + directions).
-2. At each position press **Set here**: full left, center, full right. Each is saved to flash straight away, and any one can be redone later.
+2. At each position press **Set here**: full left, center, full right. For the ends, keep nudging until the log says **end of travel** (the eyes can't go further: the firmware stops at the end instead of fighting the cam disc), then Set here. Each is saved to flash straight away, and any one can be redone later.
 3. The panel shows the saved angles and the resulting travel, and checks that center lies between the two ends.
 
 First bench calibration: 68° of travel, L 49° / R 19° from center.
