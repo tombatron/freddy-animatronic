@@ -63,7 +63,7 @@
 #endif
 
 // Bump FW_VERSION with each change; the build time tells two builds of one version apart.
-#define FW_VERSION "3.0.0"
+#define FW_VERSION "3.0.1"
 const char *FW_BUILD = __DATE__ " " __TIME__;
 const char *HOSTNAME = "freddy";
 const char *AP_SSID = "Freddy";
@@ -122,6 +122,10 @@ struct {
   float angAtCheck = 0;
   int flips = 0, settles = 0;
   const char *name = "";
+  // Which way the eyes moved (on the sensor) the last time the cam ran forward: +1, -1,
+  // or 0 = unknown. It only changes when the eyes pass an extreme, so it's a good guess
+  // for the next move's starting direction.
+  int fwdSign = 0;
 } sk;
 
 // ---------------- jobs
@@ -556,7 +560,9 @@ void seekTo(float target, const char *name, float tol = -1) {
   sk.tol = tol > 0 ? tol : tolDeg;
   float err = wrap180(sk.target - angNow());
   if (fabsf(err) <= sk.tol) { report("go to %s: already there (%+.1f&deg;)", name, err); if (job != J_NONE) jobStep(true); return; }
-  sk.dir = 1; sk.flips = 0; sk.settles = 0; sk.settleAt = 0; sk.kickUntil = 0;
+  // start the way that moved the eyes toward the target last time (forward if unknown)
+  sk.dir = sk.fwdSign == 0 ? 1 : ((err > 0) == (sk.fwdSign > 0) ? 1 : -1);
+  sk.flips = 0; sk.settles = 0; sk.settleAt = 0; sk.kickUntil = 0;
   sk.checkAt = millis(); sk.angAtCheck = angNow();
   sk.pct = 100;
   startMove(MV_SEEK, sk.dir, 100, 4000);
@@ -571,8 +577,9 @@ void seekStep(uint32_t now) {
     sk.settleAt = 0;
     if (fabsf(err) <= sk.tol) {
       mv.type = MV_NONE;
-      if (job == J_NONE) report("go to %s: done, %+.1f&deg; off", sk.name, err);
-      else { report("%s: %+.1f&deg; off", sk.name, err); jobStep(true); }
+      uint32_t took = since(mv.start, now);
+      if (job == J_NONE) report("go to %s: done, %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s");
+      else { report("%s: %+.1f&deg; off, %lu ms, %d reversal%s", sk.name, err, took, sk.flips, sk.flips == 1 ? "" : "s"); jobStep(true); }
       return;
     }
     if (++sk.settles > 4) { endMove(false, "go to: overshoots and won't settle. Raise the tolerance or lower min speed."); return; }
@@ -585,6 +592,7 @@ void seekStep(uint32_t now) {
   if (since(sk.checkAt, now) >= 40) {
     float moved = wrap180(ang - sk.angAtCheck);
     if (fabsf(moved) > 0.15f) {
+      sk.fwdSign = ((moved > 0) == (sk.dir > 0)) ? 1 : -1;   // learn the cam's current direction
       if ((moved > 0) != (err > 0)) { sk.dir = -sk.dir; sk.flips++; }
     } else if (now > sk.kickUntil) sk.kickUntil = now + 150;  // stalled at low speed: full power briefly
     sk.checkAt = now; sk.angAtCheck = ang;
